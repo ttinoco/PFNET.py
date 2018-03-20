@@ -1,8 +1,8 @@
 Python Interface to PFNET
 =========================
 
-.. image:: https://travis-ci.org/ttinoco/PFNET.svg?branch=master
-   :target: https://travis-ci.org/ttinoco/PFNET
+.. image:: https://travis-ci.org/ttinoco/PFNET.py.svg?branch=master
+   :target: https://travis-ci.org/ttinoco/PFNET.py
 
 .. image:: https://readthedocs.org/projects/pfnet-python/badge/?version=latest
    :target: http://pfnet-python.readthedocs.io/en/latest/?badge=latest
