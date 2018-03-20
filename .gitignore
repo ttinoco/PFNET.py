@@ -12,6 +12,10 @@ __pycache__/
 
 # C extensions
 *.so
+pfnet/cpfnet.c
+
+# Binaries
+pfnet/libpfnet*
 
 # Distribution / packaging
 .Python
