@@ -145,16 +145,16 @@ More information about network generators can be found in the :ref:`API referenc
 Shunt Devices
 -------------
 
-Shunt devices in a power network are objects of type |Shunt|. Each shunt has an :data:`index <pfnet.Shunt.index>` and a :data:`name <pfnet.Shunt.name>` attribute that can be used to identify this shunt in a network. The |Network| class methods :func:`get_shunt() <pfnet.Network.get_shunt>` and :func:`get_shunt_from_name_and_bus_number() <pfnet.Network.get_shunt_from_name_and_bus_number>` can be used to get a specific shunt of the network::
+Shunt devices in a power network are objects of type |Shunt|. As other components, each shunt has an :data:`index <pfnet.Shunt.index>` and a :data:`name <pfnet.Shunt.name>` attribute as well as methods :func:`get_shunt() <pfnet.Network.get_shunt>` and :func:`get_shunt_from_name_and_bus_number() <pfnet.Network.get_shunt_from_name_and_bus_number>`::
 
   >>> shunt = net.get_shunt(0)
 
   >>> print shunt.index == 0
   True
 
-For convenience, a list of all the shunt devices in the network is contained in the :data:`shunts <pfnet.Network.shunts>` attribute of the |Network| class.
+The attribute :data:`shunts <pfnet.Network.shunts>` of the |Network| contains a list of all the shunt devices in the network.
 
-As with other network components, shunt devices can have different properties. Some shunt devices can be fixed while others can be switchable and configured to regulate a bus voltage magnitude.
+Some shunt devices can be fixed while others can be switchable and configured to regulate a bus voltage magnitude. The conductance and susceptance of a shunt device can be accessed through the attributes :data:`g <pfnet.Shunt.g>` and :data:`b <pfnet.Shunt.b>` of the |Shunt| class. 
 
 More information about network shunts can be found in the :ref:`API reference <ref_shunt>`.
 
@@ -180,7 +180,7 @@ As with generators and loads, the active and reactive powers produced by a varia
 
 The output of variable generators in a network is subject to random variations that can be correlated, especially for devices that are "nearby". The method :func:`create_var_generators_P_sigma() <pfnet.Network.create_var_generators_P_sigma>` of the |Network| class allows constructing a covariance matrix for these variations based on a "correlation distance" ``N`` and a given correlation coefficient. The cross-covariance between the variation of any two devices that are connected to buses that are at most ``N`` branches away from each other is set such that it is consistent with the given correlation coefficient. For other devices, the cross-covariance is set to zero.  
 
-Lastly, since many power network input files do not have variable generator information, these devices can be manually added to a network using the :func:`add_var_generators() <pfnet.Network.add_var_generators>` method of the |Network| class.
+Lastly, since many power network input files do not have variable generator information, these devices can be conveniently added to a network using the :func:`add_var_generators_from_parameters() <pfnet.Network.add_var_generators_from_parameters>` method of the |Network| class.
 
 More information about network variable generators can be found in the :ref:`API reference <ref_vargen>`.
 
@@ -189,7 +189,7 @@ More information about network variable generators can be found in the :ref:`API
 Batteries
 ---------
 
-Batteries are objects of type |Battery| and have an :data:`index <pfnet.Battery.index>` and :data:`name <pfnet.Battery.name>` attribute like all the other network components. Other important attributes of these objects are energy level :data:`E <pfnet.Battery.E>` and charging power :data:`P <pfnet.Battery.P>`.  Since power network input files do not have variable generator information, these devices can be manually added to a network using the :func:`add_batteries() <pfnet.Network.add_batteries>` method of the :class:`Network <pfnet.Network>` class.
+Batteries are objects of type |Battery| and have an :data:`index <pfnet.Battery.index>` and :data:`name <pfnet.Battery.name>` attribute like all the other network components. Other important attributes of these objects are energy level :data:`E <pfnet.Battery.E>` and charging power :data:`P <pfnet.Battery.P>`.  Since power network input files do not have variable generator information, these devices can be conveniently added to a network using the :func:`add_batteries_from_parameters() <pfnet.Network.add_batteries_from_parameters>` method of the :class:`Network <pfnet.Network>` class.
 
 More information about network batteries can be found in the :ref:`API reference <ref_bat>`.
 
@@ -198,11 +198,11 @@ More information about network batteries can be found in the :ref:`API reference
 Properties
 ==========
 
-A |Network| object has several quantities or ``properties`` that provide important information about the state of the network. The following table provides a description of each of these properties.
+A |Network| object has several quantities or ``properties`` that provide information about the state of the network. The following table provides a description of each of these properties.
 
-================== ================================================================= ========
+================== ================================================================= ==========
 Names              Description                                                       Units
-================== ================================================================= ========
+================== ================================================================= ==========
 ``bus_v_max``      Maximum bus voltage magnitude                                     per unit
 ``bus_v_min``      Minimum bus voltage magnitude                                     per unit
 ``bus_v_vio``      Maximum bus voltage magnitude limit violation                     per unit
@@ -220,7 +220,7 @@ Names              Description                                                  
 ``load_P_util``    Total active power consumption utility                            $/hour
 ``load_P_vio``     Maximum load active power limit violation                         MW
 ``num_actions``    Number of control adjustments (greater than 2% of control range)  unitless
-================== ================================================================= ========
+================== ================================================================= ==========
 
 All of these properties are attributes of the |Network| class. If there is a change in the network, *e.g.*, the voltage magnitude :data:`v_mag <pfnet.Bus.v_mag>` of a bus is changed, the class method :func:`update_properties() <pfnet.Network.update_properties>` needs to be called in order for the network properties to reflect the change. The following example shows how to update and extract properties::
 
@@ -263,6 +263,7 @@ To set network quantities as variables, the |Network| class method :func:`set_fl
 * :ref:`ref_load_prop`
 * :ref:`ref_shunt_prop`
 * :ref:`ref_vargen_prop`
+* :ref:`ref_bat_prop`    
 
 **Component quantities** are also component-specific. They can be combined into a list to specify all quantities that should be affected by the method :func:`set_flags() <pfnet.Network.set_flags>`. More information can be found in the following sections:
 
@@ -272,7 +273,8 @@ To set network quantities as variables, the |Network| class method :func:`set_fl
 * :ref:`ref_load_q`
 * :ref:`ref_shunt_q`
 * :ref:`ref_vargen_q`
-
+* :ref:`ref_bat_q`
+  
 The following example shows how to set as variables all the voltage magnitudes and angles of buses regulated by generators::
 
   >>> import pfnet

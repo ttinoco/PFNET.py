@@ -34,7 +34,7 @@ After installation, the availability of optional features and the version of PFN
   >>> pfnet.info
   {'raw_parser': True, 'graphviz': True, 'version': '1.3.3'}
 
-To install the module from source, the code can be obtained from `<https://github.com/ttinoco/PFNET>`_, and then the following commands can be executed on the terminal or Anaconda prompt from the ``python`` directory of the package::
+To install the module from source, the code can be obtained from `<https://github.com/ttinoco/PFNET.py>`_, and then the following commands can be executed on the terminal or Anaconda prompt from the root directory of the package::
 
     pip install numpy cython
     python setup.py install

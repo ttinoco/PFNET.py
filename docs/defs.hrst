@@ -19,7 +19,7 @@
 .. _MinGW: https://anaconda.org/carlkl/mingwpy
 .. |MinGW| replace:: `MinGW`_
 
-.. _ieee14: https://github.com/ttinoco/PFNET/tree/master/python/data
+.. _ieee14: https://github.com/ttinoco/PFNET.py/tree/master/data
 .. |ieee14| replace:: `ieee14`_
 
 .. _ARTERE: http://www.montefiore.ulg.ac.be/~vct/software.html
