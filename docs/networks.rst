@@ -400,11 +400,22 @@ As explained above, once the network variables have been set, a vector with the 
 Outages and Contingencies
 =========================
 
-PFNET provides a way to specify and analyze network contingencies. A contingency is represented by an object of type :class:`Contingency <pfnet.Contingency>`, and is characterized by one or more :class:`generator <pfnet.Generator>` or :class:`branch <pfnet.Branch>` outages. The lists of generator and branch outages of a contingency can be specified at construction, or by using the class methods :func:`add_generator_outage() <pfnet.Contingency.add_generator_outage>` and :func:`add_branch_outage() <pfnet.Contingency.add_branch_outage>`, respectively. The following example shows how to construct a contingency::
+PFNET provides a way to specify outages of certain components and analyze network contingencies. In particular, branches and generators can be set to be on outage. This can be done by setting their :data:`outage <pfnet.Generator.outage>` attribute to ``True``, as the next example shows::
 
-  >>> import pfnet
+  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
 
-  >>> pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net.clear_outages()
+
+  >>> gen = net.get_generator(3)
+  >>> branch = net.get_branch(2)
+
+  >>> gen.outage = True
+  >>> branch.outage = True
+
+  >>> print net.get_num_generators_on_outage(), net.get_num_branches_on_outage()
+  1 1
+
+A contingency is represented by an object of type :class:`Contingency <pfnet.Contingency>`, and is characterized by one or more :class:`generator <pfnet.Generator>` or :class:`branch <pfnet.Branch>` outages. The lists of generator and branch outages of a contingency can be specified at construction, or by using the class methods :func:`add_generator_outage() <pfnet.Contingency.add_generator_outage>` and :func:`add_branch_outage() <pfnet.Contingency.add_branch_outage>`, respectively. The following example shows how to construct a contingency::
 
   >>> gen = net.get_generator(3)
   >>> branch = net.get_branch(2)
@@ -417,35 +428,23 @@ PFNET provides a way to specify and analyze network contingencies. A contingency
   >>> print c1.outages
   [('branch', 2), ('generator', 3)]
 
-Once a contingency has been constructed, it can be applied and later cleared. This is done using the class methods :func:`apply() <pfnet.Contingency.apply>` and :func:`clear() <pfnet.Contingency.clear>`. The :func:`apply() <pfnet.Contingency.apply>` method sets the specified generator and branches on outage and **disconnects** them from the network. Voltage regulation and other controls provided by generators or transformers on outage are lost. The :func:`clear() <pfnet.Contingency.clear>` method undoes the changes made by the :func:`apply() <pfnet.Contingency.apply>` method. The following example shows how to apply and clear contingencies, and illustrates some of the side effects::
+Once a contingency has been constructed, it can be applied and later cleared. This is done using the class methods :func:`apply() <pfnet.Contingency.apply>` and :func:`clear() <pfnet.Contingency.clear>`. The :func:`apply() <pfnet.Contingency.apply>` method sets the specified generator and branches on outage. The :func:`clear() <pfnet.Contingency.clear>` method undoes the changes made by the :func:`apply() <pfnet.Contingency.apply>` method. The following example shows how to apply and clear contingencies, and illustrates some of the side effects::
 
   >>> print c1.has_generator_outage(gen), c1.has_branch_outage(branch)
   True True
 
-  >>> gen_bus = gen.bus
-  >>> branch_bus = branch.bus_k
-
-  >>> # generator and branch are connected to buses
-  >>> print gen in gen_bus.generators, branch in branch_bus.branches
-  True True
-
+  >>> print gen.is_on_outage(), branch.is_on_outage()
+  False False
+  
   >>> c1.apply(net)
 
   >>> print gen.is_on_outage(), branch.is_on_outage()
   True True
 
-  >>> # generator and branch are disconnected from buses
-  >>> print gen in gen_bus.generators, branch in branch_bus.branches
-  False False
-
   >>> c1.clear(net)
 
   >>> print gen.is_on_outage(), branch.is_on_outage()
   False False
-
-  >>> # generator and branch are connected to buses again
-  >>> print gen in gen_bus.generators, branch in branch_bus.branches
-  True True
 
 More information about network contingencies can be found in the :ref:`API reference <ref_cont>`.
   
@@ -488,14 +487,62 @@ Lastly, for component quantities that can potentially vary over time, setting th
   >>> print bus.index_v_mag
   [0 1 2 3 4]
 
+.. _net_subnetworks:
+
+Subnetworks
+===========
+
+It is also possible in PFNET to extract subnetworks of |Network| objects. This can be done using the class method :func:`extract_subnetwork() <pfnet.Network.extract_subnetwork>`, which takes as argument a list of |Bus| objects that correspond to the subnetwork buses. 
 
 .. _net_modifications:
 
 Network Modifications
 =====================
 
+Bus connections can be modified either from the |Bus| object or the components connected to it. The following example removes a generator and a load from a bus, and then adds them back using the two different ways::
 
-.. _net_subnetworks:
+  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
 
-Subnetworks
-===========
+  >>> bus = net.buses[8]
+
+  >>> print len(bus.generators), len(bus.loads)
+  1 1
+  
+  >>> gen = bus.generators[0]
+  >>> load = bus.loads[0]
+
+  >>> print gen.bus == bus, load.bus == bus
+  True True
+  
+  >>> gen.bus = None
+  >>> bus.remove_load(load)
+  
+  >>> print len(bus.generators), len(bus.loads)
+  0 0
+  
+  >>> bus.add_generator(gen)
+  >>> load.bus = bus
+
+  >>> print len(bus.generators), len(bus.loads)
+  1 1
+
+  >>> print gen.bus == bus, load.bus == bus
+  True True
+  
+It is also possible to add and remove components to a network. This can be done using the |Network| class methods :func:`add_buses() <pfnet.Network.add_buses>`, :func:`add_generators() <pfnet.Network.add_generators>`, etc and :func:`remove_buses() <pfnet.Network.remove_buses>`, :func:`remove_generators() <pfnet.Network.remove_generators>`, etc::
+
+  >>> new_gen = pfnet.Generator()
+  >>> new_gen.bus = bus
+
+  >>> net.add_generators([new_gen])
+  >>> print new_gen == net.generators[-1]
+  True
+  
+  >>> print len(bus.generators), len(bus.loads)
+  2 1
+  
+  >>> net.remove_generators([new_gen])  
+  >>> print len(bus.generators), len(bus.loads)
+  1 1
+  
+.. warning:: Making |Network| modifications programmatically is not yet guaranteed to be safe. One can easily leave out components with no bus connections, which could lead to errors in the underlying PFNET C library. Also, when adding or removing components from the network, the PFNET C library copies existing data to new memory locations and hence any existing components in the Python domain can point to invalid C memory locations. It is therefore recommended to not use existing Python components after adding or removing components of the same type from the network but instead re-extract them from the updated network using :func:`get_bus() <pfnet.Network.get_bus>`, :func:`get_generator() <pfnet.Network.get_generator>`, etc.
