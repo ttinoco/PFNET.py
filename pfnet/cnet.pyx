@@ -994,6 +994,50 @@ cdef class Network:
         else:
             raise NetworkError('shunt not found')
 
+    def get_fixed_shunt_from_name_and_bus_number(self, name, number):
+        """
+        Gets fixed shunt of given name connected to the bus of the 
+        given number.
+
+        Parameters
+        ----------
+        name : string
+        number : integer
+
+        Returns
+        -------
+        shunt : |Shunt|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_get_fixed_shunt_from_name_and_bus_number(self._c_net, name, number)
+        if ptr is not NULL:
+            return new_Shunt(ptr)
+        else:
+            raise NetworkError('fixed shunt not found')
+
+    def get_switched_shunt_from_name_and_bus_number(self, name, number):
+        """
+        Gets switched shunt of given name connected to the bus of the 
+        given number.
+
+        Parameters
+        ----------
+        name : string
+        number : integer
+
+        Returns
+        -------
+        shunt : |Shunt|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_get_switched_shunt_from_name_and_bus_number(self._c_net, name, number)
+        if ptr is not NULL:
+            return new_Shunt(ptr)
+        else:
+            raise NetworkError('switched shunt not found')
+
     def get_var_generator_from_name_and_bus_number(self, name, number):
         """
         Gets variable generator of given name connected to the bus of the 

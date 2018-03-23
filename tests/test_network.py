@@ -204,6 +204,32 @@ class TestNetwork(unittest.TestCase):
                                  net.get_battery_from_name_and_bus_number(bat.name,
                                                                           bat.bus.number).index)
 
+            bus = None
+            for bus in net.buses:
+                if not bus.shunts:
+                    break
+            self.assertFalse(bus is None)
+            self.assertEqual(bus.shunts, [])
+            sh1 = pf.Shunt(num_periods=bus.num_periods)
+            sh2 = pf.Shunt(num_periods=bus.num_periods)
+            sh1.bus = bus
+            sh2.bus = bus
+            sh2.reg_bus = bus
+            sh1.name = 'foo'
+            sh2.name = 'foo'
+            net.add_shunts([sh1, sh2])
+            self.assertTrue(sh1.is_fixed())
+            self.assertFalse(sh2.is_fixed())
+            self.assertFalse(sh1.is_switched())
+            self.assertTrue(sh2.is_switched())
+            s = net.get_shunt_from_name_and_bus_number('foo', bus.number)
+            self.assertTrue((s.is_equal(sh1) and not s.is_equal(sh2)) or
+                            (s.is_equal(sh2) and not s.is_equal(sh1)))
+            s = net.get_fixed_shunt_from_name_and_bus_number('foo', bus.number)
+            self.assertTrue(s.is_equal(sh1) and not s.is_equal(sh2))
+            s = net.get_switched_shunt_from_name_and_bus_number('foo', bus.number)
+            self.assertTrue(s.is_equal(sh2) and not s.is_equal(sh1))
+
     def test_variables(self):
 
         # Single period

@@ -87,6 +87,17 @@ cdef class Shunt:
 
         return cshunt.SHUNT_is_fixed(self._c_ptr)
 
+    def is_switched(self):
+        """
+        Determines whether the shunt is switchable.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_switched(self._c_ptr)
+
     def is_switched_v(self):
         """
         Determines whether the shunt is switchable and regulates
