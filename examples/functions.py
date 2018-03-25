@@ -42,4 +42,18 @@ print(type(func.Hphi), func.Hphi.shape)
 
 print(func.Hphi)
 
+# Set parameters
+import numpy as np
+
+func = pfnet.Function('variable regularization', 1., net)
+w = np.random.randn(net.num_vars)
+x0 = np.random.randn(net.num_vars)
+func.set_parameter('w', w)
+func.set_parameter('x0', x0)
+x = np.random.randn(net.num_vars)
+func.analyze()
+func.eval(x)
+print(func.phi)
+
+
 

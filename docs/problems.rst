@@ -209,6 +209,29 @@ where :math:`t` are time periods, :math:`u` are control quantities, :math:`u^0` 
 
 where :math:`u^{\max}` and :math:`u^{\min}` are control limits, and :math:`\delta` is a small positive scalar. The control quantities that are considered by this function are specified using the :class:`Network <pfnet.Network>` class methods :func:`set_flags() <pfnet.Network.set_flags>` or :func:`set_flags_of_component() <pfnet.Network.set_flags_of_component>` using the flag ``"sparse"``.
 
+.. _prob_func_REG_VAR:
+
+General Variable Regularization
+-------------------------------
+
+This function is associated with the string ``"variable regularization"``. It consists of the quadratic function
+
+.. math::
+
+   \varphi(x) := (x-x_0)^T\mbox{Diag}(w)(x-x_0),
+
+where the vectors :math:`x_0` and :math:`w` are parameters that can be set using the :class:`FunctionBase <pfnet.FunctionBase>` class method :func:`set_parameter() <pfnet.FunctionBase.set_parameter>`, as shown below::
+
+  >>> import numpy as np
+
+  >>> func = pfnet.Function('variable regularization', 1., net)
+
+  >>> w = np.random.randn(net.num_vars)
+  >>> x0 = np.random.randn(net.num_vars)
+
+  >>> func.set_parameter('w', w)
+  >>> func.set_parameter('x0', x0)
+   
 .. _prob_constr:
 
 Constraints
