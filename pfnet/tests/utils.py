@@ -1,5 +1,5 @@
 #***************************************************#
-# This file is part of PFNET1.                      #
+# This file is part of PFNET.                       #
 #                                                   #
 # Copyright (c) 2015, Tomas Tinoco De Rubira.       #
 #                                                   #
@@ -20,7 +20,7 @@ def check_constraint_combined_Hessian(test, constr, x0, y0, num, tol, eps, h):
     Parameters
     ----------
     test: unittest.TestCase
-    func : |Constraint|
+    func : |ConstraintBase|
     x0 : |Array|
     num : integer
     tol : float
@@ -61,7 +61,7 @@ def check_constraint_single_Hessian(test, constr, x0, y0, num, tol, eps, h):
     Parameters
     ----------
     test: unittest.TestCase
-    func : |Constraint|
+    func : |ConstraintBase|
     x0 : |Array|
     num : integer
     tol : float
@@ -105,7 +105,7 @@ def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h):
     Parameters
     ----------
     test: unittest.TestCase
-    func : |Constraint|
+    func : |ConstraintBase|
     x0 : |Array|
     num : integer
     tol : float
@@ -131,14 +131,14 @@ def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h):
         error = 100.*norm(Jd_exact-Jd_approx)/(norm(Jd_exact)+tol)
         test.assertLessEqual(error, eps)
 
-def check_function_hessian(test, func, x0, num, tol, eps, h):
+def check_function_Hessian(test, func, x0, num, tol, eps, h):
     """
     Checks function Hessian by using finite differences.
 
     Parameters
     ----------
     test: unittest.TestCase
-    func : |Function|
+    func : |FunctionBase|
     x0 : |Array|
     num : integer
     tol : float
@@ -172,7 +172,7 @@ def check_function_gradient(test, func, x0, num, tol, eps, h):
     Parameters
     ----------
     test: unittest.TestCase
-    func : |Function|
+    func : |FunctionBase|
     x0 : |Array|
     num : integer
     tol : float

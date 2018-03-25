@@ -454,5 +454,15 @@ Test Utilities
 
 .. _ref_test_utilities:
 
+.. autofunction:: pfnet.tests.utils.check_constraint_combined_Hessian
+.. autofunction:: pfnet.tests.utils.check_constraint_single_Hessian
+.. autofunction:: pfnet.tests.utils.check_constraint_Jacobian
+.. autofunction:: pfnet.tests.utils.check_function_Hessian
+.. autofunction:: pfnet.tests.utils.check_function_gradient
+.. autofunction:: pfnet.tests.utils.compare_buses		     
+.. autofunction:: pfnet.tests.utils.compare_generators
+.. autofunction:: pfnet.tests.utils.compare_loads
+.. autofunction:: pfnet.tests.utils.compare_shunts
+.. autofunction:: pfnet.tests.utils.compare_branches
 .. autofunction:: pfnet.tests.utils.compare_networks
-
+.. autofunction:: pfnet.tests.utils.check_network

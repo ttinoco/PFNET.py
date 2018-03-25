@@ -114,7 +114,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -332,7 +332,7 @@ class TestFunctions(unittest.TestCase):
                             1e-8*(np.linalg.norm(func.gphi)+1.))
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -459,7 +459,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -556,7 +556,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -718,7 +718,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -792,7 +792,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -894,7 +894,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1028,7 +1028,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1153,7 +1153,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1265,7 +1265,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1501,7 +1501,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1605,7 +1605,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1715,7 +1715,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
             
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1861,7 +1861,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -1983,7 +1983,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
@@ -2095,7 +2095,7 @@ class TestFunctions(unittest.TestCase):
                                                    h)
 
             # Hessian check
-            pf.tests.utils.check_function_hessian(self,
+            pf.tests.utils.check_function_Hessian(self,
                                                   func,
                                                   x0,
                                                   NUM_TRIALS,
