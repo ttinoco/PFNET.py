@@ -322,6 +322,8 @@ This constraint is associated with the string ``"AC power balance"``. It enforce
 
 where :math:`t` are time periods, :math:`P^g` and :math:`Q^g` are generator active and reactive powers, :math:`P^l` and :math:`Q^l` are load active and reactive powers, :math:`S^{sh}` are apparent powers flowing out of buses through shunt devices, :math:`S` are apparent powers flowing out of buses through branches, :math:`n` is the number of buses, :math:`T` is the number of time periods, and :math:`[n] := \{1,\ldots,n\}`. 
 
+The :class:`Bus <pfnet.Bus>` class attributes :data:`index_P <pfnet.Bus.index_P>` and :data:`index_Q <pfnet.Bus.index_Q>` can be used to obtain the row indices of the constraint function :data:`f <pfnet.ConstraintBase.f>` and Jacobian :data:`J <pfnet.ConstraintBase.J>` that are associated with the active and reactive power mismatches of a specific bus.
+
 .. _prob_constr_DCPF:
 
 DC Power balance
@@ -334,6 +336,8 @@ This constraint is associated with the string ``"DC power balance"``. It enforce
    P^g_k(t) - P^l_k(t) + \sum_{m \in [n]} b_{km} \left( \theta_k(t) - \theta_m(t) - \phi_{km}(t) \right) = 0, \ \forall \ k \in [n], \ t \in [T], 
 
 where :math:`t` are time periods, :math:`P^g` are generator active powers, :math:`P^l` are load active powers, :math:`b_{km}` are branch susceptances, :math:`\theta_k` are bus voltage angles, :math:`\phi_{km}` are phase shifts of phase-shifting transformers, :math:`n` is the number of buses, :math:`T` is the number of time periods, and :math:`[n] := \{1,\ldots,n\}`.
+
+The :class:`Bus <pfnet.Bus>` class attribute :data:`index_P <pfnet.Bus.index_P>` can be used to obtain the row indices of the constraint matrix :data:`A <pfnet.ConstraintBase.A>` and right-hand-side :data:`b <pfnet.ConstraintBase.b>` that are associated with the active (DC) power mismatches of a specific bus.
 
 .. _prob_constr_LINPF:
 
@@ -366,14 +370,24 @@ for each branch :math:`(k,m)` and time period :math:`t`, where :math:`b_{km}` ar
 AC branch flow limits
 ---------------------
 
-This constraint is associated with the string ``"AC branch flow limits"``. It enforces branch "AC" power flow limits due to thermal ratings based on current magnitudes. It utilizes auxiliary variables (slacks). It is given by
+This constraint is associated with the string ``"AC branch flow limits"``. It enforces branch "AC" power flow limits due to thermal ratings based on current magnitudes. It is given by
 
+.. math::
+   :nowrap:
+
+   \begin{align}
+      |i_{km}(t)| & \le i^{\max}_{km} \\
+      |i_{mk}(t)| & \le i^{\max}_{km}, 
+   \end{align}
+
+for each time period :math:`t` and branch :math:`(k,m)` with :math:`i^{\max}_{km} \neq 0` (thermal rating A), where :math:`i_{km}` denotes the current leaving bus :math:`k` towards bus :math:`m`. This constraint utilizes auxiliary variables (slacks) in order to be expressed in the standard form described at the beginning of Section :ref:`prob_constr`.
+   
 .. _prob_constr_AC_LIN_FLOW_LIM:
 
 Linearized AC branch flow limits
 --------------------------------
 
-This constraint is associated with the string ``"linearized AC branch flow limits"``. It enforces branch "AC" power flow limits due to thermal ratings based on current magnitudes using conservative linear constraints constructed with the external library ``Line Flow`` [DS2017]_. This external library is used with its default parameters.
+This constraint is associated with the string ``"linearized AC branch flow limits"``. It enforces branch "AC" power flow limits due to thermal ratings based on current magnitudes using conservative linear constraints constructed with the external library ``Line Flow`` [DS2017]_ using default parameters.
 
 .. _prob_constr_FIX:
 
@@ -394,19 +408,7 @@ This constraint is associated with the string ``"variable bounds"``. It constrai
 Generator participation
 -----------------------
 
-This constraint is associated with the string ``"generator active power participation"`` and ``"generator reactive power participation"``. It enforces specific active power participations among slack generators connected to the same bus, or reactive power participations among generators regulating the same bus voltage magnitude. For slack generators, all participate with equal active powers. For voltage-regulating generators, each one participates with the same fraction of its total reactive resources. More specifically, this constraint enforces
-
-.. math:: 
-
-   P^g_k(t) = P^g_m(t),
-
-for all slack generators :math:`k` and :math:`m` connected to the same bus and time period :math:`t`, or
-
-.. math::
-
-   \frac{Q^g_k(t) - Q^{\min}_k}{Q^{\max}_k - Q^{\min}_k} = \frac{Q^g_m(t) - Q^{\min}_m}{Q^{\max}_m - Q^{\min}_m},
-
-for all generators :math:`k` and :math:`m` regulating the same bus voltage magnitude and time period :math:`t`, where :math:`Q^{\min}` and :math:`Q^{\max}` are generator reactive power limits.
+These constraint are associated with the strings ``"generator active power participation"`` and ``"PVPQ switching"``. They enforce specific active power participations among slack generators connected to the same bus, and reactive power participations among generators regulating the same bus voltage magnitude, respectively. For slack generators, all participate with equal active powers. For voltage-regulating generators, each one participates with a fraction of the combined resources used to regulate the voltage equal to the :class:`Generator <pfnet.Generator>` class field :data:`Q_par <pfnet.Generator.Q_par>`. The ``"PVPQ switching"`` constraint also fixes regulated bus voltage magnitudes to their set points and can modify these constraints depending on whether generator reactive powers reach their limits.
 
 .. _prob_constr_REG_GEN:
 
