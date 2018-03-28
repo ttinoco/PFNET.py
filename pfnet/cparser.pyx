@@ -88,8 +88,9 @@ cdef class ParserBase:
         value : float
         """
 
+        cdef double v = value
         key = key.encode('UTF-8')
-        cparser.PARSER_set(self._c_parser,key,value)
+        cparser.PARSER_set(self._c_parser,key,v)
         if cparser.PARSER_has_error(self._c_parser):
             raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
 
