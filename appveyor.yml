@@ -9,7 +9,7 @@ environment:
 
     matrix:
           - PYTHON_VERSION: "2.7"
-          - PYTHON_VERSION: "3.5"
+	  #- PYTHON_VERSION: "3.5"
 
 platform:
     - x64
@@ -21,6 +21,7 @@ install:
     - "activate test"
     - "pip install toolz"
     - "pip install cython numpy scipy"
+    - "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
 
 build: false
 
