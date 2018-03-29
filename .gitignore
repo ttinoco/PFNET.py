@@ -13,6 +13,7 @@ __pycache__/
 # C extensions
 *.so
 pfnet/cpfnet.c
+pfnet/cpfnet.h
 
 # Binaries
 pfnet/libpfnet*
