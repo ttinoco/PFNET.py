@@ -13,6 +13,7 @@ __pycache__/
 # C extensions
 *.so
 pfnet/cpfnet.c
+pfnet/cpfnet.h
 
 # Binaries
 pfnet/libpfnet*
@@ -35,6 +36,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+setup.cfg
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

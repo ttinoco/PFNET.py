@@ -6,6 +6,7 @@ find ./examples -name \*.pyc -delete
 find . -name libpfnet* -delete
 rm -rf PFNET.egg-info
 rm -f ./pfnet/cpfnet.c
+rm -f ./pfnet/cpfnet.h
 rm -rf build
 rm -rf dist
 rm -rf lib/pfnet
