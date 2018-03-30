@@ -17,8 +17,6 @@ install:
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "SET PATH=%PATH:C:\\Program Files (x86)\\Git\\bin;=%"
-    - "SET PATH=C:\\MinGW\\bin;%PATH%"
     - "activate test"
     - "pip install toolz"
     - "pip install cython numpy scipy"
@@ -26,6 +24,12 @@ install:
 
 build: false
 
-test_script:
+before_build:
+    - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+    - set PATH=C:\MinGW\bin;%PATH%
+
+build_script:
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
+
+test_script:
     - "%CMD_IN_ENV% nosetests -s -v"
