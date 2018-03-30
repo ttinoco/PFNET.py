@@ -1,14 +1,14 @@
 environment:
     global:
-          PYTHON: "C:\\conda"
-          MINICONDA_VERSION: "latest"
-          # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
-          # /E:ON and /V:ON options are not enabled in the batch script intepreter
-          # See: http://stackoverflow.com/a/13751649/163740
-          CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+        PYTHON: "C:\\conda"
+        MINICONDA_VERSION: "latest"
+        # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+        # /E:ON and /V:ON options are not enabled in the batch script intepreter
+        # See: http://stackoverflow.com/a/13751649/163740
+        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
 
     matrix:
-          - PYTHON_VERSION: "2.7"
+        - PYTHON_VERSION: "2.7"
 
 platform:
     - x64
@@ -18,6 +18,7 @@ install:
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "SET PATH=%PATH:C:\\Program Files (x86)\\Git\\bin;=%"
+    - "SET PATH=C:\\MinGW\\bin;%PATH%"
     - "activate test"
     - "pip install toolz"
     - "pip install cython numpy scipy"
