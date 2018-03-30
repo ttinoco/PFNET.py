@@ -25,10 +25,11 @@ install:
 build: false
 
 before_build:
-    - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+    - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
     - set PATH=C:\MinGW\bin;%PATH%
 
 build_script:
+    - echo %PATH%
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
 test_script:
