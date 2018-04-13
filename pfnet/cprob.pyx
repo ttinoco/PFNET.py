@@ -26,6 +26,7 @@ cdef class Problem:
     cdef bint alloc
     cdef list _functions
     cdef list _constraints
+    cdef list _heuristics
     cdef Network _net
 
     def __init__(self, Network net):
@@ -45,6 +46,7 @@ cdef class Problem:
         self.alloc = True
         self._functions = []
         self._constraints = []
+        self._heuristics = []
         self._net = net
 
     def __dealloc__(self):
@@ -57,6 +59,7 @@ cdef class Problem:
             self._c_prob = NULL
             self._functions = []
             self._constraints = []
+            self._heuristics = []
             self._net = None
 
     def add_constraint(self, ConstraintBase constr):
@@ -103,9 +106,27 @@ cdef class Problem:
         if cprob.PROB_has_error(self._c_prob):
             raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
 
-    def add_heuristic(self,htype):
+    def add_heuristic(self, HeuristicBase heur):
+        """
+        Adds heuristic to optimization problem.
 
-        cprob.PROB_add_heur(self._c_prob,htype)
+        Parameters
+        ----------
+        func : |HeuristicBase|
+        """
+        
+        # Prevent __dealloc__ of heuristic
+        heur._alloc = False
+        
+        # Add heuristic to list
+        # Prevents python object from being garbage collected
+        # This will be needed for CustomHeuristics?
+        self._heuristics.append(heur)
+
+        # Add heuristic to problem
+        cprob.PROB_add_heur(self._c_prob,heur._c_heur)
+        if cprob.PROB_has_error(self._c_prob):
+            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
 
     def analyze(self):
         """
