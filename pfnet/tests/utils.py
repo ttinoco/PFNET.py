@@ -13,7 +13,7 @@ from scipy.sparse import coo_matrix, triu, tril, spdiags
 
 norminf = lambda x: norm(x,np.inf) if isinstance(x,np.ndarray) else np.abs(x)
 
-def check_constraint_combined_Hessian(test, constr, x0, y0, num, tol, eps, h):
+def check_constraint_combined_Hessian(test, constr, x0, y0, num, tol, eps, h, quiet=True):
     """
     Checks combined constraint Hessian by using finite differences.
 
@@ -25,6 +25,7 @@ def check_constraint_combined_Hessian(test, constr, x0, y0, num, tol, eps, h):
     num : integer
     tol : float
     eps : float (percentage)
+    quiet : |TrueFalse|
     """
     
     num_vars = x0.size+y0.size
@@ -52,9 +53,11 @@ def check_constraint_combined_Hessian(test, constr, x0, y0, num, tol, eps, h):
         Hd_exact = H0*d
         Hd_approx = (g1-g0)/h
         error = 100.*norm(Hd_exact-Hd_approx)/(norm(Hd_exact)+tol)
+        if not quiet:
+            print(error)
         test.assertLessEqual(error, eps)
 
-def check_constraint_single_Hessian(test, constr, x0, y0, num, tol, eps, h):
+def check_constraint_single_Hessian(test, constr, x0, y0, num, tol, eps, h, quiet=True):
     """
     Checks single constraint Hessian by using finite differences.
 
@@ -66,6 +69,7 @@ def check_constraint_single_Hessian(test, constr, x0, y0, num, tol, eps, h):
     num : integer
     tol : float
     eps : float (percentage)
+    quiet : |TrueFalse|
     """
 
     for i in range(num):
@@ -96,9 +100,11 @@ def check_constraint_single_Hessian(test, constr, x0, y0, num, tol, eps, h):
         Hd_exact = H0*d
         Hd_approx = (g1-g0)/h
         error = 100.*norm(Hd_exact-Hd_approx)/(norm(Hd_exact)+tol)
+        if not quiet:
+            print(error)
         test.assertLessEqual(error, eps)
 
-def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h):
+def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h, quiet=True):
     """
     Checks constraint Jacobian by using finite differences.
 
@@ -110,6 +116,7 @@ def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h):
     num : integer
     tol : float
     eps : float (percentage)
+    quiet : |TrueFalse|
     """
     
     constr.eval(x0, y0)
@@ -129,9 +136,11 @@ def check_constraint_Jacobian(test, constr, x0, y0, num, tol, eps, h):
         Jd_exact = J0*d
         Jd_approx = (f1-f0)/h
         error = 100.*norm(Jd_exact-Jd_approx)/(norm(Jd_exact)+tol)
+        if not quiet:
+            print(error)
         test.assertLessEqual(error, eps)
 
-def check_function_Hessian(test, func, x0, num, tol, eps, h):
+def check_function_Hessian(test, func, x0, num, tol, eps, h, quiet=True):
     """
     Checks function Hessian by using finite differences.
 
@@ -143,6 +152,7 @@ def check_function_Hessian(test, func, x0, num, tol, eps, h):
     num : integer
     tol : float
     eps : float (percentage)
+    quiet : |TrueFalse|
     """
 
     func.eval(x0)
@@ -163,9 +173,11 @@ def check_function_Hessian(test, func, x0, num, tol, eps, h):
         Hd_exact = H0*d
         Hd_approx = (g1-g0)/h
         error = 100.*norm(Hd_exact-Hd_approx)/(norm(Hd_exact)+tol)
+        if not quiet:
+            print(error)
         test.assertLessEqual(error, eps)
 
-def check_function_gradient(test, func, x0, num, tol, eps, h):
+def check_function_gradient(test, func, x0, num, tol, eps, h, quiet=True):
     """
     Checks function gradient by using finite differences.
 
@@ -177,6 +189,7 @@ def check_function_gradient(test, func, x0, num, tol, eps, h):
     num : integer
     tol : float
     eps : float (percentage)
+    quiet : |TrueFalse|
     """
 
     func.eval(x0)
@@ -195,6 +208,8 @@ def check_function_gradient(test, func, x0, num, tol, eps, h):
         gd_exact = np.dot(g0,d)
         gd_approx = (f1-f0)/h
         error = 100.*norm(gd_exact-gd_approx)/(norm(gd_exact)+tol)
+        if not quiet:
+            print(error)
         test.assertLessEqual(error, eps)
 
 def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, eps=1e-10):

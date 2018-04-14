@@ -2853,6 +2853,41 @@ class TestFunctions(unittest.TestCase):
                     phi += gen.cost_coeff_Q0+gen.cost_coeff_Q1*P+gen.cost_coeff_Q2*P*P
             self.assertLess(abs(func.phi-phi),1e-8*(1.+np.abs(phi)))
 
+            # Constraint
+            h = 1e-9
+            constr = pf.Constraint('constrained function', net)
+            constr.set_parameter('func', pf.functions.DummyGenCost(0.3,net)) # DummyGenCost does not get garbage collected
+            constr.set_parameter('rhs', 100.)
+            constr.set_parameter('op', '>=')
+            constr.analyze()
+            y0 = np.random.randn(1)
+            constr.eval(x0, y0)
+            func.eval(x0)
+            self.assertLess(np.abs(constr.f[0]-(func.phi - 100. - y0[0])),1e-8)
+            self.assertEqual(constr.G.data[0], 1.)
+            self.assertEqual(constr.num_extra_vars, 1)
+            self.assertEqual(constr.l[0], 0.)
+            self.assertEqual(constr.u[0], 1e8)
+            
+            pf.tests.utils.check_constraint_Jacobian(self, constr, x0, y0, NUM_TRIALS, TOL, EPS, h)
+            
+            # Problem
+            p = pf.Problem(net)
+            p.add_constraint(constr)
+            p.analyze()
+            x = x0+np.random.randn(x0.size)
+            y = y0+np.random.randn(y0.size)
+            p.eval(np.hstack((x,y)))
+            func.eval(x)
+            self.assertNotEqual(0, func.phi)
+            self.assertLess(np.abs(p.f[0]-(func.phi - 100. - y[0])),1e-8)
+            self.assertEqual(p.G.data[0], 1.)
+            self.assertEqual(p.G.nnz,1)
+            self.assertEqual(p.G.shape[0],1)
+            self.assertEqual(p.num_extra_vars, 1)
+            self.assertEqual(p.l[0], 0.)
+            self.assertEqual(p.u[0], 1e8)
+
     def tearDown(self):
 
         pass

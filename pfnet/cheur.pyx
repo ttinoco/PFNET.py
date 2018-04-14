@@ -75,7 +75,7 @@ cdef class HeuristicBase:
         ptr_array = <cconstr.Constr**>malloc(len(constraints)*sizeof(cconstr.Constr*))
         for i in range(len(constraints)):
             constr = constraints[i]
-            ptr_array[i] = constr._c_constr
+            ptr_array[i] = constr._c_constr            
         cheur.HEUR_apply(self._c_heur,
                          ptr_array,
                          len(constraints),

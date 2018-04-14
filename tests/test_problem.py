@@ -6,10 +6,10 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
-import pfnet as pf
 import unittest
-from . import test_cases
 import numpy as np
+import pfnet as pf
+from . import test_cases
 from numpy.linalg import norm
 from scipy.sparse import coo_matrix,triu,bmat
 
@@ -23,6 +23,156 @@ class TestProblem(unittest.TestCase):
         
         # Random
         np.random.seed(0)
+
+    def test_problem_ACOPF_with_function_constraint(self):
+
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case)
+            self.assertEqual(net.num_periods,1)
+
+            p = pf.Problem(net)
+
+            for branch in net.branches:
+                if branch.ratingA == 0.:
+                    branch.ratingA = 100.
+
+            # Variables
+            net.set_flags('bus',
+                          ['variable'],
+                          'any',
+                          'voltage magnitude')
+            net.set_flags('bus',
+                          'variable',
+                          'not slack',
+                          'voltage angle')
+            net.set_flags('generator',
+                          ['variable','bounded'],
+                          'adjustable active power',
+                          'active power')
+            net.set_flags('generator',
+                          ['variable','bounded'],
+                          'regulator',
+                          'reactive power')
+            net.set_flags('branch',
+                          ['variable','bounded'],
+                          'tap changer',
+                          'tap ratio')
+            net.set_flags('branch',
+                          ['variable','bounded'],
+                          'phase shifter',
+                          'phase shift')
+
+            self.assertEqual(net.num_vars, (2*net.num_buses - net.get_num_slack_buses() +
+                                            net.get_num_P_adjust_gens() +
+                                            net.get_num_reg_gens() +
+                                            net.get_num_tap_changers() +
+                                            net.get_num_phase_shifters()))
+            self.assertEqual(net.num_bounded,(net.get_num_P_adjust_gens() +
+                                              net.get_num_reg_gens() +
+                                              net.get_num_tap_changers() +
+                                              net.get_num_phase_shifters()))
+
+            p.add_constraint(pf.Constraint('AC power balance',net))
+            p.add_constraint(pf.Constraint('variable bounds',net))
+            p.add_function(pf.Function('generation cost',1.,net))
+
+            func = pf.Function('generation cost',1.,net)
+            constr = pf.Constraint('constrained function',net)
+            constr.set_parameter('func',func)
+            constr.set_parameter('op','>=')
+            constr.set_parameter('rhs',0.)
+            p.add_constraint(constr)
+
+
+            net.set_flags('bus',
+                          'bounded',
+                          'any',
+                          'voltage magnitude')
+
+            self.assertEqual(net.num_bounded,(net.get_num_P_adjust_gens() +
+                                              net.get_num_reg_gens() +
+                                              net.get_num_tap_changers() +
+                                              net.get_num_phase_shifters() +
+                                              net.num_buses))
+            
+            p.analyze()
+
+            # Extra vars
+            self.assertEqual(p.num_extra_vars,1)
+            
+            # Init point
+            x0 = p.get_init_point()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars+1,))
+
+            p.eval(x0)
+
+            phi = p.phi
+            gphi = p.gphi.copy()
+            Hphi = p.Hphi.copy()
+
+            f = p.f.copy()
+            b = p.b.copy()
+            A = p.A.copy()
+            J = p.J.copy()
+            G = p.G.copy()
+            l = p.l.copy()
+            u = p.u.copy()
+
+            # Numbers
+            self.assertEqual(x0.size,p.num_primal_variables)
+            self.assertEqual(A.shape[0],p.num_linear_equality_constraints)
+            self.assertEqual(f.size,p.num_nonlinear_equality_constraints)
+
+            # phi
+            self.assertTrue(type(phi) is float)
+            self.assertGreaterEqual(phi,0.)
+
+            # gphi
+            self.assertTrue(type(gphi) is np.ndarray)
+            self.assertTupleEqual(gphi.shape,(net.num_vars+1,))
+
+            # Hphi
+            self.assertTrue(type(Hphi) is coo_matrix)
+            self.assertTupleEqual(Hphi.shape,(net.num_vars+1,net.num_vars+1))
+            self.assertGreater(Hphi.nnz,0)
+
+            # f
+            self.assertTrue(type(f) is np.ndarray)
+            f_size = sum(c.f.shape[0] for c in p.constraints)
+            self.assertTupleEqual(f.shape,(f_size,))
+
+            # b
+            self.assertTrue(type(b) is np.ndarray)
+            b_size = sum(c.b.shape[0] for c in p.constraints)
+            self.assertTupleEqual(b.shape,(b_size,))
+
+            # J
+            self.assertTrue(type(J) is coo_matrix)
+            J_size = sum([c.J.shape[0] for c in p.constraints])
+            J_nnz = sum([c.J.nnz for c in p.constraints])
+            self.assertTupleEqual(J.shape,(J_size,net.num_vars+1))
+            self.assertEqual(J.nnz,J_nnz)
+
+            # G, l, u
+            self.assertTrue(type(G) is coo_matrix)
+            G_size = sum([c.G.shape[0] for c in p.constraints])
+            G_nnz = sum([c.G.nnz for c in p.constraints])
+            self.assertTupleEqual(G.shape,(G_size,net.num_vars+1))
+            self.assertEqual(G.nnz,G_nnz)
+            self.assertEqual(l.size,G_size)
+            self.assertEqual(u.size,G_size)
+            self.assertFalse(np.any(np.isnan(l)))
+            self.assertFalse(np.any(np.isnan(u)))
+            self.assertFalse(np.any(np.isnan(G.data)))
+
+            # A
+            self.assertTrue(type(A) is coo_matrix)
+            A_size = sum(c.A.shape[0] for c in p.constraints)
+            A_nnz = sum(c.A.nnz for c in p.constraints)
+            self.assertTupleEqual(A.shape,(A_size,net.num_vars+1))
+            self.assertEqual(A.nnz,A_nnz)
 
     def test_problem_LSNR(self):
 
@@ -89,11 +239,15 @@ class TestProblem(unittest.TestCase):
                              net.get_num_switched_shunts())
                              
             # Constraints
-            p.add_constraint(pf.Constraint('AC power balance',net))
-            p.add_constraint(pf.Constraint('generator active power participation',net))
-            p.add_constraint(pf.Constraint('PVPQ switching',net))
-            p.add_constraint(pf.Constraint('variable fixing',net))
-            self.assertEqual(len(p.constraints),4)
+            p.add_constraint(pf.Constraint('AC power balance', net))
+            p.add_constraint(pf.Constraint('generator active power participation', net))
+            p.add_constraint(pf.Constraint('PVPQ switching', net))
+            p.add_constraint(pf.Constraint('variable fixing', net))
+            self.assertEqual(len(p.constraints), 4)
+
+            # Heuristics
+            p.add_heuristic(pf.Heuristic('PVPQ switching', net))
+            self.assertEqual(len(p.heuristics), 1)
 
             # Check adding redundant constraints
             p.add_constraint(pf.Constraint('generator active power participation',net))
@@ -117,7 +271,7 @@ class TestProblem(unittest.TestCase):
             b = p.b
             A = p.A
             J = p.J
-            
+                            
             self.assertTrue(type(phi) is float)
             self.assertEqual(phi,0.)
             self.assertTrue(type(gphi) is np.ndarray)
@@ -265,6 +419,12 @@ class TestProblem(unittest.TestCase):
                               np.zeros(p.f.size+5),
                               None,
                               None)
+                            
+
+            # Heuristics
+            self.assertEqual(len(p.heuristics), 1)
+            self.assertEqual(p.heuristics[0].name, "PVPQ switching")
+            p.apply_heuristics(x0)            
 
     def test_problem_vPF(self):
 

@@ -27,6 +27,7 @@ cdef class ConstraintBase:
     cdef cconstr.Constr* _c_constr
     cdef bint _alloc
     cdef Network _net
+    cdef FunctionBase _function
 
     def __init__(self):
         """
@@ -40,6 +41,7 @@ cdef class ConstraintBase:
         self._c_constr = NULL
         self._alloc = False
         self._net = None
+        self._function = None
 
     def __dealloc__(self):
         """
@@ -51,6 +53,7 @@ cdef class ConstraintBase:
             self._c_constr = NULL
             self._alloc = False
             self._net = None
+            self._function = None
 
     def allocate_H_array(self, size):
         """
@@ -433,6 +436,9 @@ cdef class ConstraintBase:
         cdef np.ndarray[double, mode='c'] value_array
 
         cdef int value_int
+        cdef double value_float
+        cdef FunctionBase value_func
+        cdef char* value_str
         
         key = key.encode('UTF-8')
 
@@ -442,11 +448,26 @@ cdef class ConstraintBase:
             cvalue = <void*>&value_int
 
         # float
+        if issubclass(type(value), float):
+            value_float = value
+            cvalue = <void*>&value_float
         
         # ndarray
         if issubclass(type(value), np.ndarray):
             value_array = value
             cvalue = <void*>value_array.data
+
+        # function
+        if issubclass(type(value), FunctionBase):
+            value_func = value
+            value_func._alloc = False
+            cvalue = <void*>value_func._c_func
+            self._function = value
+
+        # string
+        if issubclass(type(value), str):
+            value_str = value
+            cvalue = <void*>value_str
 
         # Unknown
         if cvalue == NULL:
@@ -627,6 +648,8 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_BAT_DYN_new(net._c_net)
         elif name == "load constant power factor":
             self._c_constr = cconstr.CONSTR_LOAD_PF_new(net._c_net)
+        elif name == "constrained function":
+            self._c_constr = cconstr.CONSTR_CFUNC_new(net._c_net)
         else:
             raise ConstraintError('invalid constraint name')
         

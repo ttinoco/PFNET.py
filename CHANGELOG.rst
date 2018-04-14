@@ -1,9 +1,9 @@
 Unreleased
 ----------
 * Linked with appveyor.
-* Added fully functional heuristic class and unittest (in progress).
-* Added "constrained function" unittest (in progress).
-* Added fix that makes constraints keep functions alive after set_parameter (in progress).    
+* Added fully functional heuristic class and unittest.
+* Added "constrained function" unittest.
+* Added fix that makes constraints keep functions alive after set_parameter.    
   
 Version 1.3.3
 -------------

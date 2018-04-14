@@ -28,6 +28,137 @@ class TestConstraints(unittest.TestCase):
         # Random
         np.random.seed(0)
 
+    def test_constr_CFUNC(self):
+
+        h = 1e-10
+        
+        # Multiperiod
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            net.set_flags('bus',
+                          'variable',
+                          'any',
+                          'voltage magnitude')
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          'active power')
+
+            self.assertEqual(net.num_vars, (net.num_buses+net.num_generators)*net.num_periods)
+
+            x = net.get_var_values() + np.random.randn(net.num_vars)
+            
+            func = pf.Function('generation cost', 1., net)
+
+            constr = pf.Constraint('constrained function', net)
+            
+            rhs = 100.
+
+            constr.set_parameter("rhs", rhs)
+            constr.set_parameter("func", func)
+
+            # Equality
+            constr.set_parameter("op", "=")
+            constr.analyze()
+            self.assertEqual(constr.num_extra_vars, 0)
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertTupleEqual(constr.G.shape, (0, net.num_vars))
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l_extra_vars.size, 0)
+            self.assertEqual(constr.u_extra_vars.size, 0)
+            self.assertEqual(constr.init_extra_vars.size, 0)
+            self.assertEqual(constr.f.size, 1)
+            self.assertEqual(constr.J.nnz, net.num_vars)
+            self.assertTupleEqual(constr.J.shape, (1, net.num_vars))
+            H = constr.get_H_single(0)
+            self.assertEqual(H.nnz, func.Hphi.nnz)
+            self.assertTupleEqual(H.shape, (net.num_vars, net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            constr.eval(x)
+            net.update_properties(x)
+            self.assertNotEqual(func.phi, 0.)
+            self.assertLess(np.abs(func.phi-np.sum(net.gen_P_cost)), 1e-12*(np.abs(func.phi)+1.))
+            self.assertEqual(constr.f[0], func.phi - rhs - 0.)
+            pf.tests.utils.check_constraint_Jacobian(self, constr, x, np.zeros(0), NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_single_Hessian(self, constr, x, np.zeros(0), NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_combined_Hessian(self, constr, x, np.zeros(0), NUM_TRIALS, TOL, EPS, h, quiet=True)
+            
+            # Inequality >=
+            constr.set_parameter("op", ">=")
+            constr.analyze()
+            self.assertEqual(constr.num_extra_vars, 1)
+            self.assertEqual(constr.G.nnz, 1)
+            self.assertEqual(constr.G.row[0], 0)
+            self.assertEqual(constr.G.col[0], net.num_vars)
+            self.assertEqual(constr.G.data[0], 1.)
+            self.assertTupleEqual(constr.G.shape, (1, net.num_vars+1))
+            self.assertEqual(constr.l.size, 1)
+            self.assertEqual(constr.u.size, 1)
+            self.assertEqual(constr.l_extra_vars.size, 1)
+            self.assertEqual(constr.u_extra_vars.size, 1)
+            self.assertEqual(constr.init_extra_vars.size, 1)
+            self.assertEqual(constr.l[0],0)
+            self.assertEqual(constr.l_extra_vars[0],0)
+            self.assertEqual(constr.u[0],1e8)
+            self.assertEqual(constr.u_extra_vars[0],1e8)
+            self.assertEqual(constr.f.size, 1)
+            self.assertEqual(constr.J.nnz, net.num_vars+1)
+            self.assertTupleEqual(constr.J.shape, (1, net.num_vars+1))
+            H = constr.get_H_single(0)
+            self.assertEqual(H.nnz, func.Hphi.nnz)
+            self.assertTupleEqual(H.shape, (net.num_vars+1, net.num_vars+1))
+            self.assertEqual(func.phi, 0.)
+            y = np.random.randn(1)
+            constr.eval(x,y)
+            net.update_properties(x)
+            self.assertNotEqual(func.phi, 0.)
+            self.assertLess(np.abs(func.phi-np.sum(net.gen_P_cost)), 1e-12*(np.abs(func.phi)+1.))
+            self.assertEqual(constr.f[0], func.phi - rhs - y[0])
+            pf.tests.utils.check_constraint_Jacobian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_single_Hessian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_combined_Hessian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            self.assertEqual(constr.G*np.hstack((x,y)),y[0])
+
+            # Inequality <=
+            constr.set_parameter("op", "<=")
+            constr.analyze()
+            self.assertEqual(constr.num_extra_vars, 1)
+            self.assertEqual(constr.G.nnz, 1)
+            self.assertEqual(constr.G.row[0], 0)
+            self.assertEqual(constr.G.col[0], net.num_vars)
+            self.assertEqual(constr.G.data[0], 1.)
+            self.assertTupleEqual(constr.G.shape, (1, net.num_vars+1))
+            self.assertEqual(constr.l.size, 1)
+            self.assertEqual(constr.u.size, 1)
+            self.assertEqual(constr.l_extra_vars.size, 1)
+            self.assertEqual(constr.u_extra_vars.size, 1)
+            self.assertEqual(constr.init_extra_vars.size, 1)
+            self.assertEqual(constr.l[0],-1e8)
+            self.assertEqual(constr.l_extra_vars[0],-1e8)
+            self.assertEqual(constr.u[0],0)
+            self.assertEqual(constr.u_extra_vars[0],0)
+            self.assertEqual(constr.f.size, 1)
+            self.assertEqual(constr.J.nnz, net.num_vars+1)
+            self.assertTupleEqual(constr.J.shape, (1, net.num_vars+1))
+            H = constr.get_H_single(0)
+            self.assertEqual(H.nnz, func.Hphi.nnz)
+            self.assertTupleEqual(H.shape, (net.num_vars+1, net.num_vars+1))
+            self.assertEqual(func.phi, 0.)
+            y = np.random.randn(1)
+            constr.eval(x,y)
+            net.update_properties(x)
+            self.assertNotEqual(func.phi, 0.)
+            self.assertLess(np.abs(func.phi-np.sum(net.gen_P_cost)), 1e-12*(np.abs(func.phi)+1.))
+            self.assertEqual(constr.f[0], func.phi - rhs - y[0])
+            pf.tests.utils.check_constraint_Jacobian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_single_Hessian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            pf.tests.utils.check_constraint_combined_Hessian(self, constr, x, y, NUM_TRIALS, TOL, EPS, h, quiet=True)
+            self.assertEqual(constr.G*np.hstack((x,y)),y[0])
+
     def test_constr_FIX(self):
         
         # Single period
