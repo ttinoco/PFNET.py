@@ -16,9 +16,10 @@ cdef extern from "pfnet/heur.h":
 
     void HEUR_del(Heur* h)
     char* HEUR_get_name(Heur* h)
-    Heur* HEUR_new(Net* net)
+    Net* HEUR_get_network(Heur* h)
     void HEUR_apply(Heur* h, Constr** cptrs, int cnum, Vec* var_values)
     void HEUR_clear_error(Heur * h)
     bint HEUR_has_error(Heur* h)
     char* HEUR_get_error_string(Heur* h)
-    
+    Heur* HEUR_get_next(Heur* h)
+    Heur* HEUR_PVPQ_new(Net* net)

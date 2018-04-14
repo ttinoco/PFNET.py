@@ -32,6 +32,7 @@ cdef extern from "pfnet/problem.h":
     Constr* PROB_get_constr(Prob* p)
     char* PROB_get_error_string(Prob* p)
     Func* PROB_get_func(Prob* p)
+    Heur* PROB_get_heur(Prob* p)
     Vec* PROB_get_init_point(Prob* p)
     Vec* PROB_get_upper_limits(Prob* p)
     Vec* PROB_get_lower_limits(Prob* p)

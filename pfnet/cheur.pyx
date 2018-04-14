@@ -86,3 +86,43 @@ cdef class HeuristicBase:
             error_str = cheur.HEUR_get_error_string(self._c_heur).decode('UTF-8')
             self.clear_error()
             raise HeuristicError(error_str)
+
+    property name:
+        """ Heuristic name (string). """
+        def __get__(self): return cheur.HEUR_get_name(self._c_heur).decode('UTF-8')
+
+    property network:
+        """ Network associated with heuristic (|Network|). """
+        def __get__(self): return new_Network(cheur.HEUR_get_network(self._c_heur))
+
+cdef new_Heuristic(cheur.Heur* h):
+    if h is not NULL:
+        heur = HeuristicBase()
+        heur._c_heur = h
+        return heur
+    else:
+        raise HeuristicError('invalid heuristic data')
+
+cdef class Heuristic(HeuristicBase):
+    
+    def __init__(self, name, Network net):
+        """
+        Heuristic class.
+        
+        Parameters
+        ----------
+        name : string
+        net : |Network|
+        """
+        
+        pass
+    
+    def __cinit__(self, name, Network net):
+                
+        if name == "PVPQ switching":
+            self._c_heur = cheur.HEUR_PVPQ_new(net._c_net)
+        else:
+            raise HeuristicError('invalid heuristic name')
+            
+        self._alloc = True
+        self._net = net
