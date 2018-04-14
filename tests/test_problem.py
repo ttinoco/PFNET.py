@@ -174,6 +174,21 @@ class TestProblem(unittest.TestCase):
             self.assertTupleEqual(A.shape,(A_size,net.num_vars+1))
             self.assertEqual(A.nnz,A_nnz)
 
+    def test_problem_with_heur_error(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+            self.assertEqual(net.num_periods,1)
+             
+            p = pf.Problem(net)
+
+            p.add_heuristic(pf.Heuristic('PVPQ switching', net))
+
+            p.analyze()
+
+            self.assertRaises(pf.ProblemError, p.apply_heuristics, net.get_var_values())
+            
     def test_problem_LSNR(self):
 
         # Constants
@@ -248,7 +263,7 @@ class TestProblem(unittest.TestCase):
             # Heuristics
             p.add_heuristic(pf.Heuristic('PVPQ switching', net))
             self.assertEqual(len(p.heuristics), 1)
-
+            
             # Check adding redundant constraints
             p.add_constraint(pf.Constraint('generator active power participation',net))
             self.assertEqual(len(p.constraints),4)
@@ -369,9 +384,6 @@ class TestProblem(unittest.TestCase):
             coeff = np.random.randn(f.shape[0])
             p.eval(x0)
             self.assertRaises(pf.ProblemError,p.combine_H,np.zeros(f.shape[0]+1),False)
-            self.assertTrue(p.has_error())
-            p.clear_error()
-            self.assertFalse(p.has_error())
             p.combine_H(coeff,False)
             J0 = p.J.copy()
             g0 = J0.T*coeff
@@ -421,10 +433,10 @@ class TestProblem(unittest.TestCase):
                               None)
                             
 
-            # Heuristics
+            # Heuristics            
             self.assertEqual(len(p.heuristics), 1)
             self.assertEqual(p.heuristics[0].name, "PVPQ switching")
-            p.apply_heuristics(x0)            
+            p.apply_heuristics(x0)
 
     def test_problem_vPF(self):
 
@@ -644,9 +656,6 @@ class TestProblem(unittest.TestCase):
             coeff = np.random.randn(f.shape[0])
             p.eval(x0)
             self.assertRaises(pf.ProblemError,p.combine_H,np.zeros(f.shape[0]+1),False)
-            self.assertTrue(p.has_error())
-            p.clear_error()
-            self.assertFalse(p.has_error())
             p.combine_H(coeff,False)
             J0 = p.J.copy()
             g0 = J0.T*coeff
@@ -1150,9 +1159,6 @@ class TestProblem(unittest.TestCase):
             coeff = np.random.randn(f.shape[0])
             p.eval(x0)
             self.assertRaises(pf.ProblemError,p.combine_H,np.zeros(f.shape[0]+1),False)
-            self.assertTrue(p.has_error())
-            p.clear_error()
-            self.assertFalse(p.has_error())
             p.combine_H(coeff,False)
             J0 = p.J.copy()
             g0 = J0.T*coeff

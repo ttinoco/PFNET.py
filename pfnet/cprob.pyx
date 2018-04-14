@@ -82,7 +82,9 @@ cdef class Problem:
         # Add constraint to problem    
         cprob.PROB_add_constr(self._c_prob,constr._c_constr)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def add_function(self, FunctionBase func):
         """
@@ -104,7 +106,9 @@ cdef class Problem:
         # Add function to problem
         cprob.PROB_add_func(self._c_prob,func._c_func)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def add_heuristic(self, HeuristicBase heur):
         """
@@ -126,7 +130,9 @@ cdef class Problem:
         # Add heuristic to problem
         cprob.PROB_add_heur(self._c_prob,heur._c_heur)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def analyze(self):
         """
@@ -136,7 +142,9 @@ cdef class Problem:
 
         cprob.PROB_analyze(self._c_prob)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def apply_heuristics(self, var_values):
         """
@@ -151,6 +159,10 @@ cdef class Problem:
         cdef cvec.Vec* v = cvec.VEC_new_from_array(<cprob.REAL*>(x.data),x.size)
         cprob.PROB_apply_heuristics(self._c_prob,v)
         free(v)
+        if cprob.PROB_has_error(self._c_prob):
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def clear(self):
         """
@@ -184,7 +196,9 @@ cdef class Problem:
         cprob.PROB_combine_H(self._c_prob,v,ensure_psd)
         free(v)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def has_error(self):
         """
@@ -213,7 +227,9 @@ cdef class Problem:
         cprob.PROB_eval(self._c_prob,v)
         free(v)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def store_sensitivities(self, sA, sf, sGu, sGl):
         """
@@ -250,7 +266,9 @@ cdef class Problem:
         if vGl != NULL:
             free(vGl)
         if cprob.PROB_has_error(self._c_prob):
-            raise ProblemError(cprob.PROB_get_error_string(self._c_prob))
+            error_str = cprob.PROB_get_error_string(self._c_prob).decode('UTF-8')
+            self.clear_error()
+            raise ProblemError(error_str)
 
     def find_constraint(self, name):
         """
