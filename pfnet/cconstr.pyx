@@ -466,6 +466,7 @@ cdef class ConstraintBase:
 
         # string
         if issubclass(type(value), str):
+            value = value.encode('UTF-8')
             value_str = value
             cvalue = <void*>value_str
 
