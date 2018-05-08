@@ -22,7 +22,7 @@ TEST_BUSES = 20
 class ContingencyHandler:
 
     def __call__(self, c):
-        return c.num_generator_outages == 1 and c.num_branch_outages == 0
+        return c.num_generator_outages == 1 and c.num_branch_outages == 0 and 'gen' in c.name
 
 class TestContingency(unittest.TestCase):
 
@@ -42,6 +42,8 @@ class TestContingency(unittest.TestCase):
                 contingencies = []
                 for gen in net.generators[:5]:
                     c = pf.Contingency(generators=[gen])
+                    c.name = 'gen %d' %gen.index
+                    self.assertEqual(c.name, 'gen %d' %gen.index)
                     indices = c.generator_outages
                     self.assertEqual(indices.size,1)
                     self.assertEqual(indices[0], gen.index)
@@ -61,6 +63,10 @@ class TestContingency(unittest.TestCase):
 
             cont1 = pf.Contingency()
 
+            self.assertEqual(cont1.name, "")
+            cont1.name = 'foo'
+            self.assertEqual(cont1.name, 'foo')
+
             if net.num_branches > 1 and net.num_generators > 1:
                 cont1.add_branch_outage(net.get_branch(net.num_branches-1))
                 cont1.add_branch_outage(net.get_branch(net.num_branches-2))
@@ -79,6 +85,8 @@ class TestContingency(unittest.TestCase):
 
                 pkld_cont = pickle.dumps(cont1,protocol=-1)
                 cont2 = pickle.loads(pkld_cont)
+
+                self.assertEqual(cont2.name, 'foo')
 
                 self.assertEqual(cont1.num_generator_outages,cont2.num_generator_outages)
                 self.assertEqual(cont1.num_branch_outages,cont2.num_branch_outages)
@@ -117,7 +125,9 @@ class TestContingency(unittest.TestCase):
 
             self.assertTrue('generator_outages' in s)
             self.assertTrue('branch_outages' in s)
+            self.assertTrue('name' in s)
 
+            self.assertEqual(s['name'],'')
             self.assertEqual(s['generator_outages'],[])
             self.assertEqual(s['branch_outages'],[])
 
@@ -126,10 +136,11 @@ class TestContingency(unittest.TestCase):
                 cont.add_branch_outage(net.get_branch(net.num_branches-2))
                 cont.add_generator_outage(net.get_generator(0))
                 cont.add_generator_outage(net.get_generator(1))
-                
+                cont.name = 'bar'
                 s = json.loads(cont.json_string)
                 self.assertEqual(s['generator_outages'],[0,1])
                 self.assertEqual(s['branch_outages'],[net.num_branches-1,net.num_branches-2])
+                self.assertEqual(s['name'], 'bar')
 
     def test_construction(self):
 

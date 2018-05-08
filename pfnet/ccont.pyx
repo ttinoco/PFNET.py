@@ -77,6 +77,7 @@ cdef class Contingency:
 
         class temp: pass
         state = json.loads(state)
+        self.name = state['name']
         for index in state['generator_outages']:
             gen = temp()
             gen.index = index
@@ -208,3 +209,15 @@ cdef class Contingency:
             s = json_string.decode('UTF-8')
             free(json_string)
             return s
+
+    property name:
+        """ Contingency name (string). """
+        def __get__(self):
+            name = ccont.CONT_get_name(self._c_cont)
+            if name != NULL:
+                return name.decode('UTF-8')
+            else:
+                return ""
+        def __set__(self, name):
+            name = name.encode('UTF-8')
+            ccont.CONT_set_name(self._c_cont,name)
