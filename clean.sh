@@ -1,4 +1,4 @@
-echo "cleaning..."
+echo "cleaning PFNET ..."
 find ./pfnet -name \*.so -delete
 find ./pfnet -name \*.pyc -delete
 find ./tests -name \*.pyc -delete

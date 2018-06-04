@@ -2255,8 +2255,8 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            num_Jnnz = (net.num_buses*4 +
-                        net.num_branches*8 +
+            num_Jnnz = (net.num_branches*16 +
+                        net.num_shunts*2 +
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
                         net.get_num_switched_shunts() +
@@ -2293,8 +2293,8 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(G.shape,(0,net.num_vars))
             self.assertEqual(G.nnz,0)
             self.assertTupleEqual(Hcomb.shape,(net.num_vars,net.num_vars))
-            self.assertEqual(Hcomb.nnz,2*(net.get_num_buses()*3 +
-                                          net.get_num_branches()*12 +
+            self.assertEqual(Hcomb.nnz,2*(net.get_num_branches()*18 +
+                                          net.get_num_shunts()*1 +
                                           net.get_num_tap_changers()*9 +
                                           net.get_num_phase_shifters()*10 +
                                           net.get_num_switched_shunts())*self.T)
@@ -4527,8 +4527,8 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            num_Annz = (net.get_num_buses()*4 +
-                        net.get_num_branches()*8 +
+            num_Annz = (net.get_num_branches()*16 +
+                        net.num_shunts*2 +
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
                         net.get_num_switched_shunts() +
@@ -4654,10 +4654,10 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A.nnz,constrPF.J.nnz)
             self.assertTrue(np.all(constr.A.row == constrPF.J.row))
             self.assertTrue(np.all(constr.A.col == constrPF.J.col))
-            self.assertTrue(np.all(constr.A.data == constrPF.J.data))
-            self.assertGreater(norm(constr.A.row),0)
-            self.assertGreater(norm(constr.A.col),0)
+            self.assertTrue(np.all(constr.A.data == constrPF.J.data))            
             if net.num_shunts:
+                self.assertGreater(norm(constr.A.row),0)
+                self.assertGreater(norm(constr.A.col),0)
                 self.assertGreater(norm(constr.A.data),0)
             self.assertGreater(norm(constr.b),0)
             self.assertLess(norm(constr.b-(constrPF.J*x0-constrPF.f)),1e-10*(norm(constr.b)+1))
