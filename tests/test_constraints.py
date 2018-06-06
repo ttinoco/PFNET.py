@@ -2255,8 +2255,8 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            num_Jnnz = (net.num_branches*16 +
-                        net.num_shunts*2 +
+            num_Jnnz = (net.num_buses*4 +
+                        net.num_branches*8 +                        
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
                         net.get_num_switched_shunts() +
@@ -2293,8 +2293,8 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(G.shape,(0,net.num_vars))
             self.assertEqual(G.nnz,0)
             self.assertTupleEqual(Hcomb.shape,(net.num_vars,net.num_vars))
-            self.assertEqual(Hcomb.nnz,2*(net.get_num_branches()*18 +
-                                          net.get_num_shunts()*1 +
+            self.assertEqual(Hcomb.nnz,2*(net.get_num_buses()*3 +
+                                          net.get_num_branches()*12 +
                                           net.get_num_tap_changers()*9 +
                                           net.get_num_phase_shifters()*10 +
                                           net.get_num_switched_shunts())*self.T)
@@ -4527,8 +4527,8 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            num_Annz = (net.get_num_branches()*16 +
-                        net.num_shunts*2 +
+            num_Annz = (net.num_buses*4 +
+                        net.get_num_branches()*8 +
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
                         net.get_num_switched_shunts() +
