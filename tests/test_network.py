@@ -1099,21 +1099,6 @@ class TestNetwork(unittest.TestCase):
                 self.assertTrue(branch.P_mk == branch.P_mk_series+branch.P_m_shunt)
                 self.assertTrue(branch.Q_mk == branch.Q_mk_series+branch.Q_m_shunt)
 
-                # check from-to matches k-m
-                ###########################
-                self.assertTrue(branch.P_km == branch.P_from_to)
-                self.assertTrue(branch.Q_km == branch.Q_from_to)
-                self.assertTrue(branch.P_mk == branch.P_to_from)
-                self.assertTrue(branch.Q_mk == branch.Q_to_from)
-                self.assertTrue(branch.P_km_series == branch.P_series_from_to)
-                self.assertTrue(branch.Q_km_series == branch.Q_series_from_to)
-                self.assertTrue(branch.P_mk_series == branch.P_series_to_from)
-                self.assertTrue(branch.Q_mk_series == branch.Q_series_to_from)
-                self.assertTrue(branch.P_k_shunt == branch.P_shunt_from)
-                self.assertTrue(branch.Q_k_shunt == branch.Q_shunt_from)
-                self.assertTrue(branch.P_m_shunt == branch.P_shunt_to)
-                self.assertTrue(branch.Q_m_shunt == branch.Q_shunt_to)
-
                 # check passing variables to calculate flows
                 ############################################
                 flowsR = compute_branch_flows({'ratio': xR[branch.index_ratio],

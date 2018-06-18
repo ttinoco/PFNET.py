@@ -100,18 +100,6 @@ cdef class Branch:
         
         cbranch.BRANCH_set_pos_ratio_v_sens(self._c_ptr, flag);
 
-    def set_ratio(self, r, t=0):
-        """
-        Sets branch taps ratio.
-        
-        Parameters
-        ----------
-        r : float
-        t : int
-        """
-        
-        cbranch.BRANCH_set_ratio(self._c_ptr,r,t)
-
     def get_rating(self, code):
         """
         Gets branch thermal rating.
@@ -128,18 +116,6 @@ cdef class Branch:
         if code == 'C':
             return self.ratingC
         raise BranchError('thermal rating code must be A, B, or C')
-
-    def set_phase(self, p, t=0):
-        """
-        Sets branch phase shift.
-
-        Parameters
-        ----------
-        p : float
-        t : int
-        """
-
-        cbranch.BRANCH_set_phase(self._c_ptr,p,t)
 
     def set_as_fixed_tran(self):
         """ 
@@ -707,34 +683,19 @@ cdef class Branch:
     property index_ratio:
         """ Index of transformer tap ratio variable (int or |Array|). """
         def __get__(self):
-            r = [cbranch.BRANCH_get_index_ratio(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
+            return IntArray(cbranch.BRANCH_get_index_ratio_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        
     property index_phase:
         """ Index of transformer phase shift variable (int or |Array|). """
         def __get__(self):
-            r = [cbranch.BRANCH_get_index_phase(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
+            return IntArray(cbranch.BRANCH_get_index_phase_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        
     property ratio:
         """ Transformer tap ratio (float or |Array|). """
         def __get__(self):
-            r = [cbranch.BRANCH_get_ratio(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_ratio)
-        def __set__(self,r):
-            cdef int t
-            cdef np.ndarray rar = np.array(r).flatten()
-            for t in range(np.minimum(rar.size,self.num_periods)):
-                cbranch.BRANCH_set_ratio(self._c_ptr,rar[t],t)
+            return DoubleArray(cbranch.BRANCH_get_ratio_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbranch.BRANCH_get_ratio_array(self._c_ptr), self.num_periods)[:] = v
 
     property ratio_max:
         """ Transformer tap ratio upper limit (float). """
@@ -746,11 +707,6 @@ cdef class Branch:
         def __get__(self): return cbranch.BRANCH_get_ratio_min(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_ratio_min(self._c_ptr,value)
 
-    property bus_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`bus_k <pfnet.Branch.bus_k>`. """
-        def __get__(self): return self.bus_k
-        def __set__(self,bus): self.bus_k = bus
-
     property bus_k:
         """ |Bus| connected to the "k" side. """
         def __get__(self):
@@ -761,11 +717,6 @@ cdef class Branch:
                 raise BranchError('Not a Bus type object')
             cbus = bus
             cbranch.BRANCH_set_bus_k(self._c_ptr,cbus._c_ptr if bus is not None else NULL)
-
-    property bus_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`bus_m <pfnet.Branch.bus_m>`. """
-        def __get__(self): return self.bus_m
-        def __set__(self,bus): self.bus_m = bus
 
     property bus_m:
         """ |Bus| connected to the "m" side. """
@@ -794,20 +745,10 @@ cdef class Branch:
         def __get__(self): return cbranch.BRANCH_get_b(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_b(self._c_ptr,value)
 
-    property b_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`b_k <pfnet.Branch.b_k>`. """
-        def __get__(self): return self.b_k
-        def __set__(self,value): self.b_k = value
-
     property b_k:
         """ Branch shunt susceptance at the "k" side (p.u.) (float). """
         def __get__(self): return cbranch.BRANCH_get_b_k(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_b_k(self._c_ptr,value)
-
-    property b_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`b_m <pfnet.Branch.b_m>`. """
-        def __get__(self): return self.b_m
-        def __set__(self,value): self.b_m = value
 
     property b_m:
         """ Branch shunt susceptance at the "m" side (p.u.) (float). """
@@ -819,20 +760,10 @@ cdef class Branch:
         def __get__(self): return cbranch.BRANCH_get_g(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_g(self._c_ptr,value)
 
-    property g_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`g_k <pfnet.Branch.g_k>`. """
-        def __get__(self): return self.g_k
-        def __set__(self,value): self.g_k = value
-
     property g_k:
         """ Branch shunt conductance at the "k" side (p.u.) (float). """
         def __get__(self): return cbranch.BRANCH_get_g_k(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_g_k(self._c_ptr,value)
-
-    property g_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`g_m <pfnet.Branch.g_m>`. """
-        def __get__(self): return self.g_m
-        def __set__(self,value): self.g_m = value
 
     property g_m:
         """ Branch shunt conductance at the "m" side (p.u.) (float). """
@@ -842,16 +773,9 @@ cdef class Branch:
     property phase:
         """ Transformer phase shift (radians) (float or |Array|). """
         def __get__(self):
-            r = [cbranch.BRANCH_get_phase(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_phase)
-        def __set__(self,p):
-            cdef int t
-            cdef np.ndarray par = np.array(p).flatten()
-            for t in range(np.minimum(par.size,self.num_periods)):
-                cbranch.BRANCH_set_phase(self._c_ptr,par[t],t)
+            return DoubleArray(cbranch.BRANCH_get_phase_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbranch.BRANCH_get_phase_array(self._c_ptr), self.num_periods)[:] = v
 
     property phase_max:
         """ Transformer phase shift upper limit (radians) (float). """
@@ -962,55 +886,6 @@ cdef class Branch:
         """ Reactive power flow into the shunt element at bus "m" (p.u.) (float or |Array|). """
         def __get__(self):
             return self.get_Q_m_shunt()
-
-    property P_from_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_km <pfnet.Branch.P_km>`. """
-        def __get__(self): return self.P_km
-
-    property Q_from_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_km <pfnet.Branch.Q_km>`. """
-        def __get__(self): return self.Q_km
-
-    property P_to_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_mk <pfnet.Branch.P_mk>`. """
-        def __get__(self): return self.P_mk
-
-    property Q_to_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_mk <pfnet.Branch.Q_mk>`. """
-        def __get__(self): return self.Q_mk
-
-    property P_series_from_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_km_series <pfnet.Branch.P_km_series>`. """
-        def __get__(self): return self.P_km_series
-
-    property Q_series_from_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_km_series <pfnet.Branch.Q_km_series>`.
-        """
-        def __get__(self): return self.Q_km_series
-
-    property P_series_to_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_mk_series <pfnet.Branch.P_mk_series>`. """
-        def __get__(self): return self.P_mk_series
-
-    property Q_series_to_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_mk_series <pfnet.Branch.Q_mk_series>`. """
-        def __get__(self): return self.Q_mk_series
-
-    property P_shunt_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_k_shunt <pfnet.Branch.P_k_shunt>`. """
-        def __get__(self): return self.P_k_shunt
-
-    property Q_shunt_from:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_k_shunt <pfnet.Branch.Q_k_shunt>`. """
-        def __get__(self): return self.Q_k_shunt
-
-    property P_shunt_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`P_m_shunt <pfnet.Branch.P_m_shunt>`. """
-        def __get__(self): return self.P_m_shunt
-
-    property Q_shunt_to:
-        """ .. deprecated:: 1.2.5  Same as :attr:`Q_m_shunt <pfnet.Branch.Q_m_shunt>`. """
-        def __get__(self): return self.Q_m_shunt
 
     property ratingA:
         """ Branch thermal rating A (p.u. system base power) (float). """
