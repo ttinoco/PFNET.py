@@ -1,7 +1,9 @@
 echo "cleaning PFNET ..."
 find ./pfnet -name \*.so -delete
 find ./pfnet -name \*.pyc -delete
+find ./pfnet -name __pycache__ -delete
 find ./tests -name \*.pyc -delete
+find ./tests -name __pycache__ -delete
 find ./examples -name \*.pyc -delete
 find . -name libpfnet* -delete
 rm -rf PFNET.egg-info

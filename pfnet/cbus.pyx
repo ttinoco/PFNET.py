@@ -440,42 +440,6 @@ cdef class Bus:
                                      reduce(lambda x,y: x|y,[str2q[self.obj_type][qq] for qq in q],0),
                                      t_start,
                                      t_end)
-
-    def set_price(self, p, t=0):
-        """
-        Sets bus energy price.
-
-        Parameters
-        ----------
-        p : float
-        t : int
-        """
-
-        cbus.BUS_set_price(self._c_ptr,p,t)
-
-    def set_v_mag(self, v, t=0):
-        """
-        Sets bus voltage magnitude.
-
-        Parameters
-        ----------
-        v : float
-        t : int
-        """
-
-        cbus.BUS_set_v_mag(self._c_ptr,v,t)
-
-    def set_v_ang(self, v, t=0):
-        """
-        Sets bus voltage angle.
-
-        Parameters
-        ----------
-        v : float
-        t : int
-        """
-
-        cbus.BUS_set_v_ang(self._c_ptr,v,t)
         
     def add_generator(self, gen):
         """
@@ -845,24 +809,6 @@ cdef class Bus:
                 return AttributeInt(r[0])
             else:
                 return np.array(r)
-            
-    property index_v_mag:
-        """ Index of voltage magnitude variable (int or |Array|). """
-        def __get__(self):
-            r = [cbus.BUS_get_index_v_mag(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
-    property index_v_ang:
-        """ Index of voltage angle variable (int or |Array|). """
-        def __get__(self):
-            r = [cbus.BUS_get_index_v_ang(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
 
     property index_P:
         """ Index of bus active power mismatch (int or |Array|). """
@@ -881,20 +827,23 @@ cdef class Bus:
                 return AttributeInt(r[0])
             else:
                 return np.array(r)
+            
+    property index_v_mag:
+        """ Index of voltage magnitude variable (int or |Array|). """
+        def __get__(self):
+            return IntArray(cbus.BUS_get_index_v_mag_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+
+    property index_v_ang:
+        """ Index of voltage angle variable (int or |Array|). """
+        def __get__(self):
+            return IntArray(cbus.BUS_get_index_v_ang_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property price:
         """ Bus energy price (float or |Array|) ($ / (hr p.u.)). """
         def __get__(self):
-            r = [cbus.BUS_get_price(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_price)
-        def __set__(self,p):
-            cdef int t
-            cdef np.ndarray par = np.array(p).flatten()
-            for t in range(np.minimum(par.size,self.num_periods)):
-                cbus.BUS_set_price(self._c_ptr,par[t],t)
+            return DoubleArray(cbus.BUS_get_price_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbus.BUS_get_price_array(self._c_ptr), self.num_periods)[:] = v
 
     property number:
         """ Bus number (int). """
@@ -938,44 +887,23 @@ cdef class Bus:
     property v_mag:
         """ Bus volatge magnitude (p.u. bus base kv) (float or |Array|). """
         def __get__(self):
-            r = [cbus.BUS_get_v_mag(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_v_mag)
-        def __set__(self,v):
-            cdef int t
-            cdef np.ndarray var = np.array(v).flatten()
-            for t in range(np.minimum(var.size,self.num_periods)):
-                cbus.BUS_set_v_mag(self._c_ptr,var[t],t)
+            return DoubleArray(cbus.BUS_get_v_mag_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbus.BUS_get_v_mag_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_ang:
         """ Bus voltage angle (radians) (float or |Array|). """
         def __get__(self):
-            r = [cbus.BUS_get_v_ang(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_v_ang)
-        def __set__(self,v):
-            cdef int t
-            cdef np.ndarray var = np.array(v).flatten()
-            for t in range(np.minimum(var.size,self.num_periods)):
-                cbus.BUS_set_v_ang(self._c_ptr,var[t],t)
+            return DoubleArray(cbus.BUS_get_v_ang_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbus.BUS_get_v_ang_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_set:
         """ Bus voltage set point (p.u. bus base kv) (float or |Array|). """
         def __get__(self):
-            r = [cbus.BUS_get_v_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return np.array(r)
-        def __set__(self,v):
-            cdef int t
-            cdef np.ndarray var = np.array(v).flatten()
-            for t in range(np.minimum(var.size,self.num_periods)):
-                cbus.BUS_set_v_set(self._c_ptr,var[t],t)
+            return DoubleArray(cbus.BUS_get_v_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbus.BUS_get_v_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_max_reg:
         """ Bus regulation maximum voltage magnitude (p.u. bus base kv) (float). """
@@ -1071,65 +999,60 @@ cdef class Bus:
 
     property sens_P_balance:
         """ Objective function sensitivity with respect to bus active power balance (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_P_balance_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self):
+            return DoubleArray(cbus.BUS_get_sens_P_balance_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_P_balance[:] = x
 
     property sens_Q_balance:
         """ Objective function sensitivity with respect to bus reactive power balance (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_Q_balance_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self):
+            return DoubleArray(cbus.BUS_get_sens_Q_balance_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_Q_balance[:] = x
 
     property sens_v_mag_u_bound:
         """ Objective function sensitivity with respect to voltage magnitude upper bound (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_mag_u_bound_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self):
+            return DoubleArray(cbus.BUS_get_sens_v_mag_u_bound_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_mag_u_bound[:] = x
 
     property sens_v_mag_l_bound:
         """ Objective function sensitivity with respect to voltage magnitude lower bound (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_mag_l_bound_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self):
+            return DoubleArray(cbus.BUS_get_sens_v_mag_l_bound_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_mag_l_bound[:] = x
 
     property sens_v_ang_u_bound:
         """ Objective function sensitivity with respect to voltage angle upper bound (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_ang_u_bound_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_ang_u_bound_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_ang_u_bound[:] = x
 
     property sens_v_ang_l_bound:
         """ Objective function sensitivity with respect to voltage angle lower bound (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_ang_l_bound_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_ang_l_bound_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_ang_l_bound[:] = x
 
     property sens_v_reg_by_gen:
         """ Objective function sensitivity with respect to bus voltage regulation by generators (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_gen_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_gen_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_reg_by_gen[:] = x
 
     property sens_v_reg_by_tran:
         """ Objective function sensitivity with respect to bus voltage regulation by transformers (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_tran_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_tran_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_reg_by_tran[:] = x
 
     property sens_v_reg_by_shunt:
         """ Objective function sensitivity with respect to bus voltage regulation by shunts (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_shunt_array(self._c_ptr),
-                                              cbus.BUS_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_shunt_array(self._c_ptr), self.num_periods)
+        def __set__(self, x):
             self.sens_v_reg_by_shunt[:] = x
 
     property generators:

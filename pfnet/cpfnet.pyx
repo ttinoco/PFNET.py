@@ -76,16 +76,19 @@ cdef Vector(cvec.Vec* v, owndata=False):
 # Double array
 ##############
 
-cdef DoubleArray(double* a, int size, owndata=False):
+cdef DoubleArray(double* a, int size, owndata=False, toscalar=False):
     cdef np.npy_intp shape[1]
     if a is not NULL:
         shape[0] = <np.npy_intp>size
         arr = np.PyArray_SimpleNewFromData(1,shape,np.NPY_DOUBLE,a)
         if owndata:
             PyArray_ENABLEFLAGS(arr,np.NPY_OWNDATA)
-        return arr
+        if arr.size == 1 and toscalar:
+            return AttributeFloat(arr[0])
+        else:
+            return arr
     else:
-        return np.zeros(0)
+        return np.zeros(0)        
 
 # Bool array
 ############
@@ -104,14 +107,17 @@ cdef BoolArray(char* a, int size, owndata=False):
 # Int array
 ###########
 
-cdef IntArray(int* a, int size, owndata=False):
+cdef IntArray(int* a, int size, owndata=False, toscalar=False):
     cdef np.npy_intp shape[1]
     if a is not NULL:
         shape[0] = <np.npy_intp>size
         arr = np.PyArray_SimpleNewFromData(1,shape,np.NPY_INT,a)
         if owndata:
             PyArray_ENABLEFLAGS(arr,np.NPY_OWNDATA)
-        return arr
+        if arr.size == 1 and toscalar:
+            return AttributeInt(arr[0])
+        else:
+            return arr
     else:
         return np.zeros(0,dtype='int')
 
@@ -156,7 +162,7 @@ class AttributeInt(int):
     def __len__(self):
         return 0
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         if key == 0:
             return self
         else:
@@ -167,7 +173,7 @@ class AttributeInt(int):
 
 class AttributeFloat(float):
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         if key == 0:
             return self
         else:
