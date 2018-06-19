@@ -123,30 +123,6 @@ cdef class Battery:
 
         return cbat.BAT_is_equal(self._c_ptr,b_other._c_ptr)
 
-    def set_P(self, P, t=0):
-        """
-        Sets battery charging power.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cbat.BAT_set_P(self._c_ptr,P,t)
-
-    def set_E(self, E, t=0):
-        """
-        Sets battery energy level.
-
-        Parameters
-        ----------
-        E : float
-        t : int
-        """
-
-        cbat.BAT_set_E(self._c_ptr,E,t)
-
     property name:
         """ Battery name (string). """
         def __get__(self):
@@ -170,29 +146,17 @@ cdef class Battery:
     property index_Pc:
         """ Index of battery charging power variable (int or |Array|). """
         def __get__(self):
-            r = [cbat.BAT_get_index_Pc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
+            return IntArray(cbat.BAT_get_index_Pc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        
     property index_Pd:
         """ Index of battery discharging power variable (int or |Array|). """
         def __get__(self):
-            r = [cbat.BAT_get_index_Pd(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cbat.BAT_get_index_Pd_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_E:
         """ Index of battery energy level variable (int or |Array|). """
         def __get__(self):
-            r = [cbat.BAT_get_index_E(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cbat.BAT_get_index_E_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property bus:
         """ |Bus| to which battery is connected. """
@@ -208,16 +172,9 @@ cdef class Battery:
     property P:
         """ Battery charging power (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cbat.BAT_get_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cbat.BAT_set_P(self._c_ptr,Par[t],t)
+            return DoubleArray(cbat.BAT_get_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbat.BAT_get_P_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_max:
         """ Battery charging power upper limit (p.u. system base MVA) (float). """
@@ -232,16 +189,9 @@ cdef class Battery:
     property E:
         """ Battery energy level at the beginning of a time period (p.u. system base MVA times time unit) (float or |Array|). """
         def __get__(self):
-            r = [cbat.BAT_get_E(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_E)
-        def __set__(self,E):
-            cdef int t
-            cdef np.ndarray Ear = np.array(E).flatten()
-            for t in range(np.minimum(Ear.size,self.num_periods)):
-                cbat.BAT_set_E(self._c_ptr,Ear[t],t)
+            return DoubleArray(cbat.BAT_get_E_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cbat.BAT_get_E_array(self._c_ptr), self.num_periods)[:] = v
 
     property E_init:
         """ Initial battery energy level (p.u. system base MVA times time unit) (float). """

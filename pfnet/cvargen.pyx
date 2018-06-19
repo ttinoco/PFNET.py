@@ -123,54 +123,6 @@ cdef class VarGenerator:
         else:
             raise VarGeneratorError('index does not correspond to any variable')
 
-    def set_P(self, P, t=0):
-        """
-        Sets active power output.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cvargen.VARGEN_set_P(self._c_ptr,P,t)
-
-    def set_P_ava(self, P, t=0):
-        """
-        Sets available active power.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cvargen.VARGEN_set_P_ava(self._c_ptr,P,t)
-
-    def set_P_std(self, P, t=0):
-        """
-        Sets active power standard deviation.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cvargen.VARGEN_set_P_std(self._c_ptr,P,t)
-
-    def set_Q(self, Q, t=0):
-        """
-        Sets reactive power output.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cvargen.VARGEN_set_Q(self._c_ptr,Q,t)
-
     property num_periods:
         """ Number of time periods (int). """
         def __get__(self): return cvargen.VARGEN_get_num_periods(self._c_ptr)
@@ -194,20 +146,12 @@ cdef class VarGenerator:
     property index_P:
         """ Index of variable generator active power variable (int or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cvargen.VARGEN_get_index_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q:
         """ Index of variable generator reactive power variable (int or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cvargen.VARGEN_get_index_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property bus:
         """ |Bus| to which variable generator is connected. """
@@ -223,30 +167,16 @@ cdef class VarGenerator:
     property P:
         """ Variable generator active power after curtailments (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cvargen.VARGEN_set_P(self._c_ptr,Par[t],t)
+            return DoubleArray(cvargen.VARGEN_get_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cvargen.VARGEN_get_P_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_ava:
         """ Variable generator available active power (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_P_ava(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P_ava)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cvargen.VARGEN_set_P_ava(self._c_ptr,Par[t],t)
+            return DoubleArray(cvargen.VARGEN_get_P_ava_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cvargen.VARGEN_get_P_ava_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_max:
         """ Variable generator active power upper limit (p.u. system base MVA) (float). """
@@ -261,30 +191,16 @@ cdef class VarGenerator:
     property P_std:
         """ Variable generator active power standard deviation (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_P_std(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P_std)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cvargen.VARGEN_set_P_std(self._c_ptr,Par[t],t)
+            return DoubleArray(cvargen.VARGEN_get_P_std_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cvargen.VARGEN_get_P_std_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q:
         """ Variable generator reactive power (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cvargen.VARGEN_get_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cvargen.VARGEN_set_Q(self._c_ptr,Qar[t],t)
+            return DoubleArray(cvargen.VARGEN_get_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cvargen.VARGEN_get_Q_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_max:
         """ Variable generator maximum reactive power (p.u. system base MVA) (float). """
