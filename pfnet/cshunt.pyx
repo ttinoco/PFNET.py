@@ -188,11 +188,7 @@ cdef class Shunt:
     property index_b:
         """ Index of shunt susceptance variable (int or |Array|). """
         def __get__(self):
-            r = [cshunt.SHUNT_get_index_b(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cshunt.SHUNT_get_index_b_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property bus:
         """ |Bus| to which the shunt devices is connected. """
@@ -224,16 +220,9 @@ cdef class Shunt:
     property b:
         """ Shunt susceptance (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cshunt.SHUNT_get_b(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return np.array(r)
-        def __set__(self,value):
-            cdef int t
-            cdef np.ndarray Sus = np.array(value).flatten()
-            for t in range(np.minimum(Sus.size,self.num_periods)):
-                cshunt.SHUNT_set_b(self._c_ptr,Sus[t],t)
+            return DoubleArray(cshunt.SHUNT_get_b_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cshunt.SHUNT_get_b_array(self._c_ptr), self.num_periods)[:] = v
 
     property b_max:
         """ Shunt susceptance upper limit (p.u.) (float). """

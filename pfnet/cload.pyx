@@ -132,78 +132,6 @@ cdef class Load:
             return s
         else:
             raise LoadError('index does not correspond to any variable')
-
-    def set_P(self, P, t=0):
-        """
-        Sets active power.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cload.LOAD_set_P(self._c_ptr,P,t)
-
-    def set_P_max(self, P, t=0):
-        """
-        Sets active power upper limit.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cload.LOAD_set_P_max(self._c_ptr,P,t)
-
-    def set_P_min(self, P, t=0):
-        """
-        Sets active power lower limit.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cload.LOAD_set_P_min(self._c_ptr,P,t)
-
-    def set_Q(self, Q, t=0):
-        """
-        Sets reactive power.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cload.LOAD_set_Q(self._c_ptr,Q,t)
-
-    def set_Q_max(self, Q, t=0):
-        """
-        Sets reactive power upper limit.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cload.LOAD_set_Q_max(self._c_ptr,Q,t)
-
-    def set_Q_min(self, Q, t=0):
-        """
-        Sets reactive power lower limit.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cload.LOAD_set_Q_min(self._c_ptr,Q,t)
         
     property name:
         """ Load name (string). """
@@ -228,20 +156,12 @@ cdef class Load:
     property index_P:
         """ Index of load active power variable (int or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cload.LOAD_get_index_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q:
         """ Index of load reactive power variable (int or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cload.LOAD_get_index_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property bus:
         """ |Bus| to which load is connected. """
@@ -257,86 +177,44 @@ cdef class Load:
     property P:
         """ Load active power (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cload.LOAD_set_P(self._c_ptr,Par[t],t)
-
+            return DoubleArray(cload.LOAD_get_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_P_array(self._c_ptr), self.num_periods)[:] = v
+        
     property P_max:
         """ Load active power upper limit (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_P_max(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P_max)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cload.LOAD_set_P_max(self._c_ptr,Par[t],t)
+            return DoubleArray(cload.LOAD_get_P_max_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_P_max_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_min:
         """ Load active power lower limit (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_P_min(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P_min)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cload.LOAD_set_P_min(self._c_ptr,Par[t],t)
+            return DoubleArray(cload.LOAD_get_P_min_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_P_min_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q:
         """ Load reactive power (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cload.LOAD_set_Q(self._c_ptr,Qar[t],t)
+            return DoubleArray(cload.LOAD_get_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_Q_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_max:
         """ Load reactive power upper limit (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_Q_max(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q_max)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cload.LOAD_set_Q_max(self._c_ptr,Qar[t],t)
+            return DoubleArray(cload.LOAD_get_Q_max_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_Q_max_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_min:
         """ Load reactive power lower limit (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cload.LOAD_get_Q_min(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q_min)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cload.LOAD_set_Q_min(self._c_ptr,Qar[t],t)
+            return DoubleArray(cload.LOAD_get_Q_min_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_Q_min_array(self._c_ptr), self.num_periods)[:] = v
                 
     property P_util:
         """ Active power load utility ($/hr) (float or |Array|). """
