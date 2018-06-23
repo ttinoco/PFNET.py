@@ -56,7 +56,7 @@ cdef extern from "pfnet/constr.h":
     bint CONSTR_has_error(Constr* c)
     void CONSTR_clear_error(Constr * c)
     char* CONSTR_get_error_string(Constr* c)
-    void CONSTR_update_network(Constr* c)
+    void CONSTR_update(Constr* c)
     unsigned long int CONSTR_get_state_tag(Constr* c)
     int CONSTR_get_num_extra_vars(Constr* c)
     Net* CONSTR_get_network(Constr* c)

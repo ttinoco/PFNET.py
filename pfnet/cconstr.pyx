@@ -74,13 +74,13 @@ cdef class ConstraintBase:
 
         cconstr.CONSTR_del_matvec(self._c_constr)
 
-    def update_network(self):
+    def update(self):
         """
         Updates internal arrays to be compatible
         with any network changes.
         """
 
-        cconstr.CONSTR_update_network(self._c_constr)
+        cconstr.CONSTR_update(self._c_constr)
 
     def clear_error(self):
         """

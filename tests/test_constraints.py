@@ -3666,7 +3666,7 @@ class TestConstraints(unittest.TestCase):
                            pf.Constraint('AC branch flow limits',net)]
 
             # Update network
-            list(map(lambda c: c.update_network(),constraints))
+            list(map(lambda c: c.update(),constraints))
             
             # After updating network
             list(map(lambda c: c.analyze(),constraints))

@@ -60,13 +60,13 @@ cdef class FunctionBase:
 
         cfunc.FUNC_del_matvec(self._c_func)
 
-    def update_network(self):
+    def update(self):
         """
         Updates internal arrays to be compatible
         with any network changes.
         """
 
-        cfunc.FUNC_update_network(self._c_func)
+        cfunc.FUNC_update(self._c_func)
 
     def clear_error(self):
         """

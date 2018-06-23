@@ -2621,7 +2621,7 @@ class TestFunctions(unittest.TestCase):
                          pf.Function('net consumption cost',1.,net)]
 
             # Update network
-            list(map(lambda f: f.update_network(),functions))
+            list(map(lambda f: f.update(),functions))
 
             # After updating network
             list(map(lambda f: f.analyze(),functions))
