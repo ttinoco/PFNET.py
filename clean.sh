@@ -1,4 +1,5 @@
 echo "cleaning PFNET ..."
+find . -name \*~ -delete
 find ./pfnet -name \*.so -delete
 find ./pfnet -name \*.pyc -delete
 find ./pfnet -name __pycache__ -delete

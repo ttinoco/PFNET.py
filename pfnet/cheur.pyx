@@ -120,7 +120,7 @@ cdef class Heuristic(HeuristicBase):
     def __cinit__(self, name, Network net):
                 
         if name == "PVPQ switching":
-            self._c_heur = cheur.HEUR_PVPQ_new(net._c_net)
+            self._c_heur = cheur.HEUR_PVPQ_SWITCHING_new(net._c_net)
         else:
             raise HeuristicError('invalid heuristic name')
             

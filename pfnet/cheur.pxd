@@ -22,4 +22,5 @@ cdef extern from "pfnet/heur.h":
     bint HEUR_has_error(Heur* h)
     char* HEUR_get_error_string(Heur* h)
     Heur* HEUR_get_next(Heur* h)
-    Heur* HEUR_PVPQ_new(Net* net)
+
+    Heur* HEUR_PVPQ_SWITCHING_new(Net* net)
