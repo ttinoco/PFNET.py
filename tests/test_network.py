@@ -187,13 +187,15 @@ class TestNetwork(unittest.TestCase):
                                                                           branch.bus_m.number,
                                                                           branch.bus_k.number).index)
             for load in net.loads[:10]:
-                self.assertEqual(load.index,
-                                 net.get_load_from_name_and_bus_number(load.name,
-                                                                       load.bus.number).index)
+                if load.name:
+                    self.assertEqual(load.index,
+                                     net.get_load_from_name_and_bus_number(load.name,
+                                                                           load.bus.number).index)
             for shunt in net.shunts[:10]:
-                self.assertEqual(shunt.index,
-                                 net.get_shunt_from_name_and_bus_number(shunt.name,
-                                                                        shunt.bus.number).index)
+                if shunt.name:
+                    self.assertEqual(shunt.index,
+                                     net.get_shunt_from_name_and_bus_number(shunt.name,
+                                                                            shunt.bus.number).index)
 
             for vargen in net.var_generators[:10]:
                 self.assertEqual(vargen.index,
@@ -2422,7 +2424,6 @@ class TestNetwork(unittest.TestCase):
 
             # Store random bus sensitivities
             constr = [pf.Constraint('AC power balance',net),
-                      pf.Constraint('variable nonlinear bounds',net),
                       pf.Constraint('voltage regulation by generators',net),
                       pf.Constraint('voltage regulation by transformers',net),
                       pf.Constraint('voltage regulation by shunts',net)]
@@ -2603,7 +2604,7 @@ class TestNetwork(unittest.TestCase):
                           ['charging power','energy level'])
 
             self.assertEqual(net.num_vars,
-                             (2*(net.num_buses-1) +
+                             (2*(net.num_buses-net.get_num_slack_buses()) +
                               net.get_num_slack_gens() +
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
@@ -2629,9 +2630,9 @@ class TestNetwork(unittest.TestCase):
             # bus vmag
             P = net.get_var_projection('bus','any','voltage magnitude')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],net.num_buses-1)
+            self.assertEqual(P.shape[0],net.num_buses-net.get_num_slack_buses())
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,net.num_buses-1)
+            self.assertEqual(P.nnz,net.num_buses-net.get_num_slack_buses())
             vmag = P*x
             index = 0
             for i in range(net.num_buses):
@@ -2643,9 +2644,9 @@ class TestNetwork(unittest.TestCase):
             # bus vang
             P = net.get_var_projection('bus','any','voltage angle')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],net.num_buses-1)
+            self.assertEqual(P.shape[0],net.num_buses-net.get_num_slack_buses())
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,net.num_buses-1)
+            self.assertEqual(P.nnz,net.num_buses-net.get_num_slack_buses())
             vang = P*x
             index = 0
             for i in range(net.num_buses):
@@ -2917,7 +2918,7 @@ class TestNetwork(unittest.TestCase):
                           ['charging power','energy level'])
 
             self.assertEqual(net.num_vars,
-                             (2*(net.num_buses-1) +
+                             (2*(net.num_buses-net.get_num_slack_buses()) +
                               net.get_num_slack_gens() +
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
@@ -2943,9 +2944,9 @@ class TestNetwork(unittest.TestCase):
             # bus vmag
             P = net.get_var_projection('bus','any','voltage magnitude')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],(net.num_buses-1)*self.T)
+            self.assertEqual(P.shape[0],(net.num_buses-net.get_num_slack_buses())*self.T)
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,(net.num_buses-1)*self.T)
+            self.assertEqual(P.nnz,(net.num_buses-net.get_num_slack_buses())*self.T)
             vmag = P*x
             index = 0
             for i in range(net.num_buses):
@@ -2958,9 +2959,9 @@ class TestNetwork(unittest.TestCase):
             # bus vang
             P = net.get_var_projection('bus','any','voltage angle')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],(net.num_buses-1)*self.T)
+            self.assertEqual(P.shape[0],(net.num_buses-net.get_num_slack_buses())*self.T)
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,(net.num_buses-1)*self.T)
+            self.assertEqual(P.nnz,(net.num_buses-net.get_num_slack_buses())*self.T)
             vang = P*x
             index = 0
             for i in range(net.num_buses):
@@ -3310,7 +3311,7 @@ class TestNetwork(unittest.TestCase):
                           ['charging power','energy level'])
 
             self.assertEqual(net.num_vars,
-                             (2*(net.num_buses-1) +
+                             (2*(net.num_buses-net.get_num_slack_buses()) +
                               net.num_generators-net.get_num_slack_gens() +
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
@@ -3328,7 +3329,7 @@ class TestNetwork(unittest.TestCase):
             # bus all
             P = net.get_var_projection('bus','any','all',2,3)
             self.assertTrue(np.all(P.data == 1.))
-            self.assertTupleEqual(P.shape,(2*(net.num_buses-1)*2,net.num_vars))
+            self.assertTupleEqual(P.shape,(2*(net.num_buses-net.get_num_slack_buses())*2,net.num_vars))
 
             # gen all
             P = net.get_var_projection('generator','any','all',2,4)
@@ -4244,7 +4245,8 @@ class TestNetwork(unittest.TestCase):
                 copy_bus.v_max_emer = orig_bus.v_max_emer
                 copy_bus.v_min_emer = orig_bus.v_min_emer
                 copy_bus.set_slack_flag(orig_bus.is_slack())
-
+                copy_bus.set_star_flag(orig_bus.is_star())
+                
             # Update hash tables, important
             copy_net.update_hashes()
             

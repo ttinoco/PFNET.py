@@ -30,7 +30,7 @@ class TestConstraints(unittest.TestCase):
 
     def test_constr_CFUNC(self):
 
-        h = 1e-10
+        h = 1e-8
         
         # Multiperiod
         for case in test_cases.CASES:
@@ -750,7 +750,7 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(b[A.row[k]], bus.v_ang[t])
                     break                                    
                     
-    def test_constr_LBOUND(self):
+    def test_constr_BOUND(self):
 
         # Single period
         for case in test_cases.CASES:
@@ -2391,10 +2391,10 @@ class TestConstraints(unittest.TestCase):
                 for t in range(self.T-1):
                     self.assertTrue(np.all(Hp_list[t].row == Hp_list[t+1].row))
                     self.assertTrue(np.all(Hp_list[t].col == Hp_list[t+1].col))
-                    self.assertLess(norm(Hp_list[t].data-Hp_list[t+1].data),1e-12*norm(Hp_list[t].data))
+                    self.assertLessEqual(norm(Hp_list[t].data-Hp_list[t+1].data),1e-12*norm(Hp_list[t].data))
                     self.assertTrue(np.all(Hq_list[t].row == Hq_list[t+1].row))
                     self.assertTrue(np.all(Hq_list[t].col == Hq_list[t+1].col))
-                    self.assertLess(norm(Hq_list[t].data-Hq_list[t+1].data),1e-12*norm(Hq_list[t].data))
+                    self.assertLessEqual(norm(Hq_list[t].data-Hq_list[t+1].data),1e-12*norm(Hq_list[t].data))
 
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
@@ -2868,259 +2868,6 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr2.A.shape[0], 0)
             self.assertEqual(constr2.J.shape[0], 0)
              
-    def test_constr_NBOUND(self):
-
-        # Constants
-        h = 1e-8
-
-        # Multiperiod
-        for case in test_cases.CASES:
-
-            net = pf.Parser(case).parse(case,self.T)
-            self.assertEqual(net.num_periods,self.T)
-
-            # Vars
-            net.set_flags('bus',
-                          'variable',
-                          'any',
-                          ['voltage magnitude','voltage angle'])
-            net.set_flags('generator',
-                          'variable',
-                          'any',
-                          ['active power','reactive power'])
-            net.set_flags('branch',
-                          'variable',
-                          'tap changer',
-                          'tap ratio')
-            net.set_flags('branch',
-                          'variable',
-                          'phase shifter',
-                          'phase shift')
-            net.set_flags('shunt',
-                          'variable',
-                          'switching - v',
-                          'susceptance')
-            self.assertEqual(net.num_vars,
-                             (2*net.num_buses +
-                              2*net.num_generators +
-                              net.get_num_tap_changers() +
-                              net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts())*self.T)
-
-            # Bound constraints
-            net.set_flags('bus',
-                          'bounded',
-                          'any',
-                          ['voltage magnitude','voltage angle'])
-            net.set_flags('generator',
-                          'bounded',
-                          'any',
-                          ['active power','reactive power'])
-            net.set_flags('branch',
-                          'bounded',
-                          'tap changer',
-                          'tap ratio')
-            net.set_flags('branch',
-                          'bounded',
-                          'phase shifter',
-                          'phase shift')
-            net.set_flags('shunt',
-                          'bounded',
-                          'switching - v',
-                          'susceptance')
-            self.assertEqual(net.num_bounded,
-                             (2*net.num_buses +
-                              2*net.num_generators +
-                              net.get_num_tap_changers() +
-                              net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts())*self.T)
-
-            x0 = net.get_var_values()
-            self.assertTrue(type(x0) is np.ndarray)
-            self.assertTupleEqual(x0.shape,(net.num_vars,))
-
-            # Constraint
-            constr = pf.Constraint('variable nonlinear bounds',net)
-            self.assertEqual(constr.name,'variable nonlinear bounds')
-
-            f = constr.f
-            J = constr.J
-            A = constr.A
-            b = constr.b
-
-            # Before
-            self.assertTrue(type(f) is np.ndarray)
-            self.assertTupleEqual(f.shape,(0,))
-            self.assertTrue(type(b) is np.ndarray)
-            self.assertTupleEqual(b.shape,(0,))
-            self.assertTrue(type(J) is coo_matrix)
-            self.assertTupleEqual(J.shape,(0,0))
-            self.assertEqual(J.nnz,0)
-            self.assertTrue(type(A) is coo_matrix)
-            self.assertTupleEqual(A.shape,(0,0))
-            self.assertEqual(A.nnz,0)
-
-            self.assertEqual(constr.J_nnz,0)
-            self.assertEqual(constr.A_nnz,0)
-
-            J_nnz = 2*net.num_vars
-            constr.analyze()
-            self.assertEqual(J_nnz,constr.J_nnz)
-            constr.eval(x0)
-            self.assertEqual(J_nnz,constr.J_nnz)
-            constr.store_sensitivities(None,np.zeros(constr.J.shape[0]),None,None)
-            self.assertEqual(J_nnz,constr.J_nnz)
-            constr.eval(x0)
-            self.assertEqual(J_nnz,constr.J_nnz)
-
-            f = constr.f
-            J = constr.J
-            A = constr.A
-            b = constr.b
-
-            # After
-            self.assertTrue(type(f) is np.ndarray)
-            self.assertTupleEqual(f.shape,(2*net.num_vars,))
-            self.assertTrue(type(b) is np.ndarray)
-            self.assertTupleEqual(b.shape,(0,))
-            self.assertTrue(type(J) is coo_matrix)
-            self.assertTupleEqual(J.shape,(2*net.num_vars,net.num_vars))
-            self.assertTrue(type(A) is coo_matrix)
-            self.assertTupleEqual(A.shape,(0,net.num_vars))
-            self.assertEqual(A.nnz,0)
-
-            self.assertTrue(not np.any(np.isinf(f)))
-            self.assertTrue(not np.any(np.isnan(f)))
-
-            # Jacobian check
-            pf.tests.utils.check_constraint_Jacobian(self,
-                                                     constr,
-                                                     x0,
-                                                     np.zeros(0),
-                                                     NUM_TRIALS,
-                                                     TOL,
-                                                     EPS,
-                                                     h)
-
-            # Sigle Hessian check
-            pf.tests.utils.check_constraint_single_Hessian(self,
-                                                           constr,
-                                                           x0,
-                                                           np.zeros(0),
-                                                           NUM_TRIALS,
-                                                           TOL,
-                                                           EPS,
-                                                           h)
-            
-            # Combined Hessian check
-            pf.tests.utils.check_constraint_combined_Hessian(self,
-                                                             constr,
-                                                             x0,
-                                                             np.zeros(0),
-                                                             NUM_TRIALS,
-                                                             TOL,
-                                                             EPS,
-                                                             h)
-
-            # Sensitivities
-            net.clear_sensitivities()
-            for t in range(self.T):
-                for i in range(net.num_buses):
-                    bus = net.get_bus(i)
-                    self.assertEqual(bus.sens_v_mag_u_bound[t],0.)
-                    self.assertEqual(bus.sens_v_mag_l_bound[t],0.)
-            sens = np.zeros(constr.f.size)
-            Ji = constr.J.row
-            Jj = constr.J.col
-            for t in range(self.T):
-                for i in range(net.num_buses): # buses
-                    bus = net.get_bus(i)
-                    indices = Ji[np.where(Jj == bus.index_v_mag[t])[0]]
-                    self.assertEqual(indices.size,2)
-                    sens[indices[0]] = bus.index*10.
-                    sens[indices[1]] = -bus.index*10.
-            constr.store_sensitivities(None,sens,None,None)
-            for t in range(self.T):
-                for i in range(net.num_buses):
-                    bus = net.get_bus(i)
-                    self.assertEqual(bus.sens_v_mag_u_bound[t],bus.index*10.)
-                    self.assertEqual(bus.sens_v_mag_l_bound[t],-bus.index*10.)
-
-    def test_constr_NBOUND_with_outages(self):
-
-        # Constants
-        h = 1e-8
-
-        # Multiperiod
-        for case in test_cases.CASES:
-
-            net = pf.Parser(case).parse(case,self.T)
-            self.assertEqual(net.num_periods,self.T)
-
-            # Vars
-            net.set_flags('bus',
-                          ['variable', 'bounded'],
-                          'any',
-                          ['voltage magnitude','voltage angle'])
-            net.set_flags('generator',
-                          ['variable', 'bounded'],
-                          'any',
-                          ['active power','reactive power'])
-            net.set_flags('branch',
-                          ['variable', 'bounded'],
-                          'tap changer',
-                          'tap ratio')
-            net.set_flags('branch',
-                          ['variable', 'bounded'], 
-                          'phase shifter',
-                          'phase shift')
-            net.set_flags('shunt',
-                          ['variable', 'bounded'],
-                          'switching - v',
-                          'susceptance')
-            self.assertEqual(net.num_vars,
-                             (2*net.num_buses +
-                              2*net.num_generators +
-                              net.get_num_tap_changers() +
-                              net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts())*self.T)
-            self.assertEqual(net.num_vars, net.num_bounded)
-
-            x0 = net.get_var_values()
-
-            constr = pf.Constraint('variable nonlinear bounds',net)
-            constr.analyze()
-
-            # Jacobian check
-            pf.tests.utils.check_constraint_Jacobian(self,
-                                                     constr,
-                                                     x0,
-                                                     np.zeros(0),
-                                                     NUM_TRIALS,
-                                                     TOL,
-                                                     EPS,
-                                                     h)
-
-            # Sigle Hessian check
-            pf.tests.utils.check_constraint_single_Hessian(self,
-                                                           constr,
-                                                           x0,
-                                                           np.zeros(0),
-                                                           NUM_TRIALS,
-                                                           TOL,
-                                                           EPS,
-                                                           h)
-            
-            # Combined Hessian check
-            pf.tests.utils.check_constraint_combined_Hessian(self,
-                                                             constr,
-                                                             x0,
-                                                             np.zeros(0),
-                                                             NUM_TRIALS,
-                                                             TOL,
-                                                             EPS,
-                                                             h)
-                    
     def test_constr_REG_TRAN(self):
 
         # Constants
@@ -3609,8 +3356,7 @@ class TestConstraints(unittest.TestCase):
 
             net = pf.Network(self.T)
 
-            constraints = [pf.Constraint('variable nonlinear bounds',net),
-                           pf.Constraint('variable fixing',net),
+            constraints = [pf.Constraint('variable fixing',net),
                            pf.Constraint('generator active power participation',net),
                            pf.Constraint('PVPQ switching',net),
                            pf.Constraint('AC power balance',net),
@@ -3654,8 +3400,7 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
-            constraints = [pf.Constraint('variable nonlinear bounds',net),
-                           pf.Constraint('variable fixing',net),
+            constraints = [pf.Constraint('variable fixing',net),
                            pf.Constraint('generator active power participation',net),
                            pf.Constraint('PVPQ switching',net),
                            pf.Constraint('AC power balance',net),
@@ -4942,7 +4687,7 @@ class TestConstraints(unittest.TestCase):
 
             constr.analyze()
             self.assertEqual(num_Jnnz,constr.J_nnz)
-            self.assertEqual(0,constr.G_nnz)
+            self.assertEqual(num_constr,constr.G_nnz)
             self.assertEqual(num_constr,constr.J_row)
            
             f = constr.f
@@ -5995,8 +5740,7 @@ class TestConstraints(unittest.TestCase):
 
             net = pf.Parser(case).parse(case, self.T)
 
-            constraints = [pf.Constraint('variable nonlinear bounds', net), # nonlinear
-                           pf.Constraint('variable bounds', net),
+            constraints = [pf.Constraint('variable bounds', net),
                            pf.Constraint('variable fixing', net),
                            pf.Constraint('battery dynamics', net),
                            pf.Constraint('generator active power participation', net),

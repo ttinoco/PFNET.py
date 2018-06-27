@@ -470,17 +470,26 @@ class TestContingency(unittest.TestCase):
                 br.bus_m
                 if reg_bus is not None:
                     br.reg_bus
+
+                if br.bus_k.index != br.bus_m.index:
+                    self.assertFalse(br.index in [x.index for x in bus_k.branches_m])
+                    self.assertFalse(br.index in [x.index for x in bus_m.branches_k])
+                else:
+                    self.assertTrue(br.index in [x.index for x in bus_k.branches_m])
+                    self.assertTrue(br.index in [x.index for x in bus_m.branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_k.branches_k])
-                self.assertFalse(br.index in [x.index for x in bus_k.branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_k.branches])
-                self.assertFalse(br.index in [x.index for x in bus_m.branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_m.branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_m.branches])
 
+                if br.bus_k.index != br.bus_m.index:
+                    self.assertFalse(br.index in [x.index for x in bus_k_branches_m])
+                    self.assertFalse(br.index in [x.index for x in bus_m_branches_k])
+                else:
+                    self.assertTrue(br.index in [x.index for x in bus_k_branches_m])
+                    self.assertTrue(br.index in [x.index for x in bus_m_branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_k_branches_k])
-                self.assertFalse(br.index in [x.index for x in bus_k_branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_k_branches])
-                self.assertFalse(br.index in [x.index for x in bus_m_branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_m_branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_m_branches])
 
@@ -501,20 +510,29 @@ class TestContingency(unittest.TestCase):
                     self.assertTrue(br.is_tap_changer())
                     self.assertEqual(br.reg_bus.index,reg_bus.index)
 
+
+                if br.bus_k.index != br.bus_m.index:
+                    self.assertFalse(br.index in [x.index for x in bus_k_branches_m])
+                    self.assertFalse(br.index in [x.index for x in bus_k.branches_m])
+                else:
+                    self.assertTrue(br.index in [x.index for x in bus_k_branches_m])
+                    self.assertTrue(br.index in [x.index for x in bus_k.branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_k_branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_k_branches])
-                self.assertFalse(br.index in [x.index for x in bus_k_branches_m])
                 self.assertTrue(br.index in [x.index for x in bus_k.branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_k.branches])
-                self.assertFalse(br.index in [x.index for x in bus_k.branches_m])
                 self.assertEqual(len(bus_k_branches_k),len(bus_k.branches_k))
                 self.assertEqual(len(bus_k_branches_m),len(bus_k.branches_m))
                 self.assertEqual(len(bus_k_branches),len(bus_k.branches))
 
-                self.assertFalse(br.index in [x.index for x in bus_m_branches_k])
+                if br.bus_k.index != br.bus_m.index:
+                    self.assertFalse(br.index in [x.index for x in bus_m_branches_k])
+                    self.assertFalse(br.index in [x.index for x in bus_m.branches_k])
+                else:
+                    self.assertTrue(br.index in [x.index for x in bus_m_branches_k])
+                    self.assertTrue(br.index in [x.index for x in bus_m.branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_m_branches])
                 self.assertTrue(br.index in [x.index for x in bus_m_branches_m])
-                self.assertFalse(br.index in [x.index for x in bus_m.branches_k])
                 self.assertTrue(br.index in [x.index for x in bus_m.branches])
                 self.assertTrue(br.index in [x.index for x in bus_m.branches_m])
                 self.assertEqual(len(bus_m_branches_k),len(bus_m.branches_k))

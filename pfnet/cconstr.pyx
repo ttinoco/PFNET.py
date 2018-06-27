@@ -623,10 +623,8 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_LINPF_new(net._c_net)
         elif name == "variable fixing":
             self._c_constr = cconstr.CONSTR_FIX_new(net._c_net)
-        elif name == "variable nonlinear bounds":
-            self._c_constr = cconstr.CONSTR_NBOUND_new(net._c_net)
         elif name == "variable bounds":
-            self._c_constr = cconstr.CONSTR_LBOUND_new(net._c_net)
+            self._c_constr = cconstr.CONSTR_BOUND_new(net._c_net)
         elif name == "generator active power participation":
             self._c_constr = cconstr.CONSTR_PAR_GEN_P_new(net._c_net)
         elif name == "PVPQ switching":
