@@ -3582,7 +3582,7 @@ class TestConstraints(unittest.TestCase):
             b = constr.b
             self.assertEqual(constr.J_nnz,0)
             self.assertEqual(constr.J_row,0)
-            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.A_row,net.num_buses*1)
             self.assertEqual(constr.A_nnz,
                              (net.num_generators +
                               net.num_loads +
@@ -3671,7 +3671,7 @@ class TestConstraints(unittest.TestCase):
             b1 = constr.b
             self.assertEqual(constr.J_nnz,0)
             self.assertEqual(constr.J_row,0)
-            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.A_row,net.num_buses)
             self.assertEqual(constr.A_nnz,0)
             self.assertTupleEqual(b1.shape,(net.num_buses,))
             self.assertTupleEqual(f1.shape,(0,))
@@ -3763,6 +3763,7 @@ class TestConstraints(unittest.TestCase):
             constr.analyze()
             A = constr.A
             b = constr.b
+            self.assertEqual(constr.A_row, net.num_buses*self.T)
             self.assertEqual(constr.A_nnz,
                              (net.num_generators +
                               net.num_loads +
@@ -5130,7 +5131,7 @@ class TestConstraints(unittest.TestCase):
             constrREF.analyze()
             constr.analyze()
 
-            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.A_row,net.num_buses*self.T)
             self.assertGreater(constr.A_nnz,0)
             self.assertEqual(constr.A_row,constrREF.A_row)
             self.assertEqual(constr.A_nnz,constrREF.A_nnz)

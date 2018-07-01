@@ -83,8 +83,8 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,nb*net.num_periods)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
-
+            self.assertEqual(func.Hphi_nnz,nb*net.num_periods)
+            
             f = func.phi
             g = func.gphi
             H = func.Hphi
@@ -274,7 +274,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.num_vars)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.num_vars)
 
             f = func.phi
             g = func.gphi
@@ -525,7 +525,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,(nrg+ns)*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,(nrg+ns)*self.T)
 
             f = func.phi
             g = func.gphi
@@ -687,7 +687,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,man_Hphi_nnz*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,man_Hphi_nnz*self.T)
 
             f = func.phi
             g = func.gphi
@@ -848,7 +848,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.get_num_tap_changers_v()*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.get_num_tap_changers_v()*self.T)
 
             f = func.phi
             g = func.gphi
@@ -982,7 +982,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.get_num_switched_shunts()*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.get_num_switched_shunts()*self.T)
 
             f = func.phi
             g = func.gphi
@@ -1122,7 +1122,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.get_num_generators())
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.get_num_generators())
 
             f = func.phi
             g = func.gphi
@@ -1234,7 +1234,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.get_num_generators()*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.get_num_generators()*self.T)
 
             f = func.phi
             g = func.gphi
@@ -1662,7 +1662,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.num_buses*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.num_buses*self.T)
 
             f = func.phi
             g = func.gphi
@@ -1815,7 +1815,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.get_num_phase_shifters()*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.get_num_phase_shifters()*self.T)
 
             f = func.phi
             g = func.gphi
@@ -1952,7 +1952,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.num_loads)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.num_loads)
 
             f = func.phi
             g = func.gphi
@@ -2064,7 +2064,7 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             self.assertEqual(func.Hphi_nnz,net.num_loads*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,0)
+            self.assertEqual(func.Hphi_nnz,net.num_loads*self.T)
 
             f = func.phi
             g = func.gphi
