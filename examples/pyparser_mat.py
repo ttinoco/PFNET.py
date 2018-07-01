@@ -6,8 +6,11 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
-from .cpfnet import *
-from . import functions
-from . import constraints
-from . import parsers
-from . import tests
+import os
+import sys
+import pfnet
+
+parser = pfnet.parsers.PyParserMAT()
+
+network = parser.parse(sys.argv[1])
+

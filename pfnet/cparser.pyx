@@ -47,13 +47,6 @@ cdef class ParserBase:
             self._c_parser = NULL
             self._alloc = False
 
-    def init(self):
-        """
-        Initializes parser data.
-        """
-        
-        pass
-
     def parse(self, filename, num_periods=None):
         """
         Parsers data file.
