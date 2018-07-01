@@ -10,7 +10,7 @@ import os
 import sys
 import pfnet
 
-parser = pfnet.parsers.PyParserMAT()
+parser = pfnet.Parser('m')
 
 network = parser.parse(sys.argv[1])
 

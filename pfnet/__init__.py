@@ -11,3 +11,5 @@ from . import functions
 from . import constraints
 from . import parsers
 from . import tests
+from .parsers import PyParserMAT
+

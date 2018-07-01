@@ -111,9 +111,9 @@ cdef class ParserBase:
         if cparser.PARSER_has_error(self._c_parser):
             raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
         
-cdef class Parser(ParserBase):
+cdef class CParser(ParserBase):
 
-    def __init__(self,ext):
+    def __init__(self, ext):
         """
         Parser class.
         
@@ -124,7 +124,7 @@ cdef class Parser(ParserBase):
 
         pass
 
-    def __cinit__(self,ext):
+    def __cinit__(self, ext):
 
         ext = ext.split('.')[-1]
         if ext == 'mat':
@@ -195,3 +195,15 @@ cdef class ParserJSON(ParserBase):
         
         self._c_parser = cparser.JSON_PARSER_new()
         self._alloc = True
+
+class Parser(object):
+
+    def __new__(self, ext):
+        
+        ext = ext.split('.')[-1]
+        if ext == 'm':
+            from .parsers import PyParserMAT
+            return PyParserMAT()
+        else:
+            return CParser(ext)
+        
