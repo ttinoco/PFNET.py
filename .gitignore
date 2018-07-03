@@ -4,6 +4,8 @@
 # Data files
 *.art
 *.raw
+*.m
+*.mat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

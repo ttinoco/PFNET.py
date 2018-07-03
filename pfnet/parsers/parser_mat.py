@@ -38,7 +38,7 @@ class PyParserMAT(object):
         # Buses
         bus_index = 0
         net.set_bus_array(num_buses)
-        for mat_bus in case.bus:
+        for mat_bus in reversed(case.bus):
             if mat_bus.bus_type != self.BUS_TYPE_IS:
                 bus = net.get_bus(bus_index)
                 bus.number = mat_bus.bus_i
@@ -62,7 +62,7 @@ class PyParserMAT(object):
         shunt_index = 0
         net.set_load_array(num_loads)
         net.set_shunt_array(num_shunts)
-        for mat_bus in case.bus:
+        for mat_bus in reversed(case.bus):
             if mat_bus.bus_type != self.BUS_TYPE_IS:
 
                 # Load
@@ -73,10 +73,10 @@ class PyParserMAT(object):
                     assert(bus.is_equal(load.bus))
                     load.P = mat_bus.pd/net.base_power
                     load.Q = mat_bus.qd/net.base_power
-                    load.P_max = load.P
-                    load.P_min = load.P
-                    load.Q_max = load.Q
-                    load.Q_min = load.Q
+                    load.P_max = load.P[0]
+                    load.P_min = load.P[0]
+                    load.Q_max = load.Q[0]
+                    load.Q_min = load.Q[0]
                     load_index += 1
                 
                 # Shunt
@@ -86,17 +86,19 @@ class PyParserMAT(object):
                     bus.add_shunt(shunt)
                     assert(bus.is_equal(shunt.bus))
                     shunt.g = mat_bus.gs/net.base_power
-                    shunt.g = mat_bus.bs/net.base_power
-                    shunt.b_max = shunt.b
-                    shunt.b_min = shunt.b
+                    shunt.b = mat_bus.bs/net.base_power
+                    shunt.b_max = shunt.b[0]
+                    shunt.b_min = shunt.b[0]
                     shunt_index += 1
         # Gens
-        net.set_gen_array(len([g for g in case.gen if g.gen_status > 0]))
+        gen_map = {} # mat index -> pfnet index
         gen_index = 0
-        for mat_gen in case.gen:
+        net.set_gen_array(len([g for g in case.gen if g.gen_status > 0]))
+        for mat_gen in reversed(case.gen):
             if mat_gen.gen_status > 0:
                 bus = net.get_bus_from_number(mat_gen.gen_bus)
                 gen = net.get_generator(gen_index)
+                gen_map[mat_gen.index] = gen_index
                 bus.add_generator(gen)
                 assert(bus.is_equal(gen.bus))
                 gen.P = mat_gen.pg/net.base_power
@@ -114,7 +116,7 @@ class PyParserMAT(object):
         # Branches
         net.set_branch_array(len([br for br in case.branch if br.br_status > 0]))
         br_index = 0
-        for mat_br in case.branch:
+        for mat_br in reversed(case.branch):
             if mat_br.br_status > 0:
                 bus_k = net.get_bus_from_number(mat_br.f_bus)
                 bus_m = net.get_bus_from_number(mat_br.t_bus)
@@ -136,8 +138,8 @@ class PyParserMAT(object):
                 assert(branch.index in [br.index for br in bus_k.branches_k])
                 assert(branch.index in [br.index for br in bus_m.branches_m])
                 branch.ratio = 1./t
-                branch.ratio_max = branch.ratio
-                branch.ratio_min = branch.ratio
+                branch.ratio_max = branch.ratio[0]
+                branch.ratio_min = branch.ratio[0]
                 branch.phase = z
                 branch.phase_max = z
                 branch.phase_min = z
@@ -151,8 +153,21 @@ class PyParserMAT(object):
                 br_index += 1
                 
         # Gen costs
-        
-        
+        for mat_cost in case.gencost:
+            gen = net.get_generator(gen_map[mat_cost.index])
+            if mat_cost.model != 2:
+                print("gen cost model %d not supported" %mat_cost.model)
+                continue
+            gen.cost_coeff_Q2 = 0.
+            gen.cost_coeff_Q1 = 0.
+            gen.cost_coeff_Q0 = 0.
+            for n, c in zip(range(mat_cost.ncost-1, -1, -1), mat_cost.cost):
+                if n == 2:
+                    gen.cost_coeff_Q2 = c*(net.base_power**2.)
+                if n == 1:
+                    gen.cost_coeff_Q1 = c*net.base_power
+                if n == 0:
+                    gen.cost_coeff_Q0
 
         # Return
         return net

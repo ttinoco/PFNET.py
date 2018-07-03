@@ -6,8 +6,9 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
-import pfnet as pf
+import os
 import unittest
+import pfnet as pf
 from . import test_cases
 import numpy as np
 
@@ -16,6 +17,16 @@ class TestParser(unittest.TestCase):
     def setUp(self):
 
         pass
+
+    def test_case118_m(self):
+
+        case_mat = './data/case118.mat'
+        case_m = './data/case118.m'
+
+        if os.path.isfile(case_mat) and os.path.isfile(case_m):
+            net_mat = pf.Parser(case_mat).parse(case_mat, num_periods=2)
+            net_m = pf.Parser(case_m).parse(case_m, num_periods=2)
+            pf.tests.utils.compare_networks(self, net_mat, net_m)
 
     def test_ieee25_raw(self):
 
