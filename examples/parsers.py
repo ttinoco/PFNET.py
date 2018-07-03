@@ -17,6 +17,8 @@ parser = pfnet.Parser(sys.argv[1])
 
 network = parser.parse(sys.argv[1])
 
+network.show_components()
+
 pfnet.ParserJSON().write(network, "new_network.json")
 
 os.remove("new_network.json")
