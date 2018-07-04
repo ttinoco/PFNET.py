@@ -750,7 +750,8 @@ class TestFunctions(unittest.TestCase):
         # Multiperiod
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case,self.T)
+            parser = pf.Parser(case)
+            net = parser.parse(case,self.T)
 
             # Vars
             net.set_flags('bus',
@@ -777,9 +778,13 @@ class TestFunctions(unittest.TestCase):
             dw = 3.1416
             for bus in net.buses:
                 if bus.is_slack():
-                    continue
-                for t in range(self.T):
-                    phi += 0.5*((x0[bus.index_v_ang[t]]/dw)**2.)
+                    self.assertFalse(bus.has_flags('variable', 'voltage angle'))
+                    for t in range(self.T):
+                        phi += 0.5*((bus.v_ang[t]/dw)**2.)
+                else:
+                    self.assertTrue(bus.has_flags('variable', 'voltage angle'))
+                    for t in range(self.T):
+                        phi += 0.5*((x0[bus.index_v_ang[t]]/dw)**2.)
             self.assertLess(np.abs(phi-func.phi), 1e-8)
 
             # Gradient check

@@ -27,6 +27,33 @@ class TestParser(unittest.TestCase):
             net_mat = pf.Parser(case_mat).parse(case_mat, num_periods=2)
             net_m = pf.Parser(case_m).parse(case_m, num_periods=2)
             pf.tests.utils.compare_networks(self, net_mat, net_m)
+        else:
+            self.skipTest('no .m file')
+
+    def test_pyparsermat_write(self):
+
+        tested = False
+        for case in test_cases.CASES:
+
+            if os.path.splitext(case)[-1] != '.m':
+                continue
+
+            parser = pf.PyParserMAT()
+
+            net1 = parser.parse(case, num_periods=2)
+
+            p = pf.PyParserMAT()
+            p.write(net1, 'foo.m')
+
+            parser = pf.PyParserMAT()
+
+            net2 = parser.parse('foo.m', num_periods=2)
+
+            pf.tests.utils.compare_networks(self, net1, net2)
+
+            tested = True
+        if not tested:
+            self.skipTest("no .m files")
 
     def test_ieee25_raw(self):
 
