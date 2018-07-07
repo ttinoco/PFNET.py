@@ -65,6 +65,3 @@ cdef extern from "pfnet/pfnet.h":
 
     void* FUNC_get_data(Func* f)
     void FUNC_set_data(Func* f, void* data)
-    
-    char* FUNC_get_bus_counted(Func* f)
-    int FUNC_get_bus_counted_size(Func* f)

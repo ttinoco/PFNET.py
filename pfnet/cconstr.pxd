@@ -108,6 +108,3 @@ cdef extern from "pfnet/constr.h":
 
     void* CONSTR_get_data(Constr* c)
     void CONSTR_set_data(Constr* c, void* data)
-    
-    char* CONSTR_get_bus_counted(Constr* c)
-    int CONSTR_get_bus_counted_size(Constr* c)

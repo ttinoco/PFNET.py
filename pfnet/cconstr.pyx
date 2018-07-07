@@ -582,11 +582,6 @@ cdef class ConstraintBase:
         """ |Network| associated with constraint. """
         def __get__(self): return new_Network(cconstr.CONSTR_get_network(self._c_constr))
 
-    property bus_counted:
-        """ Boolean |Array| of flags for processing buses during count/analyze/eval, etc. """
-        def __get__(self): return BoolArray(cconstr.CONSTR_get_bus_counted(self._c_constr),
-                                            cconstr.CONSTR_get_bus_counted_size(self._c_constr))
-
     property H_array_size:
         """ Size of array of constraint Hessians (int). """
         def __get__(self): return cconstr.CONSTR_get_H_array_size(self._c_constr)

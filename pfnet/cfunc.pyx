@@ -217,11 +217,6 @@ cdef class FunctionBase:
         """ Network associated with function (|Network|). """
         def __get__(self): return new_Network(cfunc.FUNC_get_network(self._c_func))
 
-    property bus_counted:
-        """ Boolean array of flags for processing buses during count/analyze/eval, etc (|Array|). """
-        def __get__(self): return BoolArray(cfunc.FUNC_get_bus_counted(self._c_func),
-                                            cfunc.FUNC_get_bus_counted_size(self._c_func))
-
 cdef new_Function(cfunc.Func* f):
     if f is not NULL:
         func = FunctionBase()
