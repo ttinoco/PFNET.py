@@ -90,20 +90,6 @@ cdef DoubleArray(double* a, int size, owndata=False, toscalar=False):
     else:
         return np.zeros(0)        
 
-# Bool array
-############
-
-cdef BoolArray(char* a, int size, owndata=False):
-    cdef np.npy_intp shape[1]
-    if a is not NULL:
-        shape[0] = <np.npy_intp>size
-        arr = np.PyArray_SimpleNewFromData(1,shape,np.NPY_BOOL,a)
-        if owndata:
-            PyArray_ENABLEFLAGS(arr,np.NPY_OWNDATA)
-        return arr
-    else:
-        return np.zeros(0,dtype='bool')
-
 # Int array
 ###########
 

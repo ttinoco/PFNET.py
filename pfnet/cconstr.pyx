@@ -9,7 +9,7 @@
 #***************************************************#
 
 cimport cvec
-cimport cbranch
+cimport cbus
 cimport cconstr
 
 class ConstraintError(Exception):
@@ -684,13 +684,13 @@ cdef class CustomConstraint(ConstraintBase):
 
         pass
         
-    def count_step(self, branch, t):
+    def count_step(self, bus, t):
         """
         Performs count step.
 
         Parameters
         ----------
-        branch : |Branch|
+        bus : |Bus|
         t : time period (int)
         """
         
@@ -710,25 +710,25 @@ cdef class CustomConstraint(ConstraintBase):
 
         pass
 
-    def analyze_step(self, branch, t):
+    def analyze_step(self, bus, t):
         """
         Performs analyze step.
        
         Parameters
         ----------
-        branch : |Branch|
+        bus : |Bus|
         t : time period (int)
         """
         
         pass
 
-    def eval_step(self, branch, t, x, y=None):
+    def eval_step(self, bus, t, x, y=None):
         """
         Performs eval step.
        
         Parameters
         ----------
-        branch : |Branch|
+        bus : |Bus|
         t : time period (int)
         x : |Array|
         y : |Array|
@@ -736,13 +736,13 @@ cdef class CustomConstraint(ConstraintBase):
  
         pass
 
-    def store_sens_step(self, branch, t, sA, sf, sGu, sGl):
+    def store_sens_step(self, bus, t, sA, sf, sGu, sGl):
         """
         Performs step for storing sensitivities.
        
         Parameters
         ----------
-        branch : |Branch|
+        bus : |Bus|
         t : time period (int)
         sA : |Array|
         sf : |Array|
@@ -756,9 +756,9 @@ cdef void constr_init(cconstr.Constr* c):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
     cc.init()
 
-cdef void constr_count_step(cconstr.Constr* c, cbranch.Branch* br, int t):
+cdef void constr_count_step(cconstr.Constr* c, cbus.Bus* bus, int t):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
-    cc.count_step(new_Branch(br),t)
+    cc.count_step(new_Bus(bus),t)
 
 cdef void constr_allocate(cconstr.Constr* c):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
@@ -768,14 +768,14 @@ cdef void constr_clear(cconstr.Constr* c):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
     cc.clear()
 
-cdef void constr_analyze_step(cconstr.Constr* c, cbranch.Branch* br, int t):
+cdef void constr_analyze_step(cconstr.Constr* c, cbus.Bus* bus, int t):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
-    cc.analyze_step(new_Branch(br),t)
+    cc.analyze_step(new_Bus(bus),t)
 
-cdef void constr_eval_step(cconstr.Constr* c, cbranch.Branch* br, int t, cvec.Vec* v, cvec.Vec* ve):
+cdef void constr_eval_step(cconstr.Constr* c, cbus.Bus* bus, int t, cvec.Vec* v, cvec.Vec* ve):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
-    cc.eval_step(new_Branch(br),t,Vector(v),Vector(ve))
+    cc.eval_step(new_Bus(bus),t,Vector(v),Vector(ve))
 
-cdef void constr_store_sens_step(cconstr.Constr* c, cbranch.Branch* br, int t, cvec.Vec* sA, cvec.Vec* sf, cvec.Vec* sGu, cvec.Vec* sGl):
+cdef void constr_store_sens_step(cconstr.Constr* c, cbus.Bus* bus, int t, cvec.Vec* sA, cvec.Vec* sf, cvec.Vec* sGu, cvec.Vec* sGl):
     cdef CustomConstraint cc = <CustomConstraint>cconstr.CONSTR_get_data(c)
-    cc.eval_step(new_Branch(br),t,Vector(sA),Vector(sf),Vector(sGu),Vector(sGl))
+    cc.eval_step(new_Bus(bus),t,Vector(sA),Vector(sf),Vector(sGu),Vector(sGl))

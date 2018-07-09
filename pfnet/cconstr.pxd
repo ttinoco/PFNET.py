@@ -12,7 +12,7 @@ cdef extern from "pfnet/constr.h":
     ctypedef struct Net
     ctypedef struct Vec
     ctypedef struct Mat
-    ctypedef struct Branch
+    ctypedef struct Bus
     ctypedef double REAL
 
     void CONSTR_allocate_H_array(Constr* c, int size)        
@@ -81,12 +81,12 @@ cdef extern from "pfnet/constr.h":
     void CONSTR_set_H_single(Constr* c, int i, Mat* m)
 
     void CONSTR_set_func_init(Constr* c, void (*func)(Constr* c))
-    void CONSTR_set_func_count_step(Constr* c, void (*func)(Constr* c, Branch* br, int t))
+    void CONSTR_set_func_count_step(Constr* c, void (*func)(Constr* c, Bus* bus, int t))
     void CONSTR_set_func_allocate(Constr* c, void (*func)(Constr* c))
     void CONSTR_set_func_clear(Constr* c, void (*func)(Constr* c))
-    void CONSTR_set_func_analyze_step(Constr* c, void (*func)(Constr* c, Branch* br, int t))
-    void CONSTR_set_func_eval_step(Constr* c, void (*func)(Constr* c, Branch* br, int t, Vec* v, Vec* ve))
-    void CONSTR_set_func_store_sens_step(Constr* c, void (*func)(Constr* c, Branch* br, int t, Vec* sA, Vec* sf, Vec* sGu, Vec* sGl))
+    void CONSTR_set_func_analyze_step(Constr* c, void (*func)(Constr* c, Bus* bus, int t))
+    void CONSTR_set_func_eval_step(Constr* c, void (*func)(Constr* c, Bus* bus, int t, Vec* v, Vec* ve))
+    void CONSTR_set_func_store_sens_step(Constr* c, void (*func)(Constr* c, Bus* bus, int t, Vec* sA, Vec* sf, Vec* sGu, Vec* sGl))
 
     Constr* CONSTR_ACPF_new(Net* net)
     Constr* CONSTR_DCPF_new(Net* net)
