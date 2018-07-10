@@ -2824,10 +2824,6 @@ class TestFunctions(unittest.TestCase):
             self.assertTupleEqual(funcREF.gphi.shape,(0,))
             self.assertTupleEqual(funcREF.Hphi.shape,(0,0))
 
-            self.assertTrue(np.all(func.bus_counted == np.zeros(net.num_buses*net.num_periods,np.dtype('bool'))))
-            func.bus_counted[2] = True
-            self.assertTrue(func.bus_counted[2])
-
             self.assertEqual(func.phi,0.)
             self.assertEqual(func.gphi.size,0)
             self.assertEqual(func.Hphi.nnz,0)

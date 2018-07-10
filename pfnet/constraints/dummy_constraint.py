@@ -16,120 +16,115 @@ class DummyDCPF(CustomConstraint):
         
         self.name = "dummy DC power balance"
 
-    def count_step(self, branch, t):
-
-        buses = [branch.bus_k, branch.bus_m]
-        
-        if branch.is_on_outage():
-            return
-
-        for k in range(2):
-            m = 1 if k == 0 else 0
-            if buses[k].has_flags('variable','voltage angle'):
-                self.A_nnz = self.A_nnz + 1
-            if buses[m].has_flags('variable','voltage angle'):
-                self.A_nnz = self.A_nnz + 1
-            if branch.has_flags('variable','phase shift'):
-                self.A_nnz = self.A_nnz + 1
+    def count_step(self, bus, t):
                 
-        for bus in buses:
-            index = bus.index_t[t]
-            if not self.bus_counted[index]:
-                for gen in bus.generators:
-                    if gen.has_flags('variable','active power'):
-                        self.A_nnz = self.A_nnz + 1
-                for load in bus.loads:
-                    if load.has_flags('variable','active power'):
-                        self.A_nnz = self.A_nnz + 1
-                for vargen in bus.var_generators:
-                    if vargen.has_flags('variable','active power'):
-                        self.A_nnz = self.A_nnz + 1
-                for bat in bus.batteries:
-                    if bat.has_flags('variable','charging power'):
-                        self.A_nnz = self.A_nnz + 2
-                self.A_row = self.A_row + 1
-            self.bus_counted[index] = True
+        for gen in bus.generators:
+            if gen.is_on_outage():
+                continue
+            if gen.has_flags('variable','active power'):
+                self.A_nnz = self.A_nnz+1
+        for load in bus.loads:
+            if load.has_flags('variable','active power'):
+                self.A_nnz = self.A_nnz+1
+        for vargen in bus.var_generators:
+            if vargen.has_flags('variable','active power'):
+                self.A_nnz = self.A_nnz+1
+        for bat in bus.batteries:
+            if bat.has_flags('variable','charging power'):
+                self.A_nnz = self.A_nnz+2
+                
+        for branch in bus.branches_k:
+            if branch.is_on_outage():
+                continue
+            buses = [branch.bus_k, branch.bus_m]
+            for k in range(2):
+                m = 1 if k == 0 else 0
+                if buses[k].has_flags('variable','voltage angle'):
+                    self.A_nnz = self.A_nnz+1
+                if buses[m].has_flags('variable','voltage angle'):
+                    self.A_nnz = self.A_nnz+1
+                if branch.has_flags('variable','phase shift'):
+                    self.A_nnz = self.A_nnz+1
 
-    def analyze_step(self, branch, t):
-        
-        buses = [branch.bus_k, branch.bus_m]
-        
-        if branch.is_on_outage():
-            return
+        self.A_row = self.A_row+1
 
-        for k in range(2):
-            m = 1 if k == 0 else 0
-            sign_phi = 1. if k == 0 else -1.
-            index = buses[k].index_t[t]
-            if buses[k].has_flags('variable','voltage angle'):
-                self.A.row[self.A_nnz] = index
-                self.A.col[self.A_nnz] = buses[k].index_v_ang[t]
-                self.A.data[self.A_nnz] = branch.b
-                self.A_nnz = self.A_nnz + 1
-            else:
-                self.b[index] += -branch.b*buses[k].v_ang[t]
-            if buses[m].has_flags('variable','voltage angle'):
-                self.A.row[self.A_nnz] = index
-                self.A.col[self.A_nnz] = buses[m].index_v_ang[t]
-                self.A.data[self.A_nnz] = -branch.b
-                self.A_nnz = self.A_nnz + 1
-            else:
-                self.b[index] += branch.b*buses[m].v_ang[t]
-            if branch.has_flags('variable','phase shift'):
-                self.A.row[self.A_nnz] = index
-                self.A.col[self.A_nnz] = branch.index_phase[t]
-                self.A.data[self.A_nnz] = -branch.b*sign_phi
-                self.A_nnz = self.A_nnz + 1
-            else:
-                self.b[index] += branch.b*branch.phase[t]*sign_phi
+    def analyze_step(self, bus, t):
             
-        for bus in buses:
-            index = bus.index_t[t]
-            if not self.bus_counted[index]:
-                for gen in bus.generators:
-                    if gen.has_flags('variable','active power'):
-                        self.A.row[self.A_nnz] = index
-                        self.A.col[self.A_nnz] = gen.index_P[t]
-                        self.A.data[self.A_nnz] = 1.
-                        self.A_nnz = self.A_nnz + 1
-                    else:
-                        self.b[index] += -gen.P[t]
-                for load in bus.loads:
-                    if load.has_flags('variable','active power'):
-                        self.A.row[self.A_nnz] = index
-                        self.A.col[self.A_nnz] = load.index_P[t]
-                        self.A.data[self.A_nnz] = -1.
-                        self.A_nnz = self.A_nnz + 1
-                    else:
-                        self.b[index] += load.P[t]
-                for vargen in bus.var_generators:
-                    if vargen.has_flags('variable','active power'):
-                        self.A.row[self.A_nnz] = index
-                        self.A.col[self.A_nnz] = vargen.index_P[t]
-                        self.A.data[self.A_nnz] = 1.
-                        self.A_nnz = self.A_nnz + 1
-                    else:
-                        self.b[index] += -vargen.P[t]
-                for bat in bus.batteries:
-                    if bat.has_flags('variable','charging power'):
-                        self.A.row[self.A_nnz] = index
-                        self.A.col[self.A_nnz] = bat.index_Pc[t]
-                        self.A.data[self.A_nnz] = -1.
-                        self.A_nnz = self.A_nnz + 1
-                        self.A.row[self.A_nnz] = index
-                        self.A.col[self.A_nnz] = bat.index_Pd[t]
-                        self.A.data[self.A_nnz] = 1.
-                        self.A_nnz = self.A_nnz + 1
-                    else:
-                        self.b[index] += bat.P[t]
-                self.A_row = self.A_row + 1
-            self.bus_counted[index] = True
+        for gen in bus.generators:
+            if gen.is_on_outage():
+                continue
+            if gen.has_flags('variable','active power'):
+                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.col[self.A_nnz] = gen.index_P[t]
+                self.A.data[self.A_nnz] = 1.
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[bus.index_P[t]] += -gen.P[t]
+        for load in bus.loads:
+            if load.has_flags('variable','active power'):
+                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.col[self.A_nnz] = load.index_P[t]
+                self.A.data[self.A_nnz] = -1.
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[bus.index_P[t]] += load.P[t]
+        for vargen in bus.var_generators:
+            if vargen.has_flags('variable','active power'):
+                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.col[self.A_nnz] = vargen.index_P[t]
+                self.A.data[self.A_nnz] = 1.
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[bus.index_P[t]] += -vargen.P[t]
+        for bat in bus.batteries:
+            if bat.has_flags('variable','charging power'):
+                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.col[self.A_nnz] = bat.index_Pc[t]
+                self.A.data[self.A_nnz] = -1.
+                self.A_nnz = self.A_nnz+1
+                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.col[self.A_nnz] = bat.index_Pd[t]
+                self.A.data[self.A_nnz] = 1.
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[bus.index_P[t]] += bat.P[t]
 
-    def eval_step(self, branch, t, x, y=None):
+        for branch in bus.branches_k:
+            if branch.is_on_outage():
+                continue
+            buses = [branch.bus_k, branch.bus_m]
+            for k in range(2):
+                m = 1 if k == 0 else 0
+                sign_phi = 1. if k == 0 else -1.
+                if buses[k].has_flags('variable','voltage angle'):
+                    self.A.row[self.A_nnz] = buses[k].index_P[t]
+                    self.A.col[self.A_nnz] = buses[k].index_v_ang[t]
+                    self.A.data[self.A_nnz] = branch.b
+                    self.A_nnz = self.A_nnz+1
+                else:
+                    self.b[buses[k].index_P[t]] += -branch.b*buses[k].v_ang[t]
+                if buses[m].has_flags('variable','voltage angle'):
+                    self.A.row[self.A_nnz] = buses[k].index_P[t]
+                    self.A.col[self.A_nnz] = buses[m].index_v_ang[t]
+                    self.A.data[self.A_nnz] = -branch.b
+                    self.A_nnz = self.A_nnz+1
+                else:
+                    self.b[buses[k].index_P[t]] += branch.b*buses[m].v_ang[t]
+                if branch.has_flags('variable','phase shift'):
+                    self.A.row[self.A_nnz] = buses[k].index_P[t]
+                    self.A.col[self.A_nnz] = branch.index_phase[t]
+                    self.A.data[self.A_nnz] = -branch.b*sign_phi
+                    self.A_nnz = self.A_nnz+1
+                else:
+                    self.b[buses[k].index_P[t]] += branch.b*branch.phase[t]*sign_phi
+                    
+        self.A_row = self.A_row+1
+
+    def eval_step(self, bus, t, x, y=None):
  
         pass
         
-    def store_sens_step(self, branch, t, sA, sf, sGu, sGl):
+    def store_sens_step(self, bus, t, sA, sf, sGu, sGl):
         
         pass
         

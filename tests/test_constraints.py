@@ -314,7 +314,7 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            A_nnz = net.num_fixed+net.get_num_reg_gens()
+            A_nnz = net.num_fixed
             constr.analyze()
             self.assertEqual(A_nnz,constr.A_nnz)
             constr.eval(x0)
@@ -335,7 +335,7 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(f.shape,(0,))
             self.assertTrue(type(A) is coo_matrix)
             self.assertTupleEqual(A.shape,(net.num_fixed,net.num_vars))
-            self.assertEqual(A.nnz,net.num_fixed+net.get_num_reg_gens())
+            self.assertEqual(A.nnz,net.num_fixed)
             self.assertTrue(type(J) is coo_matrix)
             self.assertTupleEqual(J.shape,(0,net.num_vars))
             self.assertEqual(J.nnz,0)
@@ -507,7 +507,7 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
-            A_nnz = net.num_fixed+net.get_num_reg_gens()*self.T
+            A_nnz = net.num_fixed
             constr.analyze()
             self.assertEqual(A_nnz,constr.A_nnz)
             constr.eval(x0)
@@ -528,7 +528,7 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(f.shape,(0,))
             self.assertTrue(type(A) is coo_matrix)
             self.assertTupleEqual(A.shape,(net.num_fixed,net.num_vars))
-            self.assertEqual(A.nnz,net.num_fixed+net.get_num_reg_gens()*self.T)
+            self.assertEqual(A.nnz,net.num_fixed)
             self.assertTrue(type(J) is coo_matrix)
             self.assertTupleEqual(J.shape,(0,net.num_vars))
             self.assertEqual(J.nnz,0)
@@ -569,14 +569,10 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(b[A.row[ar[0]]],gen.P[t])
                     if gen.is_regulator():
                         ar = np.where(A.col == gen.index_Q[t])[0]
-                        self.assertEqual(ar.size,2)
+                        self.assertEqual(ar.size,1)
                         self.assertEqual(A.col[ar[0]],gen.index_Q[t])
-                        self.assertEqual(A.col[ar[1]],gen.index_Q[t])
-                        for i in range(ar.size):
-                            if A.data[ar[i]] == 1.:
-                                self.assertEqual(b[A.row[ar[i]]],gen.Q[t])
-                            else:
-                                self.assertEqual(A.data[ar[i]],0)
+                        self.assertEqual(A.data[ar[0]],1.)
+                        self.assertEqual(b[A.row[ar[0]]],gen.Q[t])
 
                 # Shunts
                 for shunt in net.shunts:

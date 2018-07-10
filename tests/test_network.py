@@ -2265,7 +2265,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertLess(np.abs(dQ-bus.Q_mismatch),1e-10)
             self.assertLess(np.abs(net.bus_P_mis-np.max(np.abs(dP_list))*net.base_power),1e-10)
             self.assertLess(np.abs(net.bus_Q_mis-np.max(np.abs(dQ_list))*net.base_power),1e-10)
-
+            
             constrMP = pf.Constraint('AC power balance',netMP)
             constrMP.analyze()
             constrMP.eval(x0MP)
