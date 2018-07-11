@@ -2719,27 +2719,21 @@ class TestConstraints(unittest.TestCase):
             # f check
             flags = {}
             eps = 1e-8
-            for t in range(self.T):
-                for bus in net.buses:
-                    flags[(t,bus.index)] = False
             J_row = 0
             for t in range(self.T):
-                for branch in net.branches:
-                    for bus in [branch.bus_k,branch.bus_m]:
-                        if not flags[(t,bus.index)]:
-                            if bus.is_regulated_by_gen() and not bus.is_slack():
-                                for gen in bus.reg_generators:
-                                    y = y0[J_row]
-                                    z = y0[J_row+1]
-                                    Q = gen.Q[t]
-                                    Qmax = gen.Q_max
-                                    Qmin = gen.Q_min
-                                    CompY = (Q-Qmin)+y-np.sqrt((Q-Qmin)**2.+y**2.+2*eps)
-                                    CompZ = (Qmax-Q)+z-np.sqrt((Qmax-Q)**2.+z**2.+2*eps)
-                                    self.assertAlmostEqual(CompY,f[J_row])
-                                    self.assertAlmostEqual(CompZ,f[J_row+1])
-                                    J_row += 2
-                        flags[(t,bus.index)] = True            
+                for bus in net.buses:
+                    if bus.is_regulated_by_gen() and not bus.is_slack():
+                        for gen in bus.reg_generators:
+                            y = y0[J_row]
+                            z = y0[J_row+1]
+                            Q = gen.Q[t]
+                            Qmax = gen.Q_max
+                            Qmin = gen.Q_min
+                            CompY = (Q-Qmin)+y-np.sqrt((Q-Qmin)**2.+y**2.+2*eps)
+                            CompZ = (Qmax-Q)+z-np.sqrt((Qmax-Q)**2.+z**2.+2*eps)
+                            self.assertAlmostEqual(CompY,f[J_row])
+                            self.assertAlmostEqual(CompZ,f[J_row+1])
+                            J_row += 2
 
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
@@ -2982,20 +2976,20 @@ class TestConstraints(unittest.TestCase):
             # f check
             index = 0
             for t in range(self.T):
-                for i in range(net.num_branches):
-                    br = net.get_branch(i)
-                    if br.is_tap_changer_v():
-                        self.assertTrue(br.has_flags('variable','tap ratio'))
-                        bus = br.reg_bus
-                        fvmin = ((bus.v_mag[t]-bus.v_min_reg) - np.sqrt((bus.v_mag[t]-bus.v_min_reg)**2. + 2*eta))*normal
-                        fvmax = ((bus.v_max_reg-bus.v_mag[t]) - np.sqrt((bus.v_max_reg-bus.v_mag[t])**2. + 2*eta))*normal
-                        ftmax = ((br.ratio_max-br.ratio[t]) - np.sqrt((br.ratio_max-br.ratio[t])**2. + 2*eta))*normal
-                        ftmin = ((br.ratio[t]-br.ratio_min) - np.sqrt((br.ratio[t]-br.ratio_min)**2. + 2*eta))*normal
-                        self.assertLess(np.abs(fvmin-f[index]),1e-10*(1+np.abs(fvmin)))
-                        self.assertLess(np.abs(fvmax-f[index+1]),1e-10*(1+np.abs(fvmax)))
-                        self.assertLess(np.abs(ftmax-f[index+2]),1e-10*(1+np.abs(ftmax)))
-                        self.assertLess(np.abs(ftmin-f[index+3]),1e-10*(1+np.abs(ftmin)))
-                        index += 4
+                for bus in net.buses:
+                    for br in bus.branches_k:
+                        if br.is_tap_changer_v():
+                            self.assertTrue(br.has_flags('variable','tap ratio'))
+                            bus = br.reg_bus
+                            fvmin = ((bus.v_mag[t]-bus.v_min_reg) - np.sqrt((bus.v_mag[t]-bus.v_min_reg)**2. + 2*eta))*normal
+                            fvmax = ((bus.v_max_reg-bus.v_mag[t]) - np.sqrt((bus.v_max_reg-bus.v_mag[t])**2. + 2*eta))*normal
+                            ftmax = ((br.ratio_max-br.ratio[t]) - np.sqrt((br.ratio_max-br.ratio[t])**2. + 2*eta))*normal
+                            ftmin = ((br.ratio[t]-br.ratio_min) - np.sqrt((br.ratio[t]-br.ratio_min)**2. + 2*eta))*normal
+                            self.assertLess(np.abs(fvmin-f[index]),1e-10*(1+np.abs(fvmin)))
+                            self.assertLess(np.abs(fvmax-f[index+1]),1e-10*(1+np.abs(fvmax)))
+                            self.assertLess(np.abs(ftmax-f[index+2]),1e-10*(1+np.abs(ftmax)))
+                            self.assertLess(np.abs(ftmin-f[index+3]),1e-10*(1+np.abs(ftmin)))
+                            index += 4
 
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
@@ -3036,16 +3030,18 @@ class TestConstraints(unittest.TestCase):
             sens = np.zeros(constr.f.size)
             counter = 0
             for t in range(self.T):
-                for branch in net.branches:
-                    if branch.is_tap_changer_v():
-                        sens[counter:counter+4] = branch.reg_bus.index*t
-                        counter += 4
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        if branch.is_tap_changer_v():
+                            sens[counter:counter+4] = branch.reg_bus.index*t
+                            counter += 4
             self.assertEqual(counter,constr.f.size)
             constr.store_sensitivities(np.zeros(constr.A.shape[0]),sens,None,None)
             for t in range(self.T):
-                for branch in net.branches:
-                    if branch.is_tap_changer_v():
-                        self.assertEqual(branch.reg_bus.sens_v_reg_by_tran[t],branch.reg_bus.index*t)
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        if branch.is_tap_changer_v():
+                            self.assertEqual(branch.reg_bus.sens_v_reg_by_tran[t],branch.reg_bus.index*t)
 
     def test_constr_REG_TRAN_with_outages(self):
 
@@ -3224,26 +3220,21 @@ class TestConstraints(unittest.TestCase):
 
             # f check
             index = 0
-            counted = {}
             for t in range(self.T):
-                for i in range(net.num_branches):
-                    br = net.get_branch(i)
-                    for bus in [br.bus_k,br.bus_m]:
-                        if (bus.index,t) not in counted:
-                            for s in bus.reg_shunts:
-                                self.assertEqual(bus.number,s.reg_bus.number)
-                                self.assertTrue(bus.has_flags('variable','voltage magnitude'))
-                                self.assertTrue(s.has_flags('variable','susceptance'))
-                                fvmin = ((bus.v_mag[t]-bus.v_min_reg) - np.sqrt((bus.v_mag[t]-bus.v_min_reg)**2. + 2.*eta))*normal
-                                fvmax = ((bus.v_max_reg-bus.v_mag[t]) - np.sqrt((bus.v_max_reg-bus.v_mag[t])**2. + 2.*eta))*normal
-                                fbmax = ((s.b_max-s.b[t]) - np.sqrt((s.b_max-s.b[t])**2. + 2*eta))*normal
-                                fbmin = ((s.b[t]-s.b_min) - np.sqrt((s.b[t]-s.b_min)**2. + 2*eta))*normal
-                                self.assertLess(np.abs(fvmin-f[index]),1e-10*(1+np.abs(fvmin)))
-                                self.assertLess(np.abs(fvmax-f[index+1]),1e-10*(1+np.abs(fvmax)))
-                                self.assertLess(np.abs(fbmax-f[index+2]),1e-10*(1+np.abs(fbmax)))
-                                self.assertLess(np.abs(fbmin-f[index+3]),1e-10*(1+np.abs(fbmin)))
-                                index += 4
-                        counted[(bus.index,t)] = True
+                for bus in net.buses:
+                    for s in bus.reg_shunts:
+                        self.assertEqual(bus.number,s.reg_bus.number)
+                        self.assertTrue(bus.has_flags('variable','voltage magnitude'))
+                        self.assertTrue(s.has_flags('variable','susceptance'))
+                        fvmin = ((bus.v_mag[t]-bus.v_min_reg) - np.sqrt((bus.v_mag[t]-bus.v_min_reg)**2. + 2.*eta))*normal
+                        fvmax = ((bus.v_max_reg-bus.v_mag[t]) - np.sqrt((bus.v_max_reg-bus.v_mag[t])**2. + 2.*eta))*normal
+                        fbmax = ((s.b_max-s.b[t]) - np.sqrt((s.b_max-s.b[t])**2. + 2*eta))*normal
+                        fbmin = ((s.b[t]-s.b_min) - np.sqrt((s.b[t]-s.b_min)**2. + 2*eta))*normal
+                        self.assertLess(np.abs(fvmin-f[index]),1e-10*(1+np.abs(fvmin)))
+                        self.assertLess(np.abs(fvmax-f[index+1]),1e-10*(1+np.abs(fvmax)))
+                        self.assertLess(np.abs(fbmax-f[index+2]),1e-10*(1+np.abs(fbmax)))
+                        self.assertLess(np.abs(fbmin-f[index+3]),1e-10*(1+np.abs(fbmin)))
+                        index += 4
 
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
@@ -3283,25 +3274,17 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(bus.sens_v_reg_by_shunt[t],0.)
             sens = np.zeros(constr.f.size)
             counter = 0
-            flags = dict([((t,b.index),False) for t in range(self.T) for b in net.buses])
             for t in range(self.T):
-                for branch in net.branches:
-                    for bus in [branch.bus_k,branch.bus_m]:
-                        if not flags[(t,bus.index)]:
-                            for shunt in bus.reg_shunts:
-                                sens[counter:counter+4] = bus.index*t
-                                counter += 4
-                        flags[(t,bus.index)] = True
+                for bus in net.buses:
+                    for shunt in bus.reg_shunts:
+                        sens[counter:counter+4] = bus.index*t
+                        counter += 4
             self.assertEqual(counter,constr.f.size)
             constr.store_sensitivities(np.zeros(constr.A.shape[0]),sens,None,None)
-            flags = dict([((t,b.index),False) for t in range(self.T) for b in net.buses])
             for t in range(self.T):
-                for branch in net.branches:
-                    for bus in [branch.bus_k,branch.bus_m]:
-                        if not flags[(t,bus.index)]:
-                            for shunt in bus.reg_shunts:
-                                self.assertEqual(bus.sens_v_reg_by_shunt[t],bus.index*t)
-                        flags[(t,bus.index)] = True
+                for bus in net.buses:
+                    for shunt in bus.reg_shunts:
+                        self.assertEqual(bus.sens_v_reg_by_shunt[t],bus.index*t)
 
     def test_constr_REG_SHUNT_with_outages(self):
 
@@ -3904,7 +3887,7 @@ class TestConstraints(unittest.TestCase):
             constr1 = pf.Constraint('DC power balance', net)
             constr1.analyze()
             constr1.eval(x0)
-
+            
             f0 = constr0.A*x0-constr0.b
             f1 = constr1.A*x0-constr1.b
 
@@ -4718,28 +4701,32 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(u.shape,(num_constr,))
             self.assertTrue(type(l) is np.ndarray)
             self.assertTupleEqual(l.shape,(num_constr,))
+            J_row = 0
             for t in range(net.num_periods):
-                for branch in net.branches:
-                    i = t*net.num_branches*2+2*branch.index
-                    self.assertEqual(u[i],branch.ratingA)
-                    self.assertEqual(u[i+1],branch.ratingA)
-                    self.assertEqual(l[i],-branch.ratingA)
-                    self.assertEqual(l[i+1],-branch.ratingA)
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        #i = t*net.num_branches*2+2*branch.index
+                        self.assertEqual(u[J_row],branch.ratingA)
+                        self.assertEqual(u[J_row+1],branch.ratingA)
+                        self.assertEqual(l[J_row],-branch.ratingA)
+                        self.assertEqual(l[J_row+1],-branch.ratingA)
+                        J_row += 2
 
             # Row info
             index = 0
             for t in range(net.num_periods):
-                for branch in net.branches:
-                    if branch.ratingA != 0:
-                        skmJ = constr.get_J_row_info_string(index)
-                        smkJ = constr.get_J_row_info_string(index+1)
-                        self.assertEqual(skmJ,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"km",t))
-                        self.assertEqual(smkJ,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"mk",t))
-                        skmG = constr.get_G_row_info_string(index)
-                        smkG = constr.get_G_row_info_string(index+1)
-                        self.assertEqual(skmG,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"km",t))
-                        self.assertEqual(smkG,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"mk",t))
-                        index += 2
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        if branch.ratingA != 0:
+                            skmJ = constr.get_J_row_info_string(index)
+                            smkJ = constr.get_J_row_info_string(index+1)
+                            self.assertEqual(skmJ,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"km",t))
+                            self.assertEqual(smkJ,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"mk",t))
+                            skmG = constr.get_G_row_info_string(index)
+                            smkG = constr.get_G_row_info_string(index+1)
+                            self.assertEqual(skmG,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"km",t))
+                            self.assertEqual(smkG,"AC branch flow limits:branch:%d:%s:%d" %(branch.index,"mk",t))
+                            index += 2
 
             # Hessian structure
             for i in range(constr.J.shape[0]):
@@ -4798,21 +4785,21 @@ class TestConstraints(unittest.TestCase):
             # Cross check current magnitudes
             J_row = 0
             for t in range(net.num_periods):
-                for branch in net.branches:
-                    i = t*net.num_branches*2+2*branch.index
-                    Pkm = branch.get_P_km()[t]
-                    Qkm = branch.get_Q_km()[t]
-                    Pmk = branch.get_P_mk()[t]
-                    Qmk = branch.get_Q_mk()[t]
-                    vk = branch.bus_k.v_mag[t]
-                    vm = branch.bus_m.v_mag[t]
-                    ikmmag = branch.get_i_km_mag(eps=param)[t]
-                    imkmag = branch.get_i_mk_mag(eps=param)[t]
-                    error_km = 100.*np.abs(ikmmag-f[i]-y0[J_row])/max([ikmmag,tol])
-                    error_mk = 100.*np.abs(imkmag-f[i+1]-y0[J_row+1])/max([imkmag,tol])
-                    self.assertLess(error_km,eps)
-                    self.assertLess(error_mk,eps)
-                    J_row += 2
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        Pkm = branch.get_P_km()[t]
+                        Qkm = branch.get_Q_km()[t]
+                        Pmk = branch.get_P_mk()[t]
+                        Qmk = branch.get_Q_mk()[t]
+                        vk = branch.bus_k.v_mag[t]
+                        vm = branch.bus_m.v_mag[t]
+                        ikmmag = branch.get_i_km_mag(eps=param)[t]
+                        imkmag = branch.get_i_mk_mag(eps=param)[t]
+                        error_km = 100.*np.abs(ikmmag-f[J_row]-y0[J_row])/max([ikmmag,tol])
+                        error_mk = 100.*np.abs(imkmag-f[J_row+1]-y0[J_row+1])/max([imkmag,tol])
+                        self.assertLess(error_km,eps)
+                        self.assertLess(error_mk,eps)
+                        J_row += 2
 
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
@@ -4868,13 +4855,15 @@ class TestConstraints(unittest.TestCase):
 
             constr.store_sensitivities(None, np.zeros(mu.size), mu, np.zeros(mu.size))
 
+            G_row = 0
             for t in range(net.num_periods):
-                for branch in net.branches:
-                    i = t*net.num_branches*2+2*branch.index
-                    if np.abs(mu[i]) > np.abs(mu[i+1]):
-                        self.assertEqual(branch.sens_i_mag_u_bound[t], mu[i])
-                    else:
-                        self.assertEqual(branch.sens_i_mag_u_bound[t], mu[i+1])
+                for bus in net.buses:
+                    for branch in bus.branches_k:
+                        if np.abs(mu[G_row]) > np.abs(mu[G_row+1]):
+                            self.assertEqual(branch.sens_i_mag_u_bound[t], mu[G_row])
+                        else:
+                            self.assertEqual(branch.sens_i_mag_u_bound[t], mu[G_row+1])
+                        G_row += 2
 
         # Single period
         for case in test_cases.CASES:
