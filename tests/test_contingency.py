@@ -993,6 +993,13 @@ class TestContingency(unittest.TestCase):
             u = constr.u.copy()
             x = net.get_var_values()
 
+            Grow = 0
+            br_map = {}
+            for bus in net.buses:
+                for br in bus.branches_k:
+                    br_map[br.index] = Grow
+                    Grow += 1
+
             # gen outages
             counter = 0
             for gen in net.generators:
@@ -1016,41 +1023,45 @@ class TestContingency(unittest.TestCase):
 
             # branch outages
             counter = 0
-            for br in net.branches:
+            for bus in net.buses:
+                for br in bus.branches_k:
 
-                if br.bus_k.degree == 1 or br.bus_m.degree == 1:
-                    continue
+                    if br.bus_k.degree == 1 or br.bus_m.degree == 1:
+                        Grow += 1
+                        continue
 
-                cont = pf.Contingency()
-                cont.add_branch_outage(br)
-                cont.apply(net)
+                    cont = pf.Contingency()
+                    cont.add_branch_outage(br)
+                    cont.apply(net)
 
-                constr.del_matvec()
-                constr.analyze()
-                constr.eval(net.get_var_values())
+                    constr.del_matvec()
+                    constr.analyze()
+                    constr.eval(net.get_var_values())
 
-                lnew = constr.l.copy()
-                unew = constr.u.copy()
-                Gnew = constr.G.copy()
+                    lnew = constr.l.copy()
+                    unew = constr.u.copy()
+                    Gnew = constr.G.copy()
 
-                self.assertTupleEqual(lnew.shape,(l.size-1,))
-                self.assertTupleEqual(unew.shape,(u.size-1,))
-                self.assertTupleEqual(Gnew.shape,(G.shape[0]-1,G.shape[1]))
+                    self.assertTupleEqual(lnew.shape,(l.size-1,))
+                    self.assertTupleEqual(unew.shape,(u.size-1,))
+                    self.assertTupleEqual(Gnew.shape,(G.shape[0]-1,G.shape[1]))
 
-                self.assertLess(np.linalg.norm(lnew-np.hstack((l[:br.index],l[br.index+1:])),np.inf),1e-8)
-                self.assertLess(np.linalg.norm(unew-np.hstack((u[:br.index],u[br.index+1:])),np.inf),1e-8)
-                indices = G.row != br.index
-                row = G.row[indices]
-                row = row - 1*(row>br.index)
-                col = G.col[indices]
-                data = G.data[indices]
-                Gcut = coo_matrix((data,(row,col)),shape=(net.num_branches-1,net.num_vars))
-                self.assertEqual((Gnew-Gcut).nnz,0)
-                
-                cont.clear(net)
-                counter += 1
-                if counter > TEST_BRANCHES:
-                    break
+                    Grow = br_map[br.index]
+                    
+                    self.assertLess(np.linalg.norm(lnew-np.hstack((l[:Grow],l[Grow+1:])),np.inf),1e-8)
+                    self.assertLess(np.linalg.norm(unew-np.hstack((u[:Grow],u[Grow+1:])),np.inf),1e-8)
+                    indices = G.row != Grow
+                    row = G.row[indices]
+                    row = row - 1*(row>Grow)
+                    col = G.col[indices]
+                    data = G.data[indices]
+                    Gcut = coo_matrix((data,(row,col)),shape=(net.num_branches-1,net.num_vars))
+                    self.assertEqual((Gnew-Gcut).nnz,0)
+                    
+                    cont.clear(net)
+                    counter += 1
+                    if counter > TEST_BRANCHES:
+                        break
 
     def test_variables(self):
 

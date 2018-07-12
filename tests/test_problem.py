@@ -751,13 +751,14 @@ class TestProblem(unittest.TestCase):
             self.assertTrue(np.all(l[net.num_vars:] == constr.l_extra_vars))
             self.assertTrue(np.all(u[net.num_vars:] == constr.u_extra_vars))
             offset = 0
-            for branch in net.branches:
-                if branch.ratingA != 0.:
-                    self.assertEqual(l[net.num_vars+offset],-branch.ratingA)
-                    self.assertEqual(l[net.num_vars+offset+1],-branch.ratingA)
-                    self.assertEqual(u[net.num_vars+offset],branch.ratingA)
-                    self.assertEqual(u[net.num_vars+offset+1],branch.ratingA)
-                    offset += 2
+            for bus in net.buses:
+                for branch in bus.branches_k:
+                    if branch.ratingA != 0.:
+                        self.assertEqual(l[net.num_vars+offset],-branch.ratingA)
+                        self.assertEqual(l[net.num_vars+offset+1],-branch.ratingA)
+                        self.assertEqual(u[net.num_vars+offset],branch.ratingA)
+                        self.assertEqual(u[net.num_vars+offset+1],branch.ratingA)
+                        offset += 2
             self.assertEqual(offset,p.num_extra_vars)
 
             p.clear()

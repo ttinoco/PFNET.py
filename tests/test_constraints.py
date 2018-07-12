@@ -1981,45 +1981,39 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(Ad.size,nnz*self.T)
             nnz = 0
             row = 0
-            counted = {}
             for t in range(self.T):
-                for k in range(net.num_branches):
-                    br = net.get_branch(k)
-                    for bus in [br.bus_k,br.bus_m]:
-                        if (bus.number,t) in counted:
-                            continue
-                        counted[(bus.number,t)] = True
-                        if bus.is_regulated_by_gen():
-                            self.assertEqual(b[row], bus.v_set[t])
+                for bus in net.buses:
+                    if bus.is_regulated_by_gen():
+                        self.assertEqual(b[row], bus.v_set[t])
+                        self.assertEqual(Ai[nnz], row)
+                        self.assertEqual(Aj[nnz], bus.index_v_mag[t])
+                        self.assertEqual(Ad[nnz], 1.)
+                        nnz += 1
+                        for gen in bus.reg_generators:
+                            self.assertEqual(Ai[nnz], row)
+                            self.assertEqual(Aj[nnz], gen.index_Q[t])
+                            self.assertEqual(Ad[nnz], 0.)
+                            nnz += 1
+                        row += 1
+                        for i in range(len(bus.reg_generators)-1):
+                            gen1 = bus.reg_generators[i]
+                            gen2 = bus.reg_generators[i+1]
+                            self.assertEqual(b[row], 0.)
                             self.assertEqual(Ai[nnz], row)
                             self.assertEqual(Aj[nnz], bus.index_v_mag[t])
-                            self.assertEqual(Ad[nnz], 1.)
-                            nnz += 1
-                            for gen in bus.reg_generators:
+                            self.assertEqual(Ad[nnz], 0.)
+                            nnz += 1                                    
+                            for gen3 in bus.reg_generators:
                                 self.assertEqual(Ai[nnz], row)
-                                self.assertEqual(Aj[nnz], gen.index_Q[t])
-                                self.assertEqual(Ad[nnz], 0.)
+                                self.assertEqual(Aj[nnz], gen3.index_Q[t])
+                                if gen3.index == gen1.index:
+                                    self.assertEqual(Ad[nnz], np.maximum(gen2.Q_par,1e-4))
+                                elif gen3.index == gen2.index:
+                                    self.assertEqual(Ad[nnz], -np.maximum(gen1.Q_par,1e-4))
+                                else:
+                                    self.assertEqual(Ad[nnz], 0.)
                                 nnz += 1
                             row += 1
-                            for i in range(len(bus.reg_generators)-1):
-                                gen1 = bus.reg_generators[i]
-                                gen2 = bus.reg_generators[i+1]
-                                self.assertEqual(b[row], 0.)
-                                self.assertEqual(Ai[nnz], row)
-                                self.assertEqual(Aj[nnz], bus.index_v_mag[t])
-                                self.assertEqual(Ad[nnz], 0.)
-                                nnz += 1                                    
-                                for gen3 in bus.reg_generators:
-                                    self.assertEqual(Ai[nnz], row)
-                                    self.assertEqual(Aj[nnz], gen3.index_Q[t])
-                                    if gen3.index == gen1.index:
-                                        self.assertEqual(Ad[nnz], np.maximum(gen2.Q_par,1e-4))
-                                    elif gen3.index == gen2.index:
-                                        self.assertEqual(Ad[nnz], -np.maximum(gen1.Q_par,1e-4))
-                                    else:
-                                        self.assertEqual(Ad[nnz], 0.)
-                                    nnz += 1
-                                row += 1
             self.assertEqual(nnz,A.nnz)
 
     def test_constr_PVPQ_SWITCHING_with_outages(self):
@@ -4009,28 +4003,29 @@ class TestConstraints(unittest.TestCase):
 
             counter = 0
             index = 0
-            for br in net.branches:
-                if br.ratingA == 0.:
-                    continue
-                off = 0
-                if br.bus_k.is_slack():
-                    off = br.b*br.bus_k.v_ang
-                else:
-                    self.assertEqual(G.row[counter],index)
-                    self.assertEqual(G.col[counter],br.bus_k.index_v_ang)
-                    self.assertEqual(G.data[counter],-br.b)
-                    counter += 1
-                if br.bus_m.is_slack():
-                    off = -br.b*br.bus_m.v_ang
-                else:
-                    self.assertEqual(G.row[counter],index)
-                    self.assertEqual(G.col[counter],br.bus_m.index_v_ang)
-                    self.assertEqual(G.data[counter],br.b)
-                    counter += 1
-                rating = br.ratingA
-                self.assertEqual(l[index],-rating+off-br.b*br.phase)
-                self.assertEqual(u[index],rating+off-br.b*br.phase)
-                index += 1
+            for bus in net.buses:
+                for br in bus.branches_k:
+                    if br.ratingA == 0.:
+                        continue
+                    off = 0
+                    if br.bus_k.is_slack():
+                        off = br.b*br.bus_k.v_ang
+                    else:
+                        self.assertEqual(G.row[counter],index)
+                        self.assertEqual(G.col[counter],br.bus_k.index_v_ang)
+                        self.assertEqual(G.data[counter],-br.b)
+                        counter += 1
+                    if br.bus_m.is_slack():
+                        off = -br.b*br.bus_m.v_ang
+                    else:
+                        self.assertEqual(G.row[counter],index)
+                        self.assertEqual(G.col[counter],br.bus_m.index_v_ang)
+                        self.assertEqual(G.data[counter],br.b)
+                        counter += 1
+                    rating = br.ratingA
+                    self.assertEqual(l[index],-rating+off-br.b*br.phase)
+                    self.assertEqual(u[index],rating+off-br.b*br.phase)
+                    index += 1
             self.assertEqual(counter,G.nnz)
             self.assertEqual(index,G.shape[0])
 
@@ -4038,19 +4033,20 @@ class TestConstraints(unittest.TestCase):
             Gx0 = constr.G*x0
             self.assertTupleEqual(Gx0.shape,(num_constr,))
             index = 0
-            for branch in net.branches:
-                if branch.ratingA == 0.:
-                    continue
-                bus1 = branch.bus_k
-                bus2 = branch.bus_m
-                if bus1.is_slack():
-                    flow = Gx0[index]-branch.b*(bus1.v_ang-branch.phase)
-                elif bus2.is_slack():
-                    flow = Gx0[index]-branch.b*(-bus2.v_ang-branch.phase)
-                else:
-                    flow = Gx0[index]-branch.b*(-branch.phase)
-                self.assertLess(np.abs(branch.P_km_DC-flow),1e-10)
-                index += 1
+            for bus in net.buses:
+                for branch in bus.branches_k:
+                    if branch.ratingA == 0.:
+                        continue
+                    bus1 = branch.bus_k
+                    bus2 = branch.bus_m
+                    if bus1.is_slack():
+                        flow = Gx0[index]-branch.b*(bus1.v_ang-branch.phase)
+                    elif bus2.is_slack():
+                        flow = Gx0[index]-branch.b*(-bus2.v_ang-branch.phase)
+                    else:
+                        flow = Gx0[index]-branch.b*(-branch.phase)
+                    self.assertLess(np.abs(branch.P_km_DC-flow),1e-10)
+                    index += 1
 
             # Sensitivities
             index = 0
@@ -4061,12 +4057,13 @@ class TestConstraints(unittest.TestCase):
             pi = np.random.randn(num_constr)
             self.assertEqual(constr.G.shape[0],num_constr)
             constr.store_sensitivities(None,None,mu,pi)
-            for branch in net.branches:
-                if branch.ratingA == 0.:
-                    continue
-                self.assertEqual(branch.sens_P_u_bound,mu[index])
-                self.assertEqual(branch.sens_P_l_bound,pi[index])
-                index += 1
+            for bus in net.buses:
+                for branch in bus.branches_k:
+                    if branch.ratingA == 0.:
+                        continue
+                    self.assertEqual(branch.sens_P_u_bound,mu[index])
+                    self.assertEqual(branch.sens_P_l_bound,pi[index])
+                    index += 1
             self.assertEqual(constr.J_nnz,0)
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
