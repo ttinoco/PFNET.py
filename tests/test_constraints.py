@@ -2016,6 +2016,48 @@ class TestConstraints(unittest.TestCase):
                             row += 1
             self.assertEqual(nnz,A.nnz)
 
+            # Now with no Q vars
+            net.clear_flags()
+
+            # Vars
+            net.set_flags('bus',
+                          'variable',
+                          'any',
+                          'voltage magnitude')
+            self.assertEqual(net.num_vars, net.get_num_buses()*self.T)
+                        
+            # Analyze
+            constr.analyze()
+            A = constr.A
+            b = constr.b
+            self.assertEqual(A.shape[0], 0)
+            self.assertEqual(A.nnz, 0)
+            self.assertEqual(b.size, 0)
+
+            # Now with no v vars
+            net.clear_flags()
+
+            # Vars
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          'reactive power')
+            self.assertEqual(net.num_vars, net.get_num_generators()*self.T)
+                        
+            # Analyze
+            constr.analyze()
+            A = constr.A
+            b = constr.b
+            nnz = 0
+            m = 0
+            for bus in net.buses:
+                if bus.is_regulated_by_gen():
+                    n = len(bus.reg_generators)
+                    m += n-1
+                    nnz += n*(n-1)
+            self.assertEqual(A.shape[0], m*self.T)
+            self.assertEqual(A.nnz, nnz*self.T)
+
     def test_constr_PVPQ_SWITCHING_with_outages(self):
 
         # Multiperiod
