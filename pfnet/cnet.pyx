@@ -1431,6 +1431,17 @@ cdef class Network:
 
         return cnet.NET_get_num_P_adjust_loads(self._c_net)
 
+    def get_num_vdep_loads(self):
+        """
+        Gets number of loads in the network that are voltage dependent.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vdep_loads(self._c_net)
+
     def get_num_shunts(self):
         """
         Gets number of shunts in the network.

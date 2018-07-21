@@ -11,6 +11,7 @@ Unreleased
 * Added PyParserMAT that uses grg-mpdata and can parse and write Matpower .m files.
 * Wrote generic Parser that can use CParser (.mat, .json, etc) or PyParser (.m) based on extension.    
 * Updated code to be compatible with bus-loop-based C pfnet library.
+* Voltage dependent loads.
   
 Version 1.3.3
 -------------

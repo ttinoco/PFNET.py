@@ -93,10 +93,12 @@ class PyParserMAT(object):
                     assert(bus.is_equal(load.bus))
                     load.P = mat_bus.pd/net.base_power
                     load.Q = mat_bus.qd/net.base_power
-                    load.P_max = load.P[0]
-                    load.P_min = load.P[0]
-                    load.Q_max = load.Q[0]
-                    load.Q_min = load.Q[0]
+                    load.P_max = load.P
+                    load.P_min = load.P
+                    load.Q_max = load.Q
+                    load.Q_min = load.Q
+                    load.comp_cp = load.P
+                    load.comp_cq = load.Q
                     load_index += 1
                 
                 # Shunt

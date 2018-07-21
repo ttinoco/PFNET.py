@@ -90,6 +90,17 @@ cdef class Load:
         """
 
         return cload.LOAD_is_P_adjustable(self._c_ptr)
+    
+    def is_voltage_dependent(self):
+        """
+        Determines whether the load is voltage dependent.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cload.LOAD_is_vdep(self._c_ptr)
 
     def has_flags(self, flag_type, q):
         """
@@ -167,9 +178,9 @@ cdef class Load:
         """ |Bus| to which load is connected. """
         def __get__(self): 
             return new_Bus(cload.LOAD_get_bus(self._c_ptr))
-        def __set__(self,bus):
+        def __set__(self, bus):
             cdef Bus cbus
-            if not isinstance(bus,Bus) and bus is not None:
+            if not isinstance(bus, Bus) and bus is not None:
                 raise LoadError('Not a Bus type object')
             cbus = bus
             cload.LOAD_set_bus(self._c_ptr,cbus._c_ptr if bus is not None else NULL)
@@ -215,7 +226,45 @@ cdef class Load:
             return DoubleArray(cload.LOAD_get_Q_min_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
         def __set__(self, v):
             DoubleArray(cload.LOAD_get_Q_min_array(self._c_ptr), self.num_periods)[:] = v
-                
+
+    property comp_cp:
+        """ Active power part of constant power component of load (S = comp_cp + j*comp_cq) (p.u. system base power) (float or |Array|)."""
+        def __get__(self):
+            return DoubleArray(cload.LOAD_get_comp_cp_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_comp_cp_array(self._c_ptr), self.num_periods)[:] = v
+
+    property comp_cq:
+        """ Rective power part of constant power component of load (S = comp_cp + j*comp_cq) (p.u. system base power) (float or |Array|)."""
+        def __get__(self):
+            return DoubleArray(cload.LOAD_get_comp_cq_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_comp_cq_array(self._c_ptr), self.num_periods)[:] = v
+
+    property comp_ci:
+        """ Active power part of constant current component of load (S = v*comp_ci + j*v*comp_cj) (p.u. base current). (float or |Array|)."""
+        def __get__(self):
+            return DoubleArray(cload.LOAD_get_comp_ci_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_comp_ci_array(self._c_ptr), self.num_periods)[:] = v
+
+    property comp_cj:
+        """ Rective power part of constant current component of load (S = v*comp_ci + j*v*comp_cj) (p.u. base current). (float or |Array|)."""
+        def __get__(self):
+            return DoubleArray(cload.LOAD_get_comp_cj_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cload.LOAD_get_comp_cj_array(self._c_ptr), self.num_periods)[:] = v
+
+    property comp_cg:
+        """ Active power part of constant admittance component of load (S = v^2*comp_cg - j*v^2*comp_cb) (p.u. base admittance) (float). """
+        def __get__(self): return cload.LOAD_get_comp_cg(self._c_ptr)
+        def __set__(self, cg): cload.LOAD_set_comp_cg(self._c_ptr, cg)
+
+    property comp_cb:
+        """ Reactive power part of constant admittance component of load (S = v^2*comp_cg - j*v^2*comp_cb) (p.u. base admittance) (float). """
+        def __get__(self): return cload.LOAD_get_comp_cb(self._c_ptr)
+        def __set__(self, cb): cload.LOAD_set_comp_cb(self._c_ptr, cb)
+            
     property P_util:
         """ Active power load utility ($/hr) (float or |Array|). """
         def __get__(self):
@@ -237,22 +286,22 @@ cdef class Load:
     property target_power_factor:
         """ Target load power factor in (0,1] (float). """
         def __get__(self): return cload.LOAD_get_target_power_factor(self._c_ptr)
-        def __set__(self,pf): cload.LOAD_set_target_power_factor(self._c_ptr,pf)
+        def __set__(self, pf): cload.LOAD_set_target_power_factor(self._c_ptr,pf)
 
     property util_coeff_Q0:
         """ Coefficient for consumption utility function (constant term, units of $/hr) (float). """
         def __get__(self): return cload.LOAD_get_util_coeff_Q0(self._c_ptr)
-        def __set__(self,c): cload.LOAD_set_util_coeff_Q0(self._c_ptr,c)
+        def __set__(self, c): cload.LOAD_set_util_coeff_Q0(self._c_ptr,c)
 
     property util_coeff_Q1:
         """ Coefficient for consumption utility function (linear term, units of $/(hr p.u.)) (float). """
         def __get__(self): return cload.LOAD_get_util_coeff_Q1(self._c_ptr)
-        def __set__(self,c): cload.LOAD_set_util_coeff_Q1(self._c_ptr,c)
+        def __set__(self, c): cload.LOAD_set_util_coeff_Q1(self._c_ptr,c)
 
     property util_coeff_Q2:
         """ Coefficient for consumption utility function (quadratic term, units of $/(hr p.u.^2)) (float). """
         def __get__(self): return cload.LOAD_get_util_coeff_Q2(self._c_ptr)
-        def __set__(self,c): cload.LOAD_set_util_coeff_Q2(self._c_ptr,c)
+        def __set__(self, c): cload.LOAD_set_util_coeff_Q2(self._c_ptr,c)
 
     property json_string:
         """ JSON string (string). """
@@ -266,14 +315,14 @@ cdef class Load:
         """ Objective function sensitivity with respect to active power upper bound (float or |Array|). """
         def __get__(self): return DoubleArray(cload.LOAD_get_sens_P_u_bound_array(self._c_ptr),
                                               cload.LOAD_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __set__(self, x):
             self.sens_P_u_bound[:] = x
 
     property sens_P_l_bound:
         """ Objective function sensitivity with respect to active power lower bound (float or |Array|). """
         def __get__(self): return DoubleArray(cload.LOAD_get_sens_P_l_bound_array(self._c_ptr),
                                               cload.LOAD_get_num_periods(self._c_ptr))
-        def __set__(self,x):
+        def __set__(self, x):
             self.sens_P_l_bound[:] = x
 
     property flags_vars:

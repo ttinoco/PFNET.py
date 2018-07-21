@@ -34,7 +34,7 @@ class TestSerialization(unittest.TestCase):
 
             # Testing pickle string
             pkld_net_string = pickle.dumps(net1, protocol=-1)
-            net2 = pickle.loads(pkld_net_string)
+            net2 = pickle.loads(pkld_net_string)            
             pf.tests.utils.compare_networks(self, net1, net2)
 
             # Testing pickle with file

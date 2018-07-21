@@ -1266,9 +1266,7 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(net.num_periods,1)
 
             self.assertTrue(net.num_loads > 0)
-
             self.assertEqual(net.num_loads,len(net.loads))
-
             self.assertEqual(net.num_loads,sum([len(b.loads) for b in net.buses]))
 
             for i in range(net.num_loads):
@@ -1287,9 +1285,24 @@ class TestNetwork(unittest.TestCase):
 
                 self.assertEqual(load.index,i)
                 self.assertEqual(load.index,net.loads[i].index)
-
                 self.assertTrue(load.bus)
 
+                # Load components and init
+                v = 1.
+                self.assertAlmostEqual(load.P, (load.comp_cp +
+                                                load.comp_ci*v +
+                                                load.comp_cg*(v**2.)))
+                self.assertAlmostEqual(load.Q, (load.comp_cq +
+                                                load.comp_cj*v -
+                                                load.comp_cb*(v**2.)))
+
+                # V dep check
+                if (load.comp_ci != 0. or load.comp_cj != 0. or
+                    load.comp_cg != 0. or load.comp_cb != 0.):
+                    self.assertTrue(load.is_voltage_dependent())
+                else:
+                    self.assertFalse(load.is_voltage_dependent())
+                
                 # P limits
                 self.assertEqual(load.P,load.P_max)
                 self.assertEqual(load.P,load.P_min)
@@ -1368,6 +1381,12 @@ class TestNetwork(unittest.TestCase):
                 for t in range(1,self.T):
                     self.assertEqual(load.P[t],load.P[0])
                     self.assertEqual(load.Q[t],load.Q[0])
+                    self.assertEqual(load.P_max[t], load.P_max[0])
+                    self.assertEqual(load.P_min[t], load.P_min[0])
+                    self.assertEqual(load.Q_max[t], load.Q_max[0])
+                    self.assertEqual(load.Q_min[t], load.Q_min[0])
+                    self.assertEqual(load.comp_cp[t], load.comp_cp[0])
+                    self.assertEqual(load.comp_cq[t], load.comp_cq[0])
 
                 # Set
                 x = np.random.randn(self.T)
@@ -1408,6 +1427,12 @@ class TestNetwork(unittest.TestCase):
                     self.assertNotEqual(load.Q_min[t],load.Q[t])
 
                 # Set (attribute array)
+                c = np.random.randn()
+                load.comp_cg = c
+                self.assertEqual(load.comp_cg, c)
+                c = np.random.randn()
+                load.comp_cb = c
+                self.assertEqual(load.comp_cb, c)
                 for t in range(self.T):
                     p = np.random.randn()
                     load.P[t] = p
@@ -1427,6 +1452,18 @@ class TestNetwork(unittest.TestCase):
                     q = np.random.randn()
                     load.Q_min[t] = q
                     self.assertEqual(load.Q_min[t],q)
+                    c = np.random.randn()
+                    load.comp_cp[t] = c
+                    self.assertEqual(load.comp_cp[t], c)
+                    c = np.random.randn()
+                    load.comp_cq[t] = c
+                    self.assertEqual(load.comp_cq[t], c)
+                    c = np.random.randn()
+                    load.comp_ci[t] = c
+                    self.assertEqual(load.comp_ci[t], c)
+                    c = np.random.randn()
+                    load.comp_cj[t] = c
+                    self.assertEqual(load.comp_cj[t], c)
 
                 # Power factor
                 load.target_power_factor = 0.932
@@ -1438,6 +1475,29 @@ class TestNetwork(unittest.TestCase):
                 for t in range(net.num_periods):
                     self.assertAlmostEqual(load.power_factor[t],load.P[t]/np.sqrt(load.P[t]**2.+load.Q[t]**2.))
 
+                # Voltage dependence
+                load.comp_ci = 0
+                load.comp_cj = 0
+                load.comp_cg = 0
+                load.comp_cb = 0
+                self.assertFalse(load.is_voltage_dependent())
+                load.comp_ci[self.T-1] = 0.2
+                self.assertTrue(load.is_voltage_dependent())
+                load.comp_ci = 0
+                self.assertFalse(load.is_voltage_dependent())
+                load.comp_cj[self.T-1] = 0.3
+                self.assertTrue(load.is_voltage_dependent())
+                load.comp_cj = 0
+                self.assertFalse(load.is_voltage_dependent())
+                load.comp_cg = 0.4
+                self.assertTrue(load.is_voltage_dependent())
+                load.comp_cg = 0
+                self.assertFalse(load.is_voltage_dependent())
+                load.comp_cb = 0.5
+                self.assertTrue(load.is_voltage_dependent())
+                load.comp_cb = 0
+                self.assertFalse(load.is_voltage_dependent())
+
             # Indexing
             net.set_flags('load',
                           'variable',
@@ -1448,6 +1508,20 @@ class TestNetwork(unittest.TestCase):
             for load in net.loads:
                 self.assertTrue(np.all(load.index_P == range(index,index+self.T)))
                 index += self.T
+
+            # vdep property
+            net.clear_flags()
+            self.assertEqual(net.num_vars, 0)
+            net.set_flags('load',
+                          'variable',
+                          'voltage dependent',
+                          'reactive power')
+            self.assertEqual(net.num_vars, net.get_num_vdep_loads()*self.T)
+            for load in net.loads:
+                if load.is_voltage_dependent():
+                    self.assertTrue(load.has_flags('variable', 'reactive power'))
+                else:
+                    self.assertFalse(load.has_flags('variable', 'reactive power'))
 
     def test_var_generators(self):
 
@@ -4298,6 +4372,12 @@ class TestNetwork(unittest.TestCase):
                 copy_load.util_coeff_Q0 = orig_load.util_coeff_Q0
                 copy_load.util_coeff_Q1 = orig_load.util_coeff_Q1
                 copy_load.util_coeff_Q2 = orig_load.util_coeff_Q2
+                copy_load.comp_cp = orig_load.comp_cp
+                copy_load.comp_cq = orig_load.comp_cq
+                copy_load.comp_ci = orig_load.comp_ci
+                copy_load.comp_cj = orig_load.comp_cj
+                copy_load.comp_cg = orig_load.comp_cg
+                copy_load.comp_cb = orig_load.comp_cb
                 
             # Shunts
             for i in range(copy_net.num_shunts):

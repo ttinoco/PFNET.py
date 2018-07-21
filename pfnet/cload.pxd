@@ -22,19 +22,17 @@ cdef extern from "pfnet/load.h":
        
     cdef char LOAD_PROP_ANY
     cdef char LOAD_PROP_P_ADJUST
+    cdef char LOAD_PROP_VDEP
 
     char LOAD_get_flags_vars(Load* load)
     char LOAD_get_flags_fixed(Load* load)
     char LOAD_get_flags_bounded(Load* load)
     char LOAD_get_flags_sparse(Load* load)
-
     char* LOAD_get_name(Load* load)
     REAL LOAD_get_power_factor(Load* load, int t)
     REAL LOAD_get_target_power_factor(Load* load)
-  
     REAL* LOAD_get_sens_P_u_bound_array(Load* load)
-    REAL* LOAD_get_sens_P_l_bound_array(Load* load)
-  
+    REAL* LOAD_get_sens_P_l_bound_array(Load* load)  
     REAL LOAD_get_P_util(Load* load, int t)
     REAL LOAD_get_util_coeff_Q0(Load* load)
     REAL LOAD_get_util_coeff_Q1(Load* load)
@@ -51,11 +49,18 @@ cdef extern from "pfnet/load.h":
     REAL* LOAD_get_Q_array(Load* load)
     REAL* LOAD_get_Q_max_array(Load* load)
     REAL* LOAD_get_Q_min_array(Load* load)
+    REAL* LOAD_get_comp_cp_array(Load* load)
+    REAL* LOAD_get_comp_cq_array(Load* load)
+    REAL* LOAD_get_comp_ci_array(Load* load)
+    REAL* LOAD_get_comp_cj_array(Load* load)
+    REAL LOAD_get_comp_cg(Load* load)
+    REAL LOAD_get_comp_cb(Load* load)
     Load* LOAD_get_next(Load* load)
     char* LOAD_get_json_string(Load* load, char* output)
     char* LOAD_get_var_info_string(Load* load, int index)
     bint LOAD_is_equal(Load* load, Load* other)
     bint LOAD_is_P_adjustable(Load* load)
+    bint LOAD_is_vdep(Load* load)
     bint LOAD_has_flags(Load* load, char flag_type, char mask)
     Load* LOAD_new(int num_periods)
     Load* LOAD_array_new(int size, int num_periods)
@@ -66,3 +71,5 @@ cdef extern from "pfnet/load.h":
     void LOAD_set_util_coeff_Q1(Load* load, REAL c)
     void LOAD_set_util_coeff_Q2(Load* load, REAL c)
     void LOAD_set_target_power_factor(Load* load, REAL pf)
+    void LOAD_set_comp_cg(Load* load, REAL comp)
+    void LOAD_set_comp_cb(Load* load, REAL comp)

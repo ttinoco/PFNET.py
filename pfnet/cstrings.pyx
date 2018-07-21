@@ -108,7 +108,8 @@ str2prop_shunt =  {'any' : cshunt.SHUNT_PROP_ANY,
                    'switching - v' : cshunt.SHUNT_PROP_SWITCHED_V}
 
 str2prop_load = {'any' : cload.LOAD_PROP_ANY,
-                 'adjustable active power' : cload.LOAD_PROP_P_ADJUST}
+                 'adjustable active power' : cload.LOAD_PROP_P_ADJUST,
+                 'voltage dependent' : cload.LOAD_PROP_VDEP}
 
 str2prop_vargen = {'any' : cvargen.VARGEN_PROP_ANY}
 
