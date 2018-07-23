@@ -9,8 +9,8 @@
 import os
 import unittest
 import pfnet as pf
-from . import test_cases
 import numpy as np
+from . import test_cases
 
 class TestParser(unittest.TestCase):
 
@@ -34,23 +34,24 @@ class TestParser(unittest.TestCase):
 
         tested = False
         for case in test_cases.CASES:
-
+            
             if os.path.splitext(case)[-1] != '.m':
                 continue
 
             parser = pf.PyParserMAT()
-
             net1 = parser.parse(case, num_periods=2)
 
-            p = pf.PyParserMAT()
-            p.write(net1, 'foo.m')
+            try:
+                p = pf.PyParserMAT()
+                p.write(net1, 'foo.m')
 
-            parser = pf.PyParserMAT()
-
-            net2 = parser.parse('foo.m', num_periods=2)
+                parser = pf.PyParserMAT()
+                net2 = parser.parse('foo.m', num_periods=2)
+            finally:
+                if os.path.isfile('foo.m'):
+                    os.remove('foo.m')
 
             pf.tests.utils.compare_networks(self, net1, net2)
-
             tested = True
         if not tested:
             self.skipTest("no .m files")

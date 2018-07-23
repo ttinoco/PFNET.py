@@ -127,8 +127,8 @@ cdef Matrix(cmat.Mat* m, owndata=False):
     else:
         return coo_matrix(([],([],[])),shape=(0,0))
 
-# Attribute arrray
-##################
+# Attribute array
+#################
 
 class AttributeArray(np.ndarray):
 
@@ -143,7 +143,7 @@ class AttributeArray(np.ndarray):
 # Attribute int
 ###############
 
-class AttributeInt(int):
+class AttributeInt(np.int32):
 
     def __len__(self):
         return 0
