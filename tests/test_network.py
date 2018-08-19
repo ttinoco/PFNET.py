@@ -574,14 +574,13 @@ class TestNetwork(unittest.TestCase):
                             self.assertGreaterEqual(bus.v_set,bus.v_min_reg)
                             self.assertLessEqual(bus.v_set,bus.v_max_reg)
 
-                # branches
+                # Branches
                 self.assertTrue(isinstance(bus.branches_k,list))
                 for br in bus.branches_k:
                     self.assertEqual(bus.number,br.bus_k.number)
                 self.assertTrue(isinstance(bus.branches_m,list))
                 for br in bus.branches_m:
                     self.assertEqual(bus.number,br.bus_m.number)
-                self.assertGreater(len(bus.branches),0)
                 self.assertEqual(len(bus.branches),len(bus.branches_k)+len(bus.branches_m))
                 self.assertEqual(len(bus.branches),bus.degree)
 
@@ -4347,6 +4346,7 @@ class TestNetwork(unittest.TestCase):
                 copy_gen.Q = orig_gen.Q
                 copy_gen.Q_max = orig_gen.Q_max
                 copy_gen.Q_min = orig_gen.Q_min
+                copy_gen.Q_par = orig_gen.Q_par
                 copy_gen.cost_coeff_Q0 = orig_gen.cost_coeff_Q0
                 copy_gen.cost_coeff_Q1 = orig_gen.cost_coeff_Q1
                 copy_gen.cost_coeff_Q2 = orig_gen.cost_coeff_Q2

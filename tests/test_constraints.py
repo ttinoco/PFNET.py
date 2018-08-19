@@ -1951,29 +1951,23 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(Ad.size,nnz*self.T)
             i = 0
             row = 0
-            counted = {}
             for t in range(self.T):
-                for k in range(net.num_branches):
-                    br = net.get_branch(k)
-                    for bus in [br.bus_k,br.bus_m]:
-                        if (bus.number,t) in counted:
-                            continue
-                        counted[(bus.number,t)] = True
-                        if bus.is_slack():
-                            gens = bus.generators
-                            self.assertGreater(len(gens),0)
-                            g1 = gens[0]
-                            for g2 in gens[1:]:
-                                self.assertEqual(b[row],0.)
-                                self.assertEqual(Ai[i],row)
-                                self.assertEqual(Aj[i],g1.index_P[t])
-                                self.assertEqual(Ad[i],1.)
-                                i += 1
-                                self.assertEqual(Ai[i],row)
-                                self.assertEqual(Aj[i],g2.index_P[t])
-                                self.assertEqual(Ad[i],-1.)
-                                i += 1
-                                row += 1
+                for bus in net.buses:
+                    if bus.is_slack():
+                        gens = bus.generators
+                        self.assertGreater(len(gens),0)
+                        g1 = gens[0]
+                        for g2 in gens[1:]:
+                            self.assertEqual(b[row],0.)
+                            self.assertEqual(Ai[i],row)
+                            self.assertEqual(Aj[i],g1.index_P[t])
+                            self.assertEqual(Ad[i],1.)
+                            i += 1
+                            self.assertEqual(Ai[i],row)
+                            self.assertEqual(Aj[i],g2.index_P[t])
+                            self.assertEqual(Ad[i],-1.)
+                            i += 1
+                            row += 1
             self.assertEqual(i,nnz*self.T)
 
             # Last check
