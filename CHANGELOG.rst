@@ -13,6 +13,7 @@ Unreleased
 * Updated code to be compatible with bus-loop-based C pfnet library.
 * Voltage dependent loads.
 * Changed parent class of AttributeInt in order to make it work better with numpy.
+* Load voltage dependence constraint.
   
 Version 1.3.3
 -------------

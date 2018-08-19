@@ -104,6 +104,7 @@ cdef extern from "pfnet/constr.h":
     Constr* CONSTR_AC_LIN_FLOW_LIM_new(Net* net)
     Constr* CONSTR_BAT_DYN_new(Net* net)
     Constr* CONSTR_LOAD_PF_new(Net* net)
+    Constr* CONSTR_LOAD_VDEP_new(Net* net)
     Constr* CONSTR_CFUNC_new(Net* net)
 
     void* CONSTR_get_data(Constr* c)

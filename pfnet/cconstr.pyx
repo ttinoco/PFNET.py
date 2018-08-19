@@ -642,6 +642,8 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_BAT_DYN_new(net._c_net)
         elif name == "load constant power factor":
             self._c_constr = cconstr.CONSTR_LOAD_PF_new(net._c_net)
+        elif name == "load voltage dependence":
+            self._c_constr = cconstr.CONSTR_LOAD_VDEP_new(net._c_net)
         elif name == "constrained function":
             self._c_constr = cconstr.CONSTR_CFUNC_new(net._c_net)
         else:

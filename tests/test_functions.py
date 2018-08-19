@@ -2855,7 +2855,7 @@ class TestFunctions(unittest.TestCase):
             self.assertLess(abs(func.phi-phi),1e-8*(1.+np.abs(phi)))
 
             # Constraint
-            h = 1e-9
+            h = 1e-8
             constr = pf.Constraint('constrained function', net)
             constr.set_parameter('func', pf.functions.DummyGenCost(0.3,net)) # DummyGenCost does not get garbage collected
             constr.set_parameter('rhs', 100.)

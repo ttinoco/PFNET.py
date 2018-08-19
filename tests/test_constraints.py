@@ -28,6 +28,161 @@ class TestConstraints(unittest.TestCase):
         # Random
         np.random.seed(0)
 
+    def test_constr_LOAD_VDEP(self):
+
+        # Constants
+        h = 1e-10
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Vars
+            net.set_flags('bus',
+                          'variable',
+                          'any',
+                          'voltage magnitude')
+            net.set_flags('load',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power'])
+            self.assertEqual(net.num_vars, (2*net.num_loads+net.num_buses)*self.T)
+
+            x0 = net.get_var_values()+1e-5*np.random.randn(net.num_vars)
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Loads comps
+            for load in net.loads:
+                load.comp_ci = np.random.randn(self.T)
+                load.comp_cj = np.random.randn(self.T)
+                load.comp_cg = np.random.randn()
+                load.comp_cb = np.random.randn()
+                load.comp_cp = load.P
+                load.comp_cq = load.Q
+
+            # Constraint
+            constr = pf.Constraint('load voltage dependence',net)
+            self.assertEqual(constr.name,'load voltage dependence')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            Jnnz = 4*net.num_loads*self.T
+            rowsJ = 2*net.num_loads*self.T
+
+            constr.analyze()
+            self.assertEqual(constr.J_nnz,Jnnz)
+            self.assertEqual(constr.J_row,rowsJ)
+            self.assertEqual(constr.num_extra_vars,0)
+            self.assertEqual(constr.J_row, constr.H_nnz.size)
+            self.assertEqual(2*net.num_loads*net.num_periods, constr.H_nnz.size)
+            self.assertTrue(np.all(constr.H_nnz == np.ones(2*net.num_loads*net.num_periods)))
+
+            for i in range(rowsJ):
+                H = constr.get_H_single(i)
+                self.assertEqual(H.shape[0], net.num_vars)
+                self.assertEqual(H.shape[1], net.num_vars)
+                self.assertEqual(H.nnz, 1)
+            H = constr.H_combined
+            self.assertEqual(H.shape[0], net.num_vars)
+            self.assertEqual(H.shape[1], net.num_vars)
+            self.assertEqual(H.nnz, rowsJ)
+
+            constr.eval(x0)
+            self.assertEqual(constr.J_nnz,Jnnz)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,rowsJ)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # After
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(rowsJ,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(rowsJ,net.num_vars))
+            self.assertEqual(J.nnz,Jnnz)
+
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # f check
+            J_row = 0
+            for t in range(self.T):
+                for bus in net.buses:
+                    for load in bus.loads:
+                        Sp = (x0[load.index_P[t]] -
+                              load.comp_cp[t] -
+                              load.comp_ci[t]*x0[bus.index_v_mag[t]] -
+                              load.comp_cg*(x0[bus.index_v_mag[t]])**2.)
+                        Sq = (x0[load.index_Q[t]] -
+                              load.comp_cq[t] -
+                              load.comp_cj[t]*x0[bus.index_v_mag[t]] +
+                              load.comp_cb*(x0[bus.index_v_mag[t]])**2.)
+                        self.assertAlmostEqual(Sp,f[J_row])
+                        self.assertAlmostEqual(Sq,f[J_row+1])
+                        J_row += 2
+                        
+            # Jacobian check
+            pf.tests.utils.check_constraint_Jacobian(self,
+                                                     constr,
+                                                     x0,
+                                                     np.zeros(0),
+                                                     NUM_TRIALS,
+                                                     TOL,
+                                                     EPS,
+                                                     h)
+            # Single Hessian check
+            pf.tests.utils.check_constraint_single_Hessian(self,
+                                                           constr,
+                                                           x0,
+                                                           np.zeros(0),
+                                                           NUM_TRIALS,
+                                                           TOL,
+                                                           EPS,
+                                                           h)
+            # Combined Hessian check
+            pf.tests.utils.check_constraint_combined_Hessian(self,
+                                                             constr,
+                                                             x0,
+                                                             np.zeros(0),
+                                                             NUM_TRIALS,
+                                                             TOL,
+                                                             EPS,
+                                                             h)
+
     def test_constr_CFUNC(self):
 
         h = 1e-8
