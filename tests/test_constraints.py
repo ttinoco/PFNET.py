@@ -185,7 +185,7 @@ class TestConstraints(unittest.TestCase):
 
     def test_constr_CFUNC(self):
 
-        h = 1e-8
+        h = 1e-9
         
         # Multiperiod
         for case in test_cases.CASES:
