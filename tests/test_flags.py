@@ -184,7 +184,7 @@ class TestFlags(unittest.TestCase):
                           'variable',
                           'switching - v',
                           'susceptance')
-            num_vars += net.get_num_switched_shunts()
+            num_vars += net.get_num_switched_v_shunts()
             self.assertEqual(net.num_vars,num_vars)
             for shunt in net.shunts:
                 self.assertEqual(shunt.flags_fixed,0)
@@ -310,7 +310,7 @@ class TestFlags(unittest.TestCase):
                           'variable',
                           'switching - v',
                           'susceptance')
-            num_vars += net.get_num_switched_shunts()
+            num_vars += net.get_num_switched_v_shunts()
             self.assertEqual(num_vars,net.num_vars)
            
             net.set_flags('variable generator',
@@ -495,7 +495,7 @@ class TestFlags(unittest.TestCase):
                              (net.get_num_buses_reg_by_gen()*2 + 
                               net.num_generators - net.get_num_reg_gens() + 
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts()+
+                              net.get_num_switched_v_shunts()+
                               net.num_var_generators*2 +
                               net.num_loads+
                               3*net.num_batteries))
@@ -777,7 +777,7 @@ class TestFlags(unittest.TestCase):
                              (net.num_buses*2+net.num_generators*2+net.num_loads*2+
                               net.num_var_generators*2+net.get_num_tap_changers()+
                               net.get_num_phase_shifters()+
-                              net.get_num_switched_shunts()+
+                              net.get_num_switched_v_shunts()+
                               net.num_batteries*3)*net.num_periods)
 
             # Info strings

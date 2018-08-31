@@ -152,6 +152,27 @@ cdef class Shunt:
         else:
             raise ShuntError('index does not correspond to any variable')
 
+    def set_as_fixed(self):
+        """
+        Sets shunt as fixed.
+        """
+
+        cshunt.SHUNT_set_type(self._c_ptr,cshunt.SHUNT_TYPE_FIXED)
+
+    def set_as_switched(self):
+        """
+        Sets shunt as switched.
+        """
+
+        cshunt.SHUNT_set_type(self._c_ptr,cshunt.SHUNT_TYPE_SWITCHED)
+
+    def set_as_switched_v(self):
+        """
+        Sets shunt as switched proviging voltage regulation.
+        """
+
+        cshunt.SHUNT_set_type(self._c_ptr,cshunt.SHUNT_TYPE_SWITCHED_V)
+
     def set_b_values(self, values):
         """
         Sets the block susceptance values.

@@ -238,7 +238,7 @@ class TestFunctions(unittest.TestCase):
                               net.num_loads*2+
                               net.get_num_phase_shifters()+
                               net.get_num_tap_changers()+
-                              net.get_num_switched_shunts())*self.T)
+                              net.get_num_switched_v_shunts())*self.T)
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -401,7 +401,7 @@ class TestFunctions(unittest.TestCase):
                               net.num_loads*2+
                               net.get_num_phase_shifters()+
                               net.get_num_tap_changers()+
-                              net.get_num_switched_shunts())*self.T)
+                              net.get_num_switched_v_shunts())*self.T)
 
             x0 = net.get_var_values()
 
@@ -955,7 +955,7 @@ class TestFunctions(unittest.TestCase):
                           'variable',
                           'switching - v',
                           ['susceptance'])
-            self.assertEqual(net.num_vars,net.get_num_switched_shunts()*self.T)
+            self.assertEqual(net.num_vars,net.get_num_switched_v_shunts()*self.T)
 
             x0 = net.get_var_values()+np.random.randn(net.num_vars)
             self.assertTrue(type(x0) is np.ndarray)
@@ -985,9 +985,9 @@ class TestFunctions(unittest.TestCase):
             self.assertEqual(func.Hphi_nnz,0)
 
             func.analyze()
-            self.assertEqual(func.Hphi_nnz,net.get_num_switched_shunts()*self.T)
+            self.assertEqual(func.Hphi_nnz,net.get_num_switched_v_shunts()*self.T)
             func.eval(x0)
-            self.assertEqual(func.Hphi_nnz,net.get_num_switched_shunts()*self.T)
+            self.assertEqual(func.Hphi_nnz,net.get_num_switched_v_shunts()*self.T)
 
             f = func.phi
             g = func.gphi
@@ -1000,7 +1000,7 @@ class TestFunctions(unittest.TestCase):
             self.assertTupleEqual(g.shape,(net.num_vars,))
             self.assertTrue(type(H) is coo_matrix)
             self.assertTupleEqual(H.shape,(net.num_vars,net.num_vars))
-            self.assertEqual(H.nnz,net.get_num_switched_shunts()*self.T)
+            self.assertEqual(H.nnz,net.get_num_switched_v_shunts()*self.T)
             self.assertTrue(np.all(H.row == H.col))
 
             self.assertTrue(not np.any(np.isinf(g)))
@@ -1370,7 +1370,7 @@ class TestFunctions(unittest.TestCase):
                               net.num_generators +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts()))
+                              net.get_num_switched_v_shunts()))
 
             # Sparse
             net.set_flags('bus',
@@ -1398,7 +1398,7 @@ class TestFunctions(unittest.TestCase):
                               net.num_generators +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts()))
+                              net.get_num_switched_v_shunts()))
 
             x0 = net.get_var_values() + np.random.randn(net.num_vars)
             self.assertTrue(type(x0) is np.ndarray)
@@ -1431,7 +1431,7 @@ class TestFunctions(unittest.TestCase):
                                net.get_num_generators() +
                                net.get_num_tap_changers() +
                                net.get_num_phase_shifters() +
-                               net.get_num_switched_shunts())
+                               net.get_num_switched_v_shunts())
 
             func.analyze()
             self.assertEqual(func.Hphi_nnz,Hphi_nnz_manual)
@@ -2669,7 +2669,7 @@ class TestFunctions(unittest.TestCase):
                               net.num_loads +
                               net.get_num_tap_changers()+
                               net.get_num_phase_shifters()+
-                              net.get_num_switched_shunts())*self.T)
+                              net.get_num_switched_v_shunts())*self.T)
 
             x0 = net.get_var_values()
 
@@ -2740,7 +2740,7 @@ class TestFunctions(unittest.TestCase):
                               2*net.num_generators +
                               net.get_num_tap_changers()+
                               net.get_num_phase_shifters()+
-                              net.get_num_switched_shunts()+
+                              net.get_num_switched_v_shunts()+
                               3*net.num_batteries)*self.T)
 
             x0 = net.get_var_values()

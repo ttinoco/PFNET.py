@@ -192,7 +192,7 @@ class TestNetwork(unittest.TestCase):
                                      net.get_load_from_name_and_bus_number(load.name,
                                                                            load.bus.number).index)
             for shunt in net.shunts[:10]:
-                if shunt.name:
+                if shunt.name and shunt.name != 'SL' and shunt.name != 'TM':
                     self.assertEqual(shunt.index,
                                      net.get_shunt_from_name_and_bus_number(shunt.name,
                                                                             shunt.bus.number).index)
@@ -1197,7 +1197,6 @@ class TestNetwork(unittest.TestCase):
 
                 # fixed
                 else:
-                    self.assertTrue(shunt.is_fixed())
                     self.assertRaises(pf.BusError,lambda : shunt.reg_bus)
 
                 # b_values
@@ -2682,7 +2681,7 @@ class TestNetwork(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               2*net.get_num_var_generators()+
                               2*net.num_loads+
                               3*net.num_batteries))
@@ -2816,9 +2815,9 @@ class TestNetwork(unittest.TestCase):
             # shunt susceptance
             P = net.get_var_projection('shunt','any','susceptance')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],net.get_num_switched_shunts())
+            self.assertEqual(P.shape[0],net.get_num_switched_v_shunts())
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,net.get_num_switched_shunts())
+            self.assertEqual(P.nnz,net.get_num_switched_v_shunts())
             sS = P*x
             index = 0
             for i in range(net.num_shunts):
@@ -2996,7 +2995,7 @@ class TestNetwork(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               2*net.get_num_var_generators()+
                               2*net.num_loads+
                               3*net.num_batteries)*self.T)
@@ -3138,9 +3137,9 @@ class TestNetwork(unittest.TestCase):
             # shunt susceptance
             P = net.get_var_projection('shunt','any','susceptance')
             self.assertTrue(isinstance(P,coo_matrix))
-            self.assertEqual(P.shape[0],net.get_num_switched_shunts()*self.T)
+            self.assertEqual(P.shape[0],net.get_num_switched_v_shunts()*self.T)
             self.assertEqual(P.shape[1],net.num_vars)
-            self.assertEqual(P.nnz,net.get_num_switched_shunts()*self.T)
+            self.assertEqual(P.nnz,net.get_num_switched_v_shunts()*self.T)
             sS = P*x
             index = 0
             for i in range(net.num_shunts):
@@ -3294,7 +3293,7 @@ class TestNetwork(unittest.TestCase):
                               2*net.num_generators +
                               net.get_num_tap_changers_v() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               2*net.num_loads))
 
             # Slack gen active power
@@ -3389,7 +3388,7 @@ class TestNetwork(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               2*net.get_num_var_generators()+
                               2*net.num_loads+
                               3*net.num_batteries)*self.T)
@@ -3424,7 +3423,7 @@ class TestNetwork(unittest.TestCase):
             # shunt all
             P = net.get_var_projection('shunt','any','all',3,3)
             self.assertTrue(np.all(P.data == 1.))
-            self.assertTupleEqual(P.shape,(net.get_num_switched_shunts(),net.num_vars))
+            self.assertTupleEqual(P.shape,(net.get_num_switched_v_shunts(),net.num_vars))
 
             # vargen all
             P = net.get_var_projection('variable generator','any','all',-1,2)
@@ -4249,7 +4248,6 @@ class TestNetwork(unittest.TestCase):
                            'any',
                            ['charging power', 'energy level'])
             
-
             net2 = net1.get_copy()
 
             pf.tests.utils.compare_networks(self,net1,net2,check_internals=True)
@@ -4401,6 +4399,12 @@ class TestNetwork(unittest.TestCase):
                 copy_shunt.b_min = orig_shunt.b_min
                 copy_shunt.set_b_values(np.zeros(orig_shunt.b_values.size))
                 copy_shunt.b_values = orig_shunt.b_values
+                if orig_shunt.is_fixed():
+                    copy_shunt.set_as_fixed()
+                if orig_shunt.is_switched():
+                    copy_shunt.set_as_switched()
+                if orig_shunt.is_switched_v():
+                    copy_shunt.set_as_switched_v()
                 
             # Branches
             for i in range(copy_net.num_branches):

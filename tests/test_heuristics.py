@@ -54,7 +54,7 @@ class TestHeuristics(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers_v() + 
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts())*T)
+                              net.get_num_switched_v_shunts())*T)
                              
             # Fixed
             net.set_flags('branch',
@@ -72,7 +72,7 @@ class TestHeuristics(unittest.TestCase):
             self.assertEqual(net.num_fixed,
                              (net.get_num_tap_changers_v() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts())*T)
+                              net.get_num_switched_v_shunts())*T)
                              
 
             self.assertRaises(pf.HeuristicError, pf.Heuristic, 'foo', net)

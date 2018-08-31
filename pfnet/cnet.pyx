@@ -1475,6 +1475,18 @@ cdef class Network:
 
         return cnet.NET_get_num_switched_shunts(self._c_net)
 
+    def get_num_switched_v_shunts(self):
+        """
+        Gets number of switched shunts in the network
+        that provide voltage regulation.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_switched_v_shunts(self._c_net)
+
     def get_num_var_generators(self):
         """
         Gets number of variable generators in the network.

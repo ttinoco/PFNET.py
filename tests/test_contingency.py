@@ -755,7 +755,7 @@ class TestContingency(unittest.TestCase):
                               net.get_num_reg_gens() +
                               2*net.num_buses +
                               net.get_num_tap_changers() +
-                              net.get_num_switched_shunts()))
+                              net.get_num_switched_v_shunts()))
 
             # pre contingency
             net.update_properties()

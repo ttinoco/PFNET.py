@@ -18,6 +18,10 @@ cdef extern from "pfnet/shunt.h":
 
     cdef double SHUNT_INF_SUSC
 
+    cdef int SHUNT_TYPE_FIXED
+    cdef int SHUNT_TYPE_SWITCHED
+    cdef int SHUNT_TYPE_SWITCHED_V    
+
     cdef char SHUNT_PROP_ANY
     cdef char SHUNT_PROP_SWITCHED_V
 
@@ -54,6 +58,7 @@ cdef extern from "pfnet/shunt.h":
     Shunt* SHUNT_new(int num_periods)
     Shunt* SHUNT_array_new(int size, int num_periods)
     void SHUNT_array_del(Shunt* shunt_array, int size)
+    void SHUNT_set_type(Shunt* shunt, char type)
     void SHUNT_set_name(Shunt* shunt, char* name)
     void SHUNT_set_bus(Shunt* shunt, Bus* bus)
     void SHUNT_set_reg_bus(Shunt* shunt, Bus* reg_bus)

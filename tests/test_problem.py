@@ -233,7 +233,7 @@ class TestProblem(unittest.TestCase):
                              net.get_num_reg_gens() +
                              net.get_num_tap_changers_v() + 
                              net.get_num_phase_shifters() +
-                             net.get_num_switched_shunts())
+                             net.get_num_switched_v_shunts())
                              
             # Fixed
             net.set_flags('branch',
@@ -251,7 +251,7 @@ class TestProblem(unittest.TestCase):
             self.assertEqual(net.num_fixed,
                              net.get_num_tap_changers_v() +
                              net.get_num_phase_shifters() +
-                             net.get_num_switched_shunts())
+                             net.get_num_switched_v_shunts())
                              
             # Constraints
             p.add_constraint(pf.Constraint('AC power balance', net))
@@ -483,7 +483,7 @@ class TestProblem(unittest.TestCase):
                              net.get_num_slack_gens() + 
                              net.get_num_reg_gens() + 
                              net.get_num_tap_changers_v()+
-                             net.get_num_switched_shunts())
+                             net.get_num_switched_v_shunts())
                              
             # Constraints
             p.add_constraint(pf.Constraint('AC power balance',net))

@@ -117,7 +117,7 @@ cdef extern from "pfnet/branch.h":
     void BRANCH_array_show(Branch* br_array, int size, int t)
     void BRANCH_set_outage(Branch* br, BOOL outage)
     void BRANCH_set_name(Branch* br, char* name)
-    void BRANCH_set_type(Branch* br, int type)
+    void BRANCH_set_type(Branch* br, char type)
     void BRANCH_set_bus_k(Branch* br, Bus* bus_k)
     void BRANCH_set_bus_m(Branch* br, Bus* bus_m)
     void BRANCH_set_reg_bus(Branch* br, Bus* reg_bus)

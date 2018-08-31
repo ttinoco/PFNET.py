@@ -18,6 +18,36 @@ class TestParser(unittest.TestCase):
 
         pass
 
+    def test_parserraw_write(self):
+
+        tested = False
+        for case in test_cases.CASES:
+            
+            if os.path.splitext(case)[-1] != '.raw':
+                continue
+            
+            parser = pf.ParserRAW()
+            net1 = parser.parse(case, num_periods=2)
+            
+            try:
+                parser.write(net1, 'foo.raw')
+
+                net2 = parser.parse('foo.raw', num_periods=2)
+
+                new_parser = pf.ParserRAW()
+                net3 = parser.parse('foo.raw', num_periods=2)
+                
+            finally:
+                if os.path.isfile('foo.raw'):
+                    os.remove('foo.raw')
+
+            pf.tests.utils.compare_networks(self, net1, net2)
+            pf.tests.utils.compare_networks(self, net1, net3)
+            tested = True
+            
+        if not tested:
+            self.skipTest("no .raw files")
+
     def test_case118_m(self):
 
         case_mat = './data/case118.mat'

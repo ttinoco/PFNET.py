@@ -377,7 +377,7 @@ class TestConstraints(unittest.TestCase):
                              net.get_num_reg_gens() +
                              net.get_num_tap_changers() +
                              net.get_num_phase_shifters() +
-                             net.get_num_switched_shunts() +
+                             net.get_num_switched_v_shunts() +
                              net.num_var_generators*2+
                              3*net.num_batteries+
                              net.num_loads)
@@ -426,7 +426,7 @@ class TestConstraints(unittest.TestCase):
                              net.get_num_reg_gens() +
                              net.get_num_tap_changers() +
                              net.get_num_phase_shifters() +
-                             net.get_num_switched_shunts() +
+                             net.get_num_switched_v_shunts() +
                              net.num_var_generators*2+
                              3*net.num_batteries+
                              net.num_loads)
@@ -619,7 +619,7 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               net.num_var_generators*2+
                               3*net.num_batteries+
                               net.num_loads)*self.T)
@@ -974,7 +974,7 @@ class TestConstraints(unittest.TestCase):
                              2*net.get_num_P_adjust_loads() +
                              net.get_num_tap_changers() +
                              net.get_num_phase_shifters()*1 +
-                             net.get_num_switched_shunts() +
+                             net.get_num_switched_v_shunts() +
                              net.num_var_generators*2+
                              3*net.num_batteries)
 
@@ -1458,7 +1458,7 @@ class TestConstraints(unittest.TestCase):
                               2*net.num_loads +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               net.num_var_generators*2+
                               3*net.num_batteries)*self.T)
 
@@ -2399,7 +2399,7 @@ class TestConstraints(unittest.TestCase):
                               2*net.num_loads +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               3*net.num_batteries +
                               net.num_var_generators*2)*self.T)
 
@@ -2440,7 +2440,7 @@ class TestConstraints(unittest.TestCase):
                         net.num_branches*8 +                        
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
-                        net.get_num_switched_shunts() +
+                        net.get_num_switched_v_shunts() +
                         net.num_generators*2 +
                         net.num_loads*2 +
                         net.num_batteries*2 +
@@ -2478,7 +2478,7 @@ class TestConstraints(unittest.TestCase):
                                           net.get_num_branches()*12 +
                                           net.get_num_tap_changers()*9 +
                                           net.get_num_phase_shifters()*10 +
-                                          net.get_num_switched_shunts())*self.T)
+                                          net.get_num_switched_v_shunts())*self.T)
 
             self.assertTrue(not np.any(np.isinf(f)))
             self.assertTrue(not np.any(np.isnan(f)))
@@ -2678,7 +2678,7 @@ class TestConstraints(unittest.TestCase):
                               2*net.num_loads +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               3*net.num_batteries +
                               net.num_var_generators*2)*self.T)
 
@@ -3308,7 +3308,7 @@ class TestConstraints(unittest.TestCase):
                           'susceptance')
             self.assertEqual(net.num_vars,
                              (net.get_num_buses_reg_by_shunt() +
-                              net.get_num_switched_shunts())*self.T)
+                              net.get_num_switched_v_shunts())*self.T)
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -3340,13 +3340,13 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.J_row,0)
             self.assertEqual(constr.A_row,0)
 
-            Jnnz = 10*net.get_num_switched_shunts()
-            Annz = 3*net.get_num_switched_shunts()
+            Jnnz = 10*net.get_num_switched_v_shunts()
+            Annz = 3*net.get_num_switched_v_shunts()
             self.assertGreaterEqual(Jnnz,0)
             self.assertGreaterEqual(Annz,0)
 
-            rowsJ = 4*net.get_num_switched_shunts()
-            rowsA = net.get_num_switched_shunts()
+            rowsJ = 4*net.get_num_switched_v_shunts()
+            rowsA = net.get_num_switched_v_shunts()
             self.assertGreaterEqual(rowsJ,0)
             self.assertGreaterEqual(rowsA,0)
 
@@ -3401,7 +3401,7 @@ class TestConstraints(unittest.TestCase):
 
             # Ax=b check
             self.assertEqual(norm(A.data,1),rowsA*3*self.T)
-            self.assertEqual(np.sum(A.data),net.get_num_switched_shunts()*self.T)
+            self.assertEqual(np.sum(A.data),net.get_num_switched_v_shunts()*self.T)
 
             # f check
             index = 0
@@ -3490,7 +3490,7 @@ class TestConstraints(unittest.TestCase):
                           'susceptance')
             self.assertEqual(net.num_vars,
                              (net.get_num_buses_reg_by_shunt() +
-                              net.get_num_switched_shunts())*self.T)
+                              net.get_num_switched_v_shunts())*self.T)
 
             x0 = net.get_var_values()
 
@@ -3617,7 +3617,7 @@ class TestConstraints(unittest.TestCase):
                               2*net.num_generators +
                               net.get_num_tap_changers()+
                               net.get_num_phase_shifters()+
-                              net.get_num_switched_shunts()+
+                              net.get_num_switched_v_shunts()+
                               3*net.num_batteries)*self.T)
 
             x0 = net.get_var_values()
@@ -4404,7 +4404,7 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               net.num_var_generators*2)*self.T)
 
             x0 = net.get_var_values()
@@ -4444,7 +4444,7 @@ class TestConstraints(unittest.TestCase):
                         net.get_num_branches()*8 +
                         net.get_num_tap_changers()*4 +
                         net.get_num_phase_shifters()*4 +
-                        net.get_num_switched_shunts() +
+                        net.get_num_switched_v_shunts() +
                         net.get_num_slack_gens() +
                         net.get_num_reg_gens()+
                         net.num_var_generators*2)
@@ -4552,7 +4552,7 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_reg_gens() +
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
-                              net.get_num_switched_shunts() +
+                              net.get_num_switched_v_shunts() +
                               net.num_var_generators*2)*self.T)
 
             constr = pf.Constraint('linearized AC power balance',net)
@@ -5960,7 +5960,7 @@ class TestConstraints(unittest.TestCase):
                               2*net.num_generators +
                               net.get_num_tap_changers()+
                               net.get_num_phase_shifters()+
-                              net.get_num_switched_shunts()+
+                              net.get_num_switched_v_shunts()+
                               3*net.num_batteries)*self.T)
 
             x0 = net.get_var_values()
