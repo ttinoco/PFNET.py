@@ -6,6 +6,7 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
+import os
 import unittest
 import numpy as np
 import pfnet as pf
@@ -302,7 +303,9 @@ class TestHVDC(unittest.TestCase):
         
         T = 4
 
-        case = './data/GSO_5bus_vscdc.raw'
+        case = os.path.join('data', 'GSO_5bus_vscdc.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
 
         net = pf.ParserRAW().parse(case, T)
 
@@ -509,7 +512,9 @@ class TestHVDC(unittest.TestCase):
         
         T = 4
         
-        case = './data/ieee25_vsc.raw'
+        case = os.path.join('data', 'ieee25_vsc.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
         
         net = pf.ParserRAW().parse(case, T)
         
