@@ -772,6 +772,41 @@ cdef class Network:
         else:
             raise NetworkError('bus not found')
 
+    def get_dc_bus_from_number(self, number):
+        """
+        Gets DC bus with the given number.
+        Parameters
+        ----------
+        number : int
+        Returns
+        -------
+        bus : |BusDC|
+        """
+
+        ptr = cnet.NET_dc_bus_hash_number_find(self._c_net,number)
+        if ptr is not NULL:
+            return new_BusDC(ptr)
+        else:
+            raise NetworkError('DC bus not found')
+
+    def get_dc_bus_from_name(self, name):
+        """
+        Gets DC bus with the given name.
+        Parameters
+        ----------
+        name : string
+        Returns
+        -------
+        bus : |BusDC|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_dc_bus_hash_name_find(self._c_net,name)
+        if ptr is not NULL:
+            return new_BusDC(ptr)
+        else:
+            raise NetworkError('DC bus not found')
+
     def get_bus(self, index):
         """
         Gets bus with the given index.
@@ -904,6 +939,57 @@ cdef class Network:
             return new_Battery(ptr)
         else:
             raise NetworkError('invalid battery index')
+
+    def get_vsc_converter(self, index):
+        """
+        Gets VSC converter with the given index.
+        Parameters
+        ----------
+        index : int
+        Returns
+        -------
+        conv : |ConverterVSC|
+        """
+
+        ptr = cnet.NET_get_vsc_conv(self._c_net,index)
+        if ptr is not NULL:
+            return new_ConverterVSC(ptr)
+        else:
+            raise NetworkError('invalid VSC converter index')
+
+    def get_dc_bus(self, index):
+        """
+        Gets DC bus with the given index.
+        Parameters
+        ----------
+        index : int
+        Returns
+        -------
+        bus : |BusDC|
+        """
+
+        ptr = cnet.NET_get_dc_bus(self._c_net,index)
+        if ptr is not NULL:
+            return new_BusDC(ptr)
+        else:
+            raise NetworkError('invalid DC bus index')
+
+    def get_dc_branch(self, index):
+        """
+        Gets DC branch with the given index.
+        Parameters
+        ----------
+        index : int
+        Returns
+        -------
+        bus : |BranchDC|
+        """
+
+        ptr = cnet.NET_get_dc_branch(self._c_net,index)
+        if ptr is not NULL:
+            return new_BranchDC(ptr)
+        else:
+            raise NetworkError('invalid DC branch index')
 
     def get_generator_from_name_and_bus_number(self, name, number):
         """
@@ -1081,6 +1167,70 @@ cdef class Network:
             return new_Battery(ptr)
         else:
             raise NetworkError('battery not found')
+
+    def get_vsc_converter_from_name_and_ac_bus_number(self, name, number):
+        """
+        Gets VSC converter of given name connected to the AC bus of the 
+        given number.
+        Parameters
+        ----------
+        name : string
+        number : integer
+        Returns
+        -------
+        conv : |ConverterVSC|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_get_vsc_conv_from_name_and_ac_bus_number(self._c_net, name, number)
+        if ptr is not NULL:
+            return new_ConverterVSC(ptr)
+        else:
+            raise NetworkError('VSC converter not found')
+
+    def get_vsc_converter_from_name_and_dc_bus_name(self, name, bus_name):
+        """
+        Gets VSC converter of given name connected to the DC bus of the 
+        given name.
+        Parameters
+        ----------
+        name : string
+        bus_name : string
+        Returns
+        -------
+        conv : |ConverterVSC|
+        """
+
+        name = name.encode('UTF-8')
+        bus_name = bus_name.encode('UTF-8')
+        ptr = cnet.NET_get_vsc_conv_from_name_and_dc_bus_name(self._c_net, name, bus_name)
+        if ptr is not NULL:
+            return new_ConverterVSC(ptr)
+        else:
+            raise NetworkError('VSC converter not found')
+
+    def get_dc_branch_from_name_and_dc_bus_names(self, name, bus1_name, bus2_name):
+        """
+        Gets DC branch of given name connected across buses of the 
+        given names.
+        Parameters
+        ----------
+        name : string
+        bus1_name : string
+        bus2_name : string
+        Returns
+        -------
+        branch : |BranchDC|
+        """
+
+        name = name.encode('UTF-8')
+        name1 = bus1_name.encode('UTF-8')
+        name2 = bus2_name.encode('UTF-8')
+        ptr = cnet.NET_get_dc_branch_from_name_and_dc_bus_names(self._c_net, name, bus1_name, bus2_name)
+        if ptr is not NULL:
+            return new_BranchDC(ptr)
+        else:
+            raise NetworkError('DC branch not found')
         
     def get_generator_buses(self):
         """
@@ -1243,6 +1393,16 @@ cdef class Network:
             return cnet.NET_get_num_buses_reg_by_shunt(self._c_net)
         else:
             return cnet.NET_get_num_buses_reg_by_shunt_only(self._c_net)
+
+    def get_num_buses_reg_by_vsc_converter(self):
+        """
+        Gets number of buses whose voltage magnitudes are regulated by VSC converters.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_buses_reg_by_vsc_conv(self._c_net)
 
     def get_num_branches(self):
         """
@@ -1508,6 +1668,76 @@ cdef class Network:
         """
 
         return cnet.NET_get_num_bats(self._c_net)
+
+    def get_num_vsc_converters(self):
+        """
+        Gets number of VSC converters in the network.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs(self._c_net)
+
+    def get_num_vsc_converters_in_P_dc_mode(self):
+        """
+        Gets number of VSC converters in the network that are operating in DC power control mode.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs_in_P_dc_mode(self._c_net)
+
+    def get_num_vsc_converters_in_v_dc_mode(self):
+        """
+        Gets number of VSC converters in the network that are operating in DC voltage control mode.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs_in_v_dc_mode(self._c_net)
+
+    def get_num_vsc_converters_in_v_ac_mode(self):
+        """
+        Gets number of VSC converters in the network that are operating in AC voltage control mode.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs_in_v_ac_mode(self._c_net)
+
+    def get_num_vsc_converters_in_f_ac_mode(self):
+        """
+        Gets number of VSC converters in the network that are operating in AC power factor control mode.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs_in_f_ac_mode(self._c_net)
+
+    def get_num_dc_buses(self):
+        """
+        Gets number of DC buses in the network.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_dc_buses(self._c_net)
+
+    def get_num_dc_branches(self):
+        """
+        Gets number of DC branches in the network.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_dc_branches(self._c_net)
 
     def get_properties(self):
         """
@@ -1838,6 +2068,21 @@ cdef class Network:
         def __get__(self):
             return [self.get_battery(i) for i in range(self.num_batteries)]
 
+    property vsc_converters:
+        """ List of |ConverterVSC| objects. """
+        def __get__(self):
+            return [self.get_vsc_converter(i) for i in range(self.num_vsc_converters)]
+
+    property dc_buses:
+        """ List of |BusDC| objects. """
+        def __get__(self):
+            return [self.get_dc_bus(i) for i in range(self.num_dc_buses)]
+
+    property dc_branches:
+        """ List of |BranchDC| objects. """
+        def __get__(self):
+            return [self.get_dc_branch(i) for i in range(self.num_dc_branches)]
+
     property num_buses:
         """ Number of buses in the network (int). """
         def __get__(self): return cnet.NET_get_num_buses(self._c_net)
@@ -1865,6 +2110,18 @@ cdef class Network:
     property num_batteries:
         """ Number of batteries in the network (int). """
         def __get__(self): return cnet.NET_get_num_bats(self._c_net)
+
+    property num_vsc_converters:
+        """ Number of VSC converters in the network (int). """
+        def __get__(self): return cnet.NET_get_num_vsc_convs(self._c_net)
+
+    property num_dc_buses:
+        """ Number of DC buses in the network (int). """
+        def __get__(self): return cnet.NET_get_num_dc_buses(self._c_net)
+
+    property num_dc_branches:
+        """ Number of DC branches in the network (int). """
+        def __get__(self): return cnet.NET_get_num_dc_branches(self._c_net)
 
     property num_vars:
         """ Number of network quantities that have been set to variable (int). """

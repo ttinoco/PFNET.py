@@ -17,6 +17,7 @@ cdef extern from "pfnet/bus.h":
     ctypedef struct Shunt
     ctypedef struct Vargen
     ctypedef struct Bat
+    ctypedef struct ConvVSC
     ctypedef double REAL
     ctypedef char BOOL
 
@@ -28,6 +29,7 @@ cdef extern from "pfnet/bus.h":
 
     cdef char BUS_PROP_ANY
     cdef char BUS_PROP_SLACK
+    cdef char BUS_PROP_VSET_REG
     cdef char BUS_PROP_REG_BY_GEN
     cdef char BUS_PROP_REG_BY_TRAN
     cdef char BUS_PROP_REG_BY_SHUNT
@@ -78,6 +80,8 @@ cdef extern from "pfnet/bus.h":
     Vargen* BUS_get_vargen(Bus* bus)
     Bat* BUS_get_bat(Bus* bus)
     Shunt* BUS_get_shunt(Bus* bus)
+    ConvVSC* BUS_get_vsc_conv(Bus* bus)
+    ConvVSC* BUS_get_reg_vsc_conv(Bus* bus)
     int BUS_get_degree(Bus* bus)
     REAL BUS_get_total_gen_P(Bus* bus, int t)
     REAL BUS_get_total_gen_Q(Bus* bus, int t)
@@ -123,9 +127,11 @@ cdef extern from "pfnet/bus.h":
     bint BUS_is_equal(Bus* bus, Bus* other)
     bint BUS_is_slack(Bus* bus)
     bint BUS_is_star(Bus* bus)
+    bint BUS_is_v_set_regulated(Bus* bus)
     bint BUS_is_regulated_by_gen(Bus* bus)
     bint BUS_is_regulated_by_tran(Bus* bus)
     bint BUS_is_regulated_by_shunt(Bus* bus)
+    bint BUS_is_regulated_by_vsc_conv(Bus* bus)
     bint BUS_has_flags(Bus* bus, char flag_type, char mask)
     Bus* BUS_new(int num_periods)
     Bus* BUS_array_new(int size, int num_periods)
@@ -165,6 +171,8 @@ cdef extern from "pfnet/bus.h":
     void BUS_del_branch_k(Bus* bus, Branch* branch)
     void BUS_add_branch_m(Bus* bus, Branch* branch)
     void BUS_del_branch_m(Bus* bus, Branch* branch)
+    void BUS_add_reg_vsc_conv(Bus* bus, ConvVSC* conv)
+    void BUS_del_reg_vsc_conv(Bus* bus, ConvVSC* conv)
     void BUS_del_all_connections(Bus* bus)
 
     void BUS_show(Bus* bus, int t)

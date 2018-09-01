@@ -125,6 +125,16 @@ cdef class Bus:
 
         cbus.BUS_set_star_flag(self._c_ptr, flag)
 
+    def is_v_set_regulated(self):
+        """
+        Determines whether the bus has its voltage set point regulated.
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cbus.BUS_is_v_set_regulated(self._c_ptr)
+
     def is_regulated_by_gen(self):
         """
         Determines whether the bus is regulated by a generator.
@@ -157,6 +167,17 @@ cdef class Bus:
         """
 
         return cbus.BUS_is_regulated_by_shunt(self._c_ptr)
+
+    def is_regulated_by_vsc_converter(self):
+        """
+        Determines whether the bus is regulated by a VSC converter.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cbus.BUS_is_regulated_by_vsc_conv(self._c_ptr)
 
     def has_flags(self, flag_type, q):
         """
@@ -1167,6 +1188,26 @@ cdef class Bus:
                 bats.append(new_Battery(b))
                 b = cbat.BAT_get_next(b)
             return bats
+
+    property vsc_converters:
+        """ List of |ConverterVSC| objects connected to this bus (list). """
+        def __get__(self):
+            convs = []
+            cdef cconv_vsc.ConvVSC* c = cbus.BUS_get_vsc_conv(self._c_ptr)
+            while c is not NULL:
+                convs.append(new_ConverterVSC(c))
+                c = cconv_vsc.CONVVSC_get_next_ac(c)
+            return convs
+
+    property reg_vsc_converters:
+        """ List of |ConverterVSC| objects regulating the voltage magnitude of this bus (list). """
+        def __get__(self):
+            reg_convs = []
+            cdef cconv_vsc.ConvVSC* c = cbus.BUS_get_reg_vsc_conv(self._c_ptr)
+            while c is not NULL:
+                reg_convs.append(new_ConverterVSC(c))
+                c = cconv_vsc.CONVVSC_get_reg_next(c)
+            return reg_convs
 
     property flags_vars:
         """ Flags associated with variable quantities (byte). """

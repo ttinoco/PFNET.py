@@ -15,6 +15,9 @@ cimport cload
 cimport cshunt
 cimport cvargen
 cimport cbat
+cimport cbus_dc
+cimport cbranch_dc
+cimport cconv_vsc
 
 cdef extern from "pfnet/net.h":
 
@@ -26,6 +29,9 @@ cdef extern from "pfnet/net.h":
     ctypedef struct Branch
     ctypedef struct Bat
     ctypedef struct Vargen
+    ctypedef struct BusDC
+    ctypedef struct BranchDC
+    ctypedef struct ConvVSC
     ctypedef double REAL
 
     void NET_add_buses(Net* net, cbus.Bus** br_ptr_array, int size)
@@ -53,6 +59,8 @@ cdef extern from "pfnet/net.h":
     void NET_add_batteries_from_params(Net* net, cbus.Bus* bus_list, REAL power_capacity,  REAL energy_capacity, REAL eta_c, REAL eta_d)        
     cbus.Bus* NET_bus_hash_number_find(Net* net, int number)
     cbus.Bus* NET_bus_hash_name_find(Net* net, char* name)
+    cbus_dc.BusDC* NET_dc_bus_hash_number_find(Net* net, int number)
+    cbus_dc.BusDC* NET_dc_bus_hash_name_find(Net* net, char* name)
     void NET_bus_hash_number_add(Net* net, cbus.Bus* bus)
     void NET_bus_hash_name_add(Net* net, cbus.Bus* bus)
     void NET_clear_error(Net* net)
@@ -75,6 +83,9 @@ cdef extern from "pfnet/net.h":
     cload.Load* NET_get_load(Net* net, int index)
     cvargen.Vargen* NET_get_vargen(Net* net, int index)
     cbat.Bat* NET_get_bat(Net* net, int index)
+    cbus_dc.BusDC* NET_get_dc_bus(Net* net, int index)
+    cbranch_dc.BranchDC* NET_get_dc_branch(Net* net, int index)
+    cconv_vsc.ConvVSC* NET_get_vsc_conv(Net* net, int index)
     cbus.Bus* NET_get_load_buses(Net* net)
     cbus.Bus* NET_get_gen_buses(Net* net)
 
@@ -86,6 +97,9 @@ cdef extern from "pfnet/net.h":
     cload.Load* NET_get_load_from_name_and_bus_number(Net* net, char* name, int number)
     cvargen.Vargen* NET_get_vargen_from_name_and_bus_number(Net* net, char* name, int number)
     cbat.Bat* NET_get_bat_from_name_and_bus_number(Net* net, char* name, int number)
+    cbranch_dc.BranchDC* NET_get_dc_branch_from_name_and_dc_bus_names(Net* net, char* name, char* bus1_name, char* bus2_name)
+    cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_ac_bus_number(Net* net, char* name, int number)
+    cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_dc_bus_name(Net* net, char* name, char* bus_name)
 
     unsigned long int NET_get_state_tag(Net* net)
     REAL NET_get_total_load_P(Net* net, int t)
@@ -98,6 +112,7 @@ cdef extern from "pfnet/net.h":
     int NET_get_num_buses_reg_by_tran_only(Net* net)
     int NET_get_num_buses_reg_by_shunt(Net* net)
     int NET_get_num_buses_reg_by_shunt_only(Net* net)
+    int NET_get_num_buses_reg_by_vsc_conv(Net* net)
     int NET_get_num_branches(Net* net)
     int NET_get_num_branches_not_on_outage(Net* net)
     int NET_get_num_branches_on_outage(Net* net)
@@ -122,6 +137,13 @@ cdef extern from "pfnet/net.h":
     int NET_get_num_switched_v_shunts(Net* net)
     int NET_get_num_vargens(Net* net)
     int NET_get_num_bats(Net* net)
+    int NET_get_num_dc_buses(Net* net)
+    int NET_get_num_dc_branches(Net* net)
+    int NET_get_num_vsc_convs(Net* net)
+    int NET_get_num_vsc_convs_in_v_dc_mode(Net* net)
+    int NET_get_num_vsc_convs_in_P_dc_mode(Net* net)
+    int NET_get_num_vsc_convs_in_v_ac_mode(Net* net)
+    int NET_get_num_vsc_convs_in_f_ac_mode(Net* net)
     int NET_get_num_vars(Net* net)
     int NET_get_num_fixed(Net* net)
     int NET_get_num_bounded(Net* net)

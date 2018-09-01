@@ -15,6 +15,8 @@ Unreleased
 * Changed parent class of AttributeInt in order to make it work better with numpy.
 * Load voltage dependence constraint.
 * Unittest for raw write.
+* DC buses, DC branches, and VSC converters.
+* Bus "v set regulated" property and query.
   
 Version 1.3.3
 -------------

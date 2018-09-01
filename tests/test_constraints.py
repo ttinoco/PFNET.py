@@ -2341,6 +2341,9 @@ class TestConstraints(unittest.TestCase):
                     for shunt in bus.shunts:
                         P_mis -= shunt.g*(bus.v_mag[t]**2.)
                         Q_mis -= -shunt.b[t]*(bus.v_mag[t]**2.)
+                    for conv in bus.vsc_converters:
+                        P_mis += conv.P[t]
+                        Q_mis += conv.Q[t]
                     self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
                     self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
 
@@ -2393,6 +2396,10 @@ class TestConstraints(unittest.TestCase):
                           'variable',
                           'any',
                           ['charging power','energy level'])
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power', 'dc power'])
             self.assertEqual(net.num_vars,
                              (2*net.num_buses +
                               2*net.num_generators +
@@ -2401,7 +2408,8 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_phase_shifters() +
                               net.get_num_switched_v_shunts() +
                               3*net.num_batteries +
-                              net.num_var_generators*2)*self.T)
+                              net.num_var_generators*2 +
+                              net.num_vsc_converters*4)*self.T)
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -2444,7 +2452,8 @@ class TestConstraints(unittest.TestCase):
                         net.num_generators*2 +
                         net.num_loads*2 +
                         net.num_batteries*2 +
-                        net.num_var_generators*2)*self.T
+                        net.num_var_generators*2 +
+                        net.num_vsc_converters*2)*self.T
 
             constr.analyze()
             self.assertEqual(num_Jnnz,constr.J_nnz)
@@ -2518,6 +2527,15 @@ class TestConstraints(unittest.TestCase):
                             v = bus.v_mag[t]
                         P_mis -= shunt.g*v*v
                         Q_mis -= -b*v*v
+                    for conv in bus.vsc_converters:
+                        if conv.has_flags('variable', 'active power'):
+                            P_mis += x1[conv.index_P[t]]
+                        else:
+                            P_mis += conv.P[t]
+                        if conv.has_flags('variable', 'reactive power'):
+                            Q_mis += x1[conv.index_Q[t]]
+                        else:
+                            Q_mis += conv.Q[t]
                     self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
                     self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
 

@@ -15,7 +15,7 @@ from . import test_cases
 class TestParser(unittest.TestCase):
 
     def setUp(self):
-
+        
         pass
 
     def test_parserraw_write(self):
@@ -40,7 +40,7 @@ class TestParser(unittest.TestCase):
             finally:
                 if os.path.isfile('foo.raw'):
                     os.remove('foo.raw')
-
+           
             pf.tests.utils.compare_networks(self, net1, net2)
             pf.tests.utils.compare_networks(self, net1, net3)
             tested = True
