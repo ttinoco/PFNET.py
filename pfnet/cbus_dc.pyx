@@ -159,35 +159,35 @@ cdef class BusDC:
 
         cbus_dc.BUSDC_set_v(self._c_ptr,v,t)
 
-    """    
     def add_csc_converter(self, conv):
+        """
         Adds a CSC converter connection to this bus.
         
         Parameters
         ----------
         conv : |ConverterCSC|
+        """
         
         cdef ConverterCSC cconv
         if not isinstance(conv,ConverterCSC):
             raise BusDCError('Not a ConverterCSC type object')
         cconv = conv
         cbus_dc.BUSDC_add_csc_conv(self._c_ptr, cconv._c_ptr)
-    """
 
-    """
     def remove_csc_converter(self, conv):
+        """
         Removes a CSC converter connection to this bus.
         
         Parameters
         ----------
         conv : |ConverterCSC|
+        """
         
         cdef ConverterCSC cconv
         if not isinstance(conv,ConverterCSC):
             raise BusDCError('Not a ConverterCSC type object')
         cconv = conv
         cbus_dc.BUSDC_del_csc_conv(self._c_ptr, cconv._c_ptr)
-    """
 
     def add_vsc_converter(self, conv):
         """
@@ -419,9 +419,9 @@ cdef class BusDC:
         def __get__(self):
             return self.branches_k+self.branches_m
 
-    """
     property csc_converters:
-        List of |ConverterCSC| objects connected to this bus (list).
+        """ List of |ConverterCSC| objects connected to this bus (list). """
+        
         def __get__(self):
             convs = []
             cdef cconv_csc.ConvCSC* c = cbus_dc.BUSDC_get_csc_conv(self._c_ptr)
@@ -429,7 +429,6 @@ cdef class BusDC:
                 convs.append(new_ConverterCSC(c))
                 c = cconv_csc.CONVCSC_get_next_dc(c)
             return convs
-    """
 
     property vsc_converters:
         """ List of |ConverterVSC| objects connected to this bus (list). """

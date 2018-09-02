@@ -2341,6 +2341,9 @@ class TestConstraints(unittest.TestCase):
                     for shunt in bus.shunts:
                         P_mis -= shunt.g*(bus.v_mag[t]**2.)
                         Q_mis -= -shunt.b[t]*(bus.v_mag[t]**2.)
+                    for conv in bus.csc_converters:
+                        P_mis += conv.P[t]
+                        Q_mis += conv.Q[t]
                     for conv in bus.vsc_converters:
                         P_mis += conv.P[t]
                         Q_mis += conv.Q[t]
@@ -2536,6 +2539,9 @@ class TestConstraints(unittest.TestCase):
                             Q_mis += x1[conv.index_Q[t]]
                         else:
                             Q_mis += conv.Q[t]
+                    for conv in bus.csc_converters:
+                        P_mis += conv.P[t]
+                        Q_mis += conv.Q[t]
                     self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
                     self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
 

@@ -1189,6 +1189,16 @@ cdef class Bus:
                 b = cbat.BAT_get_next(b)
             return bats
 
+    property csc_converters:
+        """ List of |ConverterCSC| objects connected to this bus (list). """
+        def __get__(self):
+            convs = []
+            cdef cconv_csc.ConvCSC* c = cbus.BUS_get_csc_conv(self._c_ptr)
+            while c is not NULL:
+                convs.append(new_ConverterCSC(c))
+                c = cconv_csc.CONVCSC_get_next_ac(c)
+            return convs
+
     property vsc_converters:
         """ List of |ConverterVSC| objects connected to this bus (list). """
         def __get__(self):

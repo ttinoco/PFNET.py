@@ -18,6 +18,7 @@ cimport cbat
 cimport cbus_dc
 cimport cbranch_dc
 cimport cconv_vsc
+cimport cconv_csc
 
 cdef extern from "pfnet/net.h":
 
@@ -32,6 +33,7 @@ cdef extern from "pfnet/net.h":
     ctypedef struct BusDC
     ctypedef struct BranchDC
     ctypedef struct ConvVSC
+    ctypedef struct ConvCSC
     ctypedef double REAL
 
     void NET_add_buses(Net* net, cbus.Bus** br_ptr_array, int size)
@@ -85,6 +87,7 @@ cdef extern from "pfnet/net.h":
     cbat.Bat* NET_get_bat(Net* net, int index)
     cbus_dc.BusDC* NET_get_dc_bus(Net* net, int index)
     cbranch_dc.BranchDC* NET_get_dc_branch(Net* net, int index)
+    cconv_csc.ConvCSC* NET_get_csc_conv(Net* net, int index)
     cconv_vsc.ConvVSC* NET_get_vsc_conv(Net* net, int index)
     cbus.Bus* NET_get_load_buses(Net* net)
     cbus.Bus* NET_get_gen_buses(Net* net)
@@ -98,6 +101,8 @@ cdef extern from "pfnet/net.h":
     cvargen.Vargen* NET_get_vargen_from_name_and_bus_number(Net* net, char* name, int number)
     cbat.Bat* NET_get_bat_from_name_and_bus_number(Net* net, char* name, int number)
     cbranch_dc.BranchDC* NET_get_dc_branch_from_name_and_dc_bus_names(Net* net, char* name, char* bus1_name, char* bus2_name)
+    cconv_csc.ConvCSC* NET_get_csc_conv_from_name_and_ac_bus_number(Net* net, char* name, int number)
+    cconv_csc.ConvCSC* NET_get_csc_conv_from_name_and_dc_bus_name(Net* net, char* name, char* bus_name)
     cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_ac_bus_number(Net* net, char* name, int number)
     cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_dc_bus_name(Net* net, char* name, char* bus_name)
 
@@ -139,6 +144,7 @@ cdef extern from "pfnet/net.h":
     int NET_get_num_bats(Net* net)
     int NET_get_num_dc_buses(Net* net)
     int NET_get_num_dc_branches(Net* net)
+    int NET_get_num_csc_convs(Net* net)
     int NET_get_num_vsc_convs(Net* net)
     int NET_get_num_vsc_convs_in_v_dc_mode(Net* net)
     int NET_get_num_vsc_convs_in_P_dc_mode(Net* net)

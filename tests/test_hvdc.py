@@ -15,12 +15,13 @@ from scipy.sparse import bmat
 
 class TestHVDC(unittest.TestCase):
 
-    """
     def test_ieee300_raw_case(self):
 
         T = 4
 
-        case = './data/ieee300.raw'
+        case = os.path.join('data', 'ieee300.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
 
         net = pf.ParserRAW().parse(case, T)
 
@@ -97,14 +98,14 @@ class TestHVDC(unittest.TestCase):
             self.assertLess(np.abs(convI.P[t]-dc_busI.v[t]*idc),1e-10)
             self.assertLess(np.abs(np.tan(np.arccos(np.minimum(dc_busR.v[t],1.)))*convR.P[t]-convR.Q[t]),1e-10)
             self.assertLess(np.abs(np.tan(np.arccos(np.minimum(dc_busI.v[t],1.)))*convI.P[t]+convI.Q[t]),1e-10)
-    """
 
-    """
     def test_GSO_5bus_ttdc_case(self):
         
         T = 4
         
-        case = './data/GSO_5bus_ttdc.raw'
+        case = os.path.join('data', 'GSO_5bus_ttdc.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
 
         net = pf.ParserRAW().parse(case, T)
         
@@ -297,7 +298,6 @@ class TestHVDC(unittest.TestCase):
         self.assertEqual(convI.v_base_p, 230)
         self.assertLess(np.abs(convR.v_base_s-220.), 1e-2)
         self.assertLess(np.abs(convI.v_base_s-220.), 1e-2)
-    """
         
     def test_GSO_5bus_vscdc_case(self):
         
@@ -531,7 +531,6 @@ class TestHVDC(unittest.TestCase):
         # Total number of converters should be equal to total of AC modes
         self.assertEqual(net.num_vsc_converters, (net.get_num_vsc_converters_in_v_ac_mode()+
                                                   net.get_num_vsc_converters_in_f_ac_mode()))
-
 
     """
     def test_ieee25_vsc_nr(self):

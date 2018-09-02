@@ -12,7 +12,7 @@ cdef extern from "pfnet/bus_dc.h":
 
     ctypedef struct BusDC
     ctypedef struct BranchDC
-    #ctypedef struct ConvCSC
+    ctypedef struct ConvCSC
     ctypedef struct ConvVSC
     ctypedef double REAL
     ctypedef char BOOL
@@ -38,7 +38,7 @@ cdef extern from "pfnet/bus_dc.h":
     int BUSDC_get_num_vars(void* bus, char var, int t_start, int t_end)
     BranchDC* BUSDC_get_branch_k(BusDC* bus)
     BranchDC* BUSDC_get_branch_m(BusDC* bus)
-    #ConvCSC* BUSDC_get_csc_conv(BusDC* bus)
+    ConvCSC* BUSDC_get_csc_conv(BusDC* bus)
     ConvVSC* BUSDC_get_vsc_conv(BusDC* bus)
 
     REAL BUSDC_get_v(BusDC* bus, int t)
@@ -57,8 +57,8 @@ cdef extern from "pfnet/bus_dc.h":
     void BUSDC_set_v(BusDC* bus, REAL v_mag, int t)
     void BUSDC_set_v_base(BusDC* bus, REAL v_base) 
 
-    #void BUSDC_add_csc_conv(BusDC* bus, ConvCSC* conv)
-    #void BUSDC_del_csc_conv(BusDC* bus, ConvCSC* conv)
+    void BUSDC_add_csc_conv(BusDC* bus, ConvCSC* conv)
+    void BUSDC_del_csc_conv(BusDC* bus, ConvCSC* conv)
     void BUSDC_add_vsc_conv(BusDC* bus, ConvVSC* conv)
     void BUSDC_del_vsc_conv(BusDC* bus, ConvVSC* conv)
     void BUSDC_add_branch_k(BusDC* bus, BranchDC* branch)

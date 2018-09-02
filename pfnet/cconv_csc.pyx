@@ -1,0 +1,429 @@
+#cython: embedsignature=True
+
+#***************************************************#
+# This file is part of PFNET.                       #
+#                                                   #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+#                                                   #
+# PFNET is released under the BSD 2-clause license. #
+#***************************************************#
+
+cimport cconv_csc
+
+# Infinity
+CONVCSC_INF_P = cconv_csc.CONVCSC_INF_P
+CONVCSC_INF_Q = cconv_csc.CONVCSC_INF_Q
+CONVCSC_INF_PDC = cconv_csc.CONVCSC_INF_PDC
+CONVCSC_INF_RATIO = cconv_csc.CONVCSC_INF_RATIO
+CONVCSC_INF_ANGLE = cconv_csc.CONVCSC_INF_ANGLE
+
+class ConverterCSCError(Exception):
+    """
+    CSC converter error exception.
+    """
+
+    pass
+
+cdef class ConverterCSC:
+    """
+    CSC converter class.
+    """
+
+    cdef cconv_csc.ConvCSC* _c_ptr
+    cdef bint alloc
+
+    def __init__(self, num_periods=1, alloc=True):
+        """
+        CSC converter class.
+
+        Parameters
+        ----------
+        num_periods : int
+        alloc : |TrueFalse|
+        """
+
+        pass
+
+    def __cinit__(self, num_periods=1, alloc=True):
+
+        if alloc:
+            self._c_ptr = cconv_csc.CONVCSC_new(num_periods)
+        else:
+            self._c_ptr = NULL
+        self.alloc = alloc
+
+    def __dealloc__(self):
+
+        if self.alloc:
+            cconv_csc.CONVCSC_array_del(self._c_ptr,1)
+            self._c_ptr = NULL    
+
+    def _get_c_ptr(self):
+
+        return new_CPtr(self._c_ptr)
+
+    def is_equal(self, other):
+        """
+        Determines whether CSC converter is equal to given CSC converter.
+
+        Parameters
+        ----------
+        other : |ConverterCSC|
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        cdef ConverterCSC c_other
+
+        if not isinstance(other,ConverterCSC):
+            return False
+
+        c_other = other
+
+        return cconv_csc.CONVCSC_is_equal(self._c_ptr, c_other._c_ptr)
+
+    def is_inverter(self):
+        """
+        Determines whether CSC converter is an inverter.
+        
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cconv_csc.CONVCSC_is_inverter(self._c_ptr)
+
+    def is_rectifier(self):
+        """
+        Determines whether CSC converter is a rectifier.
+        
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cconv_csc.CONVCSC_is_rectifier(self._c_ptr)
+
+    def is_in_P_dc_mode(self):
+        """
+        Determines whether CSC converter is in constant DC power mode.
+        
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cconv_csc.CONVCSC_is_in_P_dc_mode(self._c_ptr)
+
+    def is_in_i_dc_mode(self):
+        """
+        Determines whether CSC converter is in constant DC current mode.
+        
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cconv_csc.CONVCSC_is_in_i_dc_mode(self._c_ptr)
+
+    def is_in_v_dc_mode(self):
+        """
+        Determines whether CSC converter is in constant DC voltage mode.
+        
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cconv_csc.CONVCSC_is_in_v_dc_mode(self._c_ptr)
+
+    def has_flags(self, flag_type, q):
+        """
+        Determines whether the CSC converter has the flags associated with
+        certain quantities set.
+
+        Parameters
+        ----------
+        flag_type : string (|RefFlags|)
+        q : string or list of strings (|RefConverterCSCQuantities|)
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        q = q if isinstance(q,list) else [q]
+
+        return cconv_csc.CONVCSC_has_flags(self._c_ptr,
+                                    str2flag[flag_type],
+                                    reduce(lambda x,y: x|y,[str2q[self.obj_type][qq] for qq in q],0))
+
+    def get_var_info_string(self, index):
+        """
+        Gets info string of variable associated with index.
+
+        Parameters
+        ----------
+        index : int
+
+        Returns
+        -------
+        info : string
+        """
+
+        cdef char* info_string = cconv_csc.CONVCSC_get_var_info_string(self._c_ptr, index)
+        if info_string:
+            s = info_string.decode('UTF-8')
+            free(info_string)
+            return s
+        else:
+            raise ConverterCSCError('index does not correspond to any variable')
+
+    def set_P(self, P, t=0):
+        """
+        Sets active power.
+
+        Parameters
+        ----------
+        P : float
+        t : int
+        """
+
+        cconv_csc.CONVCSC_set_P(self._c_ptr,P,t)
+
+    def set_Q(self, Q, t=0):
+        """
+        Sets reactive power.
+
+        Parameters
+        ----------
+        Q : float
+        t : int
+        """
+
+        cconv_csc.CONVCSC_set_Q(self._c_ptr,Q,t)
+        
+    property name:
+        """ CSC converter name (string). """
+        def __get__(self):
+            return cconv_csc.CONVCSC_get_name(self._c_ptr).decode('UTF-8')
+        def __set__(self,name):
+            name = name.encode('UTF-8')
+            cconv_csc.CONVCSC_set_name(self._c_ptr,name)
+
+    property num_periods:
+        """ Number of time periods (int). """
+        def __get__(self): return cconv_csc.CONVCSC_get_num_periods(self._c_ptr)
+
+    property num_bridges:
+        """ Number of bridges in series (int). """
+        def __get__(self): return cconv_csc.CONVCSC_get_num_bridges(self._c_ptr)
+
+    property x_cap:
+        """ Commutating capacitor reactance as seen by each individual bridge (p.u. DC base) (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_x_cap(self._c_ptr)
+
+    property x:
+        """ Commutating transformer reactance as seen by each individual bridge (p.u. DC base) (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_x(self._c_ptr)
+
+    property r:
+        """ Commutating transformer resistance as seen by each individual bridge (p.u. DC base) (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_r(self._c_ptr)
+
+    property obj_type:
+        """ Object type (string). """
+        def __get__(self): return obj2str[cconv_csc.CONVCSC_get_obj_type(self._c_ptr)]
+
+    property index:
+        """ CSC converter index (int). """
+        def __get__(self): return cconv_csc.CONVCSC_get_index(self._c_ptr)
+
+    property index_P:
+        """ Index of active power variable (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property index_Q:
+        """ Index of reactive power variable (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property index_P_dc:
+        """ Index of DC power variable (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property ac_bus:
+        """ |Bus| to which CSC converter is connected. """
+        def __get__(self): 
+            return new_Bus(cconv_csc.CONVCSC_get_ac_bus(self._c_ptr))
+        def __set__(self,bus):
+            cdef Bus cbus
+            if not isinstance(bus,Bus) and bus is not None:
+                raise ConverterCSCError('Not a Bus type object')
+            cbus = bus
+            cconv_csc.CONVCSC_set_ac_bus(self._c_ptr,cbus._c_ptr if bus is not None else NULL)
+
+    property dc_bus:
+        """ |BusDC| to which CSC converter is connected. """
+        def __get__(self): 
+            return new_BusDC(cconv_csc.CONVCSC_get_dc_bus(self._c_ptr))
+        def __set__(self,bus):
+            cdef BusDC cbus
+            if not isinstance(bus,BusDC) and bus is not None:
+                raise ConverterCSCError('Not a BusDC type object')
+            cbus = bus
+            cconv_csc.CONVCSC_set_dc_bus(self._c_ptr,cbus._c_ptr if bus is not None else NULL)
+
+    property P:
+        """ Active power injection into AC bus (p.u. system base MVA) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_P(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r,self.set_P)
+        def __set__(self,P):
+            cdef int t
+            cdef np.ndarray Par = np.array(P).flatten()
+            for t in range(np.minimum(Par.size,self.num_periods)):
+                cconv_csc.CONVCSC_set_P(self._c_ptr,Par[t],t)
+
+    property Q:
+        """ Reactive power injection into AC bus (p.u. system base MVA) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_Q(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r,self.set_Q)
+        def __set__(self,Q):
+            cdef int t
+            cdef np.ndarray Qar = np.array(Q).flatten()
+            for t in range(np.minimum(Qar.size,self.num_periods)):
+                cconv_csc.CONVCSC_set_Q(self._c_ptr,Qar[t],t)
+
+    property P_dc:
+        """ DC power injection into DC bus (p.u. system base MVA) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+                
+    property P_dc_set:
+        """ DC power set point (p.u. system base MVA) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_P_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property i_dc_set:
+        """ DC current set point (p.u. DC base) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_i_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property v_dc_set:
+        """ DC voltage set point (p.u. DC base) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_v_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property angle:
+        """ Ignition delay angle if rectifier or extinction advance angle if inverter (radians) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_angle(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property angle_max:
+        """ Maximum angle (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_angle_max(self._c_ptr)
+
+    property angle_min:
+        """ Minimum angle (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_angle_min(self._c_ptr)
+
+    property ratio:
+        """ Commutating transformer turns ratio (AC bus base voltage / DC bus base voltage) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_ratio(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property ratio_max:
+        """ Maximum turns ratio (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_ratio_max(self._c_ptr)
+
+    property ratio_min:
+        """ Minimum ratio (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_ratio_min(self._c_ptr)
+
+    property v_base_p:
+        """ Primary side bus base AC voltage (kv) (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_v_base_p(self._c_ptr)
+
+    property v_base_s:
+        """ Secondary side bus base AC voltage (kv) (float). """
+        def __get__(self): return cconv_csc.CONVCSC_get_v_base_s(self._c_ptr)
+
+    property json_string:
+        """ JSON string (string). """
+        def __get__(self): 
+            cdef char* json_string = cconv_csc.CONVCSC_get_json_string(self._c_ptr, NULL)
+            s = json_string.decode('UTF-8')
+            free(json_string)
+            return s
+
+    property flags_vars:
+        """ Flags associated with variable quantities (byte). """
+        def __get__(self): return cconv_csc.CONVCSC_get_flags_vars(self._c_ptr)
+
+    property flags_fixed:
+        """ Flags associated with fixed quantities (byte). """
+        def __get__(self): return cconv_csc.CONVCSC_get_flags_fixed(self._c_ptr)
+
+    property flags_bounded:
+        """ Flags associated with bounded quantities (byte). """
+        def __get__(self): return cconv_csc.CONVCSC_get_flags_bounded(self._c_ptr)
+
+    property flags_sparse:
+        """ Flags associated with sparse quantities (byte). """
+        def __get__(self): return cconv_csc.CONVCSC_get_flags_sparse(self._c_ptr)
+            
+cdef new_ConverterCSC(cconv_csc.ConvCSC* c):
+    if c is not NULL:
+        conv = ConverterCSC(alloc=False)
+        conv._c_ptr = c
+        return conv
+    else:
+        raise ConverterCSCError('no CSC converter data')

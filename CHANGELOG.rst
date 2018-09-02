@@ -15,9 +15,10 @@ Unreleased
 * Changed parent class of AttributeInt in order to make it work better with numpy.
 * Load voltage dependence constraint.
 * Unittest for raw write.
-* DC buses, DC branches, and VSC converters.
+* DC buses, DC branches, and HVDC VSC converters.
 * Bus "v set regulated" property and query.
-  
+* HVDC CSC converters.
+
 Version 1.3.3
 -------------
 * Made Python wrapper its own repo.

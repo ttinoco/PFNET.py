@@ -21,6 +21,7 @@ cimport cbat
 cimport cbus_dc
 cimport cbranch_dc
 cimport cconv_vsc
+cimport cconv_csc
 
 # Objects
 str2obj = {'all' : cobjs.OBJ_ALL,
@@ -31,6 +32,7 @@ str2obj = {'all' : cobjs.OBJ_ALL,
            'load' : cobjs.OBJ_LOAD,
            'variable generator' : cobjs.OBJ_VARGEN,
            'battery' : cobjs.OBJ_BAT,
+           'csc converter' : cobjs.OBJ_CONVCSC,
            'vsc converter' : cobjs.OBJ_CONVVSC,
            'dc bus' : cobjs.OBJ_BUSDC,
            'dc branch': cobjs.OBJ_BRANCHDC,
@@ -77,6 +79,13 @@ str2q_bat = {'all' : cflags.ALL_VARS,
              'charging power' : cbat.BAT_VAR_P,
              'energy level' : cbat.BAT_VAR_E}
 
+str2q_conv_csc = {'all' : cflags.ALL_VARS,
+                  'active power' : cconv_csc.CONVCSC_VAR_P,
+                  'reactive power' : cconv_csc.CONVCSC_VAR_Q,
+                  'dc power' : cconv_csc.CONVCSC_VAR_PDC,
+                  'tap ratio' : cconv_csc.CONVCSC_VAR_RATIO,
+                  'angle' : cconv_csc.CONVCSC_VAR_ANGLE}
+
 str2q_conv_vsc = {'all' : cflags.ALL_VARS,
                   'active power' : cconv_vsc.CONVVSC_VAR_P,
                   'reactive power' : cconv_vsc.CONVVSC_VAR_Q,
@@ -95,6 +104,7 @@ str2q = {'all' : {'all' : cflags.ALL_VARS},
          'load' : str2q_load,
          'variable generator' : str2q_vargen,
          'battery' : str2q_bat,
+         'csc converter' : str2q_conv_csc,
          'vsc converter' : str2q_conv_vsc,
           'dc bus': str2q_bus_dc,
          'dc branch': str2q_branch_dc}
@@ -135,6 +145,7 @@ str2prop_vargen = {'any' : cvargen.VARGEN_PROP_ANY}
 
 str2prop_bat = {'any' : cbat.BAT_PROP_ANY}
 
+str2prop_conv_csc = {'any' : cconv_csc.CONVCSC_PROP_ANY}
 str2prop_conv_vsc = {'any' : cconv_vsc.CONVVSC_PROP_ANY}
 
 str2prop_bus_dc = {'any' : cbus_dc.BUSDC_PROP_ANY}
@@ -148,6 +159,7 @@ str2prop = {'all' : {'any' : cflags.ANY_PROP},
             'load' : str2prop_load,
             'variable generator' : str2prop_vargen,
             'battery' : str2prop_bat,
+            'csc converter' : str2prop_conv_csc,
             'vsc converter' : str2prop_conv_vsc,
             'dc bus' : str2prop_bus_dc,
             'dc branch' : str2prop_branch_dc}

@@ -940,6 +940,23 @@ cdef class Network:
         else:
             raise NetworkError('invalid battery index')
 
+    def get_csc_converter(self, index):
+        """
+        Gets CSC converter with the given index.
+        Parameters
+        ----------
+        index : int
+        Returns
+        -------
+        conv : |ConverterCSC|
+        """
+
+        ptr = cnet.NET_get_csc_conv(self._c_net,index)
+        if ptr is not NULL:
+            return new_ConverterCSC(ptr)
+        else:
+            raise NetworkError('invalid CSC converter index')
+
     def get_vsc_converter(self, index):
         """
         Gets VSC converter with the given index.
@@ -1167,6 +1184,47 @@ cdef class Network:
             return new_Battery(ptr)
         else:
             raise NetworkError('battery not found')
+
+    def get_csc_converter_from_name_and_ac_bus_number(self, name, number):
+        """
+        Gets CSC converter of given name connected to the AC bus of the 
+        given number.
+        Parameters
+        ----------
+        name : string
+        number : integer
+        Returns
+        -------
+        conv : |ConverterCSC|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_get_csc_conv_from_name_and_ac_bus_number(self._c_net, name, number)
+        if ptr is not NULL:
+            return new_ConverterCSC(ptr)
+        else:
+            raise NetworkError('CSC converter not found')
+
+    def get_csc_converter_from_name_and_dc_bus_name(self, name, bus_name):
+        """
+        Gets CSC converter of given name connected to the DC bus of the 
+        given name.
+        Parameters
+        ----------
+        name : string
+        bus_name : string
+        Returns
+        -------
+        conv : |ConverterCSC|
+        """
+
+        name = name.encode('UTF-8')
+        bus_name = bus_name.encode('UTF-8')
+        ptr = cnet.NET_get_csc_conv_from_name_and_dc_bus_name(self._c_net, name, bus_name)
+        if ptr is not NULL:
+            return new_ConverterCSC(ptr)
+        else:
+            raise NetworkError('CSC converter not found')
 
     def get_vsc_converter_from_name_and_ac_bus_number(self, name, number):
         """
@@ -1669,6 +1727,16 @@ cdef class Network:
 
         return cnet.NET_get_num_bats(self._c_net)
 
+    def get_num_csc_converters(self):
+        """
+        Gets number of CSC converters in the network.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_csc_convs(self._c_net)
+
     def get_num_vsc_converters(self):
         """
         Gets number of VSC converters in the network.
@@ -2068,6 +2136,11 @@ cdef class Network:
         def __get__(self):
             return [self.get_battery(i) for i in range(self.num_batteries)]
 
+    property csc_converters:
+        """ List of |ConverterCSC| objects. """
+        def __get__(self):
+            return [self.get_csc_converter(i) for i in range(self.num_csc_converters)]
+
     property vsc_converters:
         """ List of |ConverterVSC| objects. """
         def __get__(self):
@@ -2110,6 +2183,10 @@ cdef class Network:
     property num_batteries:
         """ Number of batteries in the network (int). """
         def __get__(self): return cnet.NET_get_num_bats(self._c_net)
+
+    property num_csc_converters:
+        """ Number of CSC converters in the network (int). """
+        def __get__(self): return cnet.NET_get_num_csc_convs(self._c_net)
 
     property num_vsc_converters:
         """ Number of VSC converters in the network (int). """
