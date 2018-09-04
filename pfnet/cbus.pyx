@@ -179,6 +179,16 @@ cdef class Bus:
 
         return cbus.BUS_is_regulated_by_vsc_conv(self._c_ptr)
 
+    def is_regulated_by_facts(self):
+        """
+        Determines whether the bus is regulated by a FACTS device.
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cbus.BUS_is_regulated_by_facts(self._c_ptr)
+
     def has_flags(self, flag_type, q):
         """
         Determines whether the bus has the flags associated with
@@ -1218,6 +1228,41 @@ cdef class Bus:
                 reg_convs.append(new_ConverterVSC(c))
                 c = cconv_vsc.CONVVSC_get_reg_next(c)
             return reg_convs
+
+    property facts_k:
+        """ List of |Facts| objects that have this bus on the "k" side (list). """
+        def __get__(self):
+            facts = []
+            cdef cfacts.Facts* f = cbus.BUS_get_facts_k(self._c_ptr)
+            while f is not NULL:
+                facts.append(new_Facts(f))
+                f = cfacts.FACTS_get_next_k(f)
+            return facts
+
+    property facts_m:
+        """ List of |Facts| objects that have this bus on the "m" side (list). """
+        def __get__(self):
+            facts = []
+            cdef cfacts.Facts* f = cbus.BUS_get_facts_m(self._c_ptr)
+            while f is not NULL:
+                facts.append(new_Facts(f))
+                f = cfacts.FACTS_get_next_m(f)
+            return facts
+
+    property facts:
+        """ List of |Facts| objects incident on this bus (list). """
+        def __get__(self):
+            return self.facts_k+self.facts_m
+
+    property reg_facts:
+        """ List of |Facts| objects regulating the voltage magnitude of this bus (list). """
+        def __get__(self):
+            reg_facts = []
+            cdef cfacts.Facts* f = cbus.BUS_get_reg_facts(self._c_ptr)
+            while f is not NULL:
+                reg_facts.append(new_Facts(f))
+                f = cfacts.FACTS_get_reg_next(f)
+            return reg_facts
 
     property flags_vars:
         """ Flags associated with variable quantities (byte). """

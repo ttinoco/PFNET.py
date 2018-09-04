@@ -2347,6 +2347,12 @@ class TestConstraints(unittest.TestCase):
                     for conv in bus.vsc_converters:
                         P_mis += conv.P[t]
                         Q_mis += conv.Q[t]
+                    for facts in bus.facts_k:
+                        P_mis += facts.P_k[t]
+                        Q_mis += facts.Q_k[t]
+                    for facts in bus.facts_m:
+                        P_mis += facts.P_m[t]
+                        Q_mis += facts.Q_m[t]
                     self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
                     self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
 
@@ -2403,6 +2409,10 @@ class TestConstraints(unittest.TestCase):
                           'variable',
                           'any',
                           ['active power', 'reactive power', 'dc power'])
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power'])
             self.assertEqual(net.num_vars,
                              (2*net.num_buses +
                               2*net.num_generators +
@@ -2412,8 +2422,14 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_switched_v_shunts() +
                               3*net.num_batteries +
                               net.num_var_generators*2 +
-                              net.num_vsc_converters*4)*self.T)
+                              net.num_vsc_converters*4 +
+                              net.num_facts*7)*self.T)
 
+            # Check facts
+            for facts in net.facts:
+                self.assertTrue(facts.has_flags('variable', 'active power'))
+                self.assertTrue(facts.has_flags('variable', 'reactive power'))
+            
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
             self.assertTupleEqual(x0.shape,(net.num_vars,))
@@ -2447,6 +2463,8 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.A_nnz,0)
             self.assertEqual(constr.G_nnz,0)
 
+            num_statcom = len([f for f in net.facts if f.is_STATCOM()])
+
             num_Jnnz = (net.num_buses*4 +
                         net.num_branches*8 +                        
                         net.get_num_tap_changers()*4 +
@@ -2456,7 +2474,8 @@ class TestConstraints(unittest.TestCase):
                         net.num_loads*2 +
                         net.num_batteries*2 +
                         net.num_var_generators*2 +
-                        net.num_vsc_converters*2)*self.T
+                        net.num_vsc_converters*2 +
+                        (net.num_facts-num_statcom)*4+num_statcom*2)*self.T
 
             constr.analyze()
             self.assertEqual(num_Jnnz,constr.J_nnz)
@@ -2542,6 +2561,16 @@ class TestConstraints(unittest.TestCase):
                     for conv in bus.csc_converters:
                         P_mis += conv.P[t]
                         Q_mis += conv.Q[t]
+                    for facts in bus.facts_k:
+                        self.assertTrue(facts.has_flags('variable', 'active power'))
+                        P_mis += x1[facts.index_P_k[t]]
+                        self.assertTrue(facts.has_flags('variable', 'reactive power'))
+                        Q_mis += x1[facts.index_Q_k[t]]
+                    for facts in bus.facts_m:
+                        self.assertTrue(facts.has_flags('variable', 'active power'))
+                        P_mis += x1[facts.index_P_m[t]]
+                        self.assertTrue(facts.has_flags('variable', 'reactive power'))
+                        Q_mis += x1[facts.index_Q_m[t]]
                     self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
                     self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
 

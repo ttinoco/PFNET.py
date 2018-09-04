@@ -1008,6 +1008,23 @@ cdef class Network:
         else:
             raise NetworkError('invalid DC branch index')
 
+    def get_facts(self, index):
+        """
+        Gets FACTS device.
+        Parameters
+        ----------
+        index : int
+        Returns
+        -------
+        conv : |Facts|
+        """
+
+        ptr = cnet.NET_get_facts(self._c_net,index)
+        if ptr is not NULL:
+            return new_Facts(ptr)
+        else:
+            raise NetworkError('invalid FACTS device index')
+
     def get_generator_from_name_and_bus_number(self, name, number):
         """
         Gets generator of given name connected to the bus of the 
@@ -1289,6 +1306,27 @@ cdef class Network:
             return new_BranchDC(ptr)
         else:
             raise NetworkError('DC branch not found')
+
+    def get_facts_from_name_and_bus_numbers(self, name, number1, number2):
+        """
+        Gets FACTS device of given name connected across buses of the 
+        given numbers.
+        Parameters
+        ----------
+        name : string
+        number1 : integer
+        number2 : integer
+        Returns
+        -------
+        facts : |Facts|
+        """
+
+        name = name.encode('UTF-8')
+        ptr = cnet.NET_get_facts_from_name_and_bus_numbers(self._c_net, name, number1, number2)
+        if ptr is not NULL:
+            return new_Facts(ptr)
+        else:
+            raise NetworkError('facts not found')
         
     def get_generator_buses(self):
         """
@@ -1461,6 +1499,16 @@ cdef class Network:
         """
 
         return cnet.NET_get_num_buses_reg_by_vsc_conv(self._c_net)
+
+    def get_num_buses_reg_by_facts(self):
+        """
+        Gets number of buses whose voltage magnitudes are regulated by FACTS devices.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_buses_reg_by_facts(self._c_net)
 
     def get_num_branches(self):
         """
@@ -1806,6 +1854,36 @@ cdef class Network:
         """
 
         return cnet.NET_get_num_dc_branches(self._c_net)
+
+    def get_num_facts(self):
+        """
+        Gets number of FACTS devices in the network.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_facts(self._c_net)
+
+    def get_num_facts_in_normal_series_mode(self):
+        """
+        Gets number of FACTS devices in the network that are operating in normal series mode.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_facts_in_normal_series_mode(self._c_net)
+
+    def get_num_reg_facts(self):
+        """
+        Gets number of FACTS in the network that provide voltage regulation.
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_reg_facts(self._c_net)
 
     def get_properties(self):
         """
@@ -2156,6 +2234,11 @@ cdef class Network:
         def __get__(self):
             return [self.get_dc_branch(i) for i in range(self.num_dc_branches)]
 
+    property facts:
+        """ List of |Facts| objects. """
+        def __get__(self):
+            return [self.get_facts(i) for i in range(self.num_facts)]
+
     property num_buses:
         """ Number of buses in the network (int). """
         def __get__(self): return cnet.NET_get_num_buses(self._c_net)
@@ -2199,6 +2282,10 @@ cdef class Network:
     property num_dc_branches:
         """ Number of DC branches in the network (int). """
         def __get__(self): return cnet.NET_get_num_dc_branches(self._c_net)
+
+    property num_facts:
+        """ Number of FACTS devices in the network (int). """
+        def __get__(self): return cnet.NET_get_num_facts(self._c_net)
 
     property num_vars:
         """ Number of network quantities that have been set to variable (int). """

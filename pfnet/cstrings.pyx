@@ -22,6 +22,7 @@ cimport cbus_dc
 cimport cbranch_dc
 cimport cconv_vsc
 cimport cconv_csc
+cimport cfacts
 
 # Objects
 str2obj = {'all' : cobjs.OBJ_ALL,
@@ -36,6 +37,7 @@ str2obj = {'all' : cobjs.OBJ_ALL,
            'vsc converter' : cobjs.OBJ_CONVVSC,
            'dc bus' : cobjs.OBJ_BUSDC,
            'dc branch': cobjs.OBJ_BRANCHDC,
+           'facts' : cobjs.OBJ_FACTS,
            'unknown' : cobjs.OBJ_UNKNOWN}
 
 obj2str = dict([(v,k) for k,v in str2obj.items()])
@@ -96,6 +98,12 @@ str2q_bus_dc = {'all' : cflags.ALL_VARS,
 
 str2q_branch_dc = {'all' : cflags.ALL_VARS}
 
+str2q_facts = {'all' : cflags.ALL_VARS,
+               'series voltage magnitude' : cfacts.FACTS_VAR_VMAG_S,
+               'series voltage angle' : cfacts.FACTS_VAR_VANG_S,
+               'active power' : cfacts.FACTS_VAR_P,
+               'reactive power' : cfacts.FACTS_VAR_Q}
+
 str2q = {'all' : {'all' : cflags.ALL_VARS},
          'bus' : str2q_bus,
          'branch' : str2q_branch,
@@ -107,7 +115,8 @@ str2q = {'all' : {'all' : cflags.ALL_VARS},
          'csc converter' : str2q_conv_csc,
          'vsc converter' : str2q_conv_vsc,
           'dc bus': str2q_bus_dc,
-         'dc branch': str2q_branch_dc}
+         'dc branch': str2q_branch_dc,
+         'facts' : str2q_facts}
 
 # Properties
 str2prop_bus = {'any' :  cbus.BUS_PROP_ANY,
@@ -147,9 +156,9 @@ str2prop_bat = {'any' : cbat.BAT_PROP_ANY}
 
 str2prop_conv_csc = {'any' : cconv_csc.CONVCSC_PROP_ANY}
 str2prop_conv_vsc = {'any' : cconv_vsc.CONVVSC_PROP_ANY}
-
 str2prop_bus_dc = {'any' : cbus_dc.BUSDC_PROP_ANY}
 str2prop_branch_dc = {'any' : cbranch_dc.BRANCHDC_PROP_ANY}
+str2prop_facts = {'any' : cfacts.FACTS_PROP_ANY}
 
 str2prop = {'all' : {'any' : cflags.ANY_PROP},
             'bus' : str2prop_bus,
@@ -162,7 +171,8 @@ str2prop = {'all' : {'any' : cflags.ANY_PROP},
             'csc converter' : str2prop_conv_csc,
             'vsc converter' : str2prop_conv_vsc,
             'dc bus' : str2prop_bus_dc,
-            'dc branch' : str2prop_branch_dc}
+            'dc branch' : str2prop_branch_dc,
+            'facts' : str2prop_facts}
 
 # Bus sensitivities
 str2sens_bus = {'largest_sensitivity' : cbus.BUS_SENS_LARGEST,

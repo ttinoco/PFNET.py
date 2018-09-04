@@ -28,6 +28,12 @@ class TestParser(unittest.TestCase):
             
             parser = pf.ParserRAW()
             net1 = parser.parse(case, num_periods=2)
+
+            # HVDC, FACTS not supported yet
+            if (net1.num_vsc_converters > 0 or
+                net1.num_csc_converters > 0 or
+                net1.num_facts > 0):
+                continue
             
             try:
                 parser.write(net1, 'foo.raw')

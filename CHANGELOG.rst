@@ -18,6 +18,7 @@ Unreleased
 * DC buses, DC branches, and HVDC VSC converters.
 * Bus "v set regulated" property and query.
 * HVDC CSC converters.
+* FACTS devices.    
 
 Version 1.3.3
 -------------

@@ -19,6 +19,7 @@ cdef extern from "pfnet/bus.h":
     ctypedef struct Bat
     ctypedef struct ConvCSC
     ctypedef struct ConvVSC
+    ctypedef struct Facts
     ctypedef double REAL
     ctypedef char BOOL
 
@@ -77,6 +78,9 @@ cdef extern from "pfnet/bus.h":
     Shunt* BUS_get_reg_shunt(Bus* bus)
     Branch* BUS_get_branch_k(Bus* bus)
     Branch* BUS_get_branch_m(Bus* bus)
+    Facts* BUS_get_facts_k(Bus* bus)
+    Facts* BUS_get_facts_m(Bus* bus)
+    Facts* BUS_get_reg_facts(Bus* bus)
     Load* BUS_get_load(Bus* bus)
     Vargen* BUS_get_vargen(Bus* bus)
     Bat* BUS_get_bat(Bus* bus)
@@ -134,6 +138,7 @@ cdef extern from "pfnet/bus.h":
     bint BUS_is_regulated_by_tran(Bus* bus)
     bint BUS_is_regulated_by_shunt(Bus* bus)
     bint BUS_is_regulated_by_vsc_conv(Bus* bus)
+    bint BUS_is_regulated_by_facts(Bus* bus);
     bint BUS_has_flags(Bus* bus, char flag_type, char mask)
     Bus* BUS_new(int num_periods)
     Bus* BUS_array_new(int size, int num_periods)

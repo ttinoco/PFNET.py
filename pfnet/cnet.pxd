@@ -19,6 +19,7 @@ cimport cbus_dc
 cimport cbranch_dc
 cimport cconv_vsc
 cimport cconv_csc
+cimport cfacts
 
 cdef extern from "pfnet/net.h":
 
@@ -34,6 +35,7 @@ cdef extern from "pfnet/net.h":
     ctypedef struct BranchDC
     ctypedef struct ConvVSC
     ctypedef struct ConvCSC
+    ctypedef struct Facts
     ctypedef double REAL
 
     void NET_add_buses(Net* net, cbus.Bus** br_ptr_array, int size)
@@ -89,6 +91,7 @@ cdef extern from "pfnet/net.h":
     cbranch_dc.BranchDC* NET_get_dc_branch(Net* net, int index)
     cconv_csc.ConvCSC* NET_get_csc_conv(Net* net, int index)
     cconv_vsc.ConvVSC* NET_get_vsc_conv(Net* net, int index)
+    cfacts.Facts* NET_get_facts(Net* net, int index)
     cbus.Bus* NET_get_load_buses(Net* net)
     cbus.Bus* NET_get_gen_buses(Net* net)
 
@@ -105,6 +108,7 @@ cdef extern from "pfnet/net.h":
     cconv_csc.ConvCSC* NET_get_csc_conv_from_name_and_dc_bus_name(Net* net, char* name, char* bus_name)
     cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_ac_bus_number(Net* net, char* name, int number)
     cconv_vsc.ConvVSC* NET_get_vsc_conv_from_name_and_dc_bus_name(Net* net, char* name, char* bus_name)
+    cfacts.Facts* NET_get_facts_from_name_and_bus_numbers(Net* net, char* name, int number1, int number2)
 
     unsigned long int NET_get_state_tag(Net* net)
     REAL NET_get_total_load_P(Net* net, int t)
@@ -118,6 +122,7 @@ cdef extern from "pfnet/net.h":
     int NET_get_num_buses_reg_by_shunt(Net* net)
     int NET_get_num_buses_reg_by_shunt_only(Net* net)
     int NET_get_num_buses_reg_by_vsc_conv(Net* net)
+    int NET_get_num_buses_reg_by_facts(Net* net)
     int NET_get_num_branches(Net* net)
     int NET_get_num_branches_not_on_outage(Net* net)
     int NET_get_num_branches_on_outage(Net* net)
@@ -150,6 +155,9 @@ cdef extern from "pfnet/net.h":
     int NET_get_num_vsc_convs_in_P_dc_mode(Net* net)
     int NET_get_num_vsc_convs_in_v_ac_mode(Net* net)
     int NET_get_num_vsc_convs_in_f_ac_mode(Net* net)
+    int NET_get_num_facts(Net* net)
+    int NET_get_num_facts_in_normal_series_mode(Net* net)
+    int NET_get_num_reg_facts(Net* net)
     int NET_get_num_vars(Net* net)
     int NET_get_num_fixed(Net* net)
     int NET_get_num_bounded(Net* net)
