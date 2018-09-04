@@ -13,6 +13,7 @@ cdef extern from "pfnet/pfnet.h":
     ctypedef struct Vec
     ctypedef struct Mat
     ctypedef struct Bus
+    ctypedef struct BusDC
     ctypedef double REAL
         
     void FUNC_del(Func* f)
@@ -44,11 +45,11 @@ cdef extern from "pfnet/pfnet.h":
     void FUNC_set_Hphi_nnz(Func* f, int nnz)
 
     void FUNC_set_func_init(Func* f, void (*func)(Func* f))
-    void FUNC_set_func_count_step(Func* f, void (*func)(Func* f, Bus* bus, int t))
+    void FUNC_set_func_count_step(Func* f, void (*func)(Func* f, Bus* bus, BusDC* busdc, int t))
     void FUNC_set_func_allocate(Func* f, void (*func)(Func* f))
     void FUNC_set_func_clear(Func* f, void (*func)(Func* f))
-    void FUNC_set_func_analyze_step(Func* f, void (*func)(Func* f, Bus* bus, int t))
-    void FUNC_set_func_eval_step(Func* f, void (*func)(Func* f, Bus* bus, int t, Vec* v))
+    void FUNC_set_func_analyze_step(Func* f, void (*func)(Func* f, Bus* bus, BusDC* busdc, int t))
+    void FUNC_set_func_eval_step(Func* f, void (*func)(Func* f, Bus* bus, BusDC* busdc, int t, Vec* v))
 
     Func* FUNC_GEN_COST_new(REAL w, Net* net)
     Func* FUNC_LOAD_UTIL_new(REAL w, Net* net)

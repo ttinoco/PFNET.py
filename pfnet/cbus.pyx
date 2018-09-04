@@ -1286,4 +1286,4 @@ cdef new_Bus(cbus.Bus* b):
         bus._c_ptr = b
         return bus
     else:
-        raise BusError('no bus data')
+        return None

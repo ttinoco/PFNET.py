@@ -10,6 +10,7 @@
 
 cimport cvec
 cimport cbus
+cimport cbus_dc
 cimport cfunc
 
 class FunctionError(Exception):
@@ -309,13 +310,14 @@ cdef class CustomFunction(FunctionBase):
 
         pass
         
-    def count_step(self, bus, t):
+    def count_step(self, bus, busdc, t):
         """
         Performs count step.
 
         Parameters
         ----------
         bus : |Bus|
+        busdc : |BusDC|
         t : time period (int)
         """
         
@@ -335,25 +337,27 @@ cdef class CustomFunction(FunctionBase):
 
         pass
 
-    def analyze_step(self, bus, t):
+    def analyze_step(self, bus, busdc, t):
         """
         Performs analyze step.
        
         Parameters
         ----------
         bus : |Bus|
+        busdc : |BusDC|
         t : time period (int)
         """
         
         pass
 
-    def eval_step(self, bus, t, x):
+    def eval_step(self, bus, busdc, t, x):
         """
         Performs eval step.
        
         Parameters
         ----------
         bus : |Bus|
+        busdc : |BusDC|
         t : time period (int)
         x : |Array|
         """
@@ -364,9 +368,9 @@ cdef void func_init(cfunc.Func* f):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
     fc.init()
 
-cdef void func_count_step(cfunc.Func* f, cbus.Bus* bus, int t):
+cdef void func_count_step(cfunc.Func* f, cbus.Bus* bus, cbus_dc.BusDC* busdc, int t):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
-    fc.count_step(new_Bus(bus),t)
+    fc.count_step(new_Bus(bus),new_BusDC(busdc),t)
 
 cdef void func_allocate(cfunc.Func* f):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
@@ -376,12 +380,12 @@ cdef void func_clear(cfunc.Func* f):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
     fc.clear()
 
-cdef void func_analyze_step(cfunc.Func* f, cbus.Bus* bus, int t):
+cdef void func_analyze_step(cfunc.Func* f, cbus.Bus* bus, cbus_dc.BusDC* busdc, int t):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
-    fc.analyze_step(new_Bus(bus),t)
+    fc.analyze_step(new_Bus(bus),new_BusDC(busdc),t)
 
-cdef void func_eval_step(cfunc.Func* f, cbus.Bus* bus, int t, cvec.Vec* v):
+cdef void func_eval_step(cfunc.Func* f, cbus.Bus* bus, cbus_dc.BusDC* busdc, int t, cvec.Vec* v):
     cdef CustomFunction fc = <CustomFunction>cfunc.FUNC_get_data(f)
-    fc.eval_step(new_Bus(bus),t,Vector(v))
+    fc.eval_step(new_Bus(bus),new_BusDC(busdc),t,Vector(v))
 
 

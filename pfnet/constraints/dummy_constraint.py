@@ -16,7 +16,10 @@ class DummyDCPF(CustomConstraint):
         
         self.name = "dummy DC power balance"
 
-    def count_step(self, bus, t):
+    def count_step(self, bus, busdc, t):
+
+        if bus is None:
+            return
                 
         for gen in bus.generators:
             if gen.is_on_outage():
@@ -48,7 +51,10 @@ class DummyDCPF(CustomConstraint):
 
         self.A_row = self.A_row+1
 
-    def analyze_step(self, bus, t):
+    def analyze_step(self, bus, busdc, t):
+
+        if bus is None:
+            return
             
         for gen in bus.generators:
             if gen.is_on_outage():
@@ -120,11 +126,11 @@ class DummyDCPF(CustomConstraint):
                     
         self.A_row = self.A_row+1
 
-    def eval_step(self, bus, t, x, y=None):
+    def eval_step(self, bus, busdc, t, x, y=None):
  
         pass
         
-    def store_sens_step(self, bus, t, sA, sf, sGu, sGl):
+    def store_sens_step(self, bus, busdc, t, sA, sf, sGu, sGl):
         
         pass
         

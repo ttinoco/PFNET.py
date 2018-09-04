@@ -18,7 +18,8 @@ Unreleased
 * DC buses, DC branches, and HVDC VSC converters.
 * Bus "v set regulated" property and query.
 * HVDC CSC converters.
-* FACTS devices.    
+* FACTS devices.
+* Updated count/analyze/eval to also loop through dc buses, and updated python-based dummy func/constr.    
 
 Version 1.3.3
 -------------

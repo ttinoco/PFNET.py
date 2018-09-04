@@ -16,13 +16,19 @@ class DummyGenCost(CustomFunction):
         
         self.name = "dummy generation cost"
         
-    def count_step(self, bus, t):
+    def count_step(self, bus, busdc, t):
+
+        if bus is None:
+            return
 
         for gen in bus.generators:
             if gen.has_flags('variable','active power') and not gen.is_on_outage():
                 self.Hphi_nnz = self.Hphi_nnz+1
                 
-    def analyze_step(self, bus, t):
+    def analyze_step(self, bus, busdc, t):
+
+        if bus is None:
+            return
         
         for gen in bus.generators:
             if gen.has_flags('variable','active power') and not gen.is_on_outage():
@@ -30,7 +36,10 @@ class DummyGenCost(CustomFunction):
                 self.Hphi.col[self.Hphi_nnz] = gen.index_P[t]
                 self.Hphi_nnz = self.Hphi_nnz+1
 
-    def eval_step(self, bus, t, x):
+    def eval_step(self, bus, busdc, t, x):
+
+        if bus is None:
+            return
 
         for gen in bus.generators:
             Q0 = gen.cost_coeff_Q0
