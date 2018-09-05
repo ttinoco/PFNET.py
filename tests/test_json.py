@@ -45,7 +45,7 @@ class TestJSON(unittest.TestCase):
                 self.assertTrue('sens_v_mag_l_bound' in json_model)
                 self.assertTrue('sens_v_ang_u_bound' in json_model)
                 self.assertTrue('sens_v_ang_l_bound' in json_model)
-                self.assertTrue('sens_v_reg_by_gen' in json_model)
+                self.assertTrue('sens_v_set_reg' in json_model)
                 self.assertTrue('sens_v_reg_by_tran' in json_model)
                 self.assertTrue('sens_v_reg_by_shunt' in json_model)
                 # Add more

@@ -640,7 +640,7 @@ class TestParser(unittest.TestCase):
                 bus.sens_v_mag_l_bound = np.random.randn(net.num_periods)
                 bus.sens_v_ang_u_bound = np.random.randn(net.num_periods)
                 bus.sens_v_ang_l_bound = np.random.randn(net.num_periods)
-                bus.sens_v_reg_by_gen = np.random.randn(net.num_periods)
+                bus.sens_v_set_reg = np.random.randn(net.num_periods)
                 bus.sens_v_reg_by_tran = np.random.randn(net.num_periods)
                 bus.sens_v_reg_by_shunt = np.random.randn(net.num_periods)
             

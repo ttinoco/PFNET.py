@@ -1068,11 +1068,11 @@ cdef class Bus:
         def __set__(self, x):
             self.sens_v_ang_l_bound[:] = x
 
-    property sens_v_reg_by_gen:
-        """ Objective function sensitivity with respect to bus voltage regulation by generators (float or |Array|). """
-        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_reg_by_gen_array(self._c_ptr), self.num_periods)
+    property sens_v_set_reg:
+        """ Objective function sensitivity with respect to bus voltage set point regulation (float or |Array|). """
+        def __get__(self): return DoubleArray(cbus.BUS_get_sens_v_set_reg_array(self._c_ptr), self.num_periods)
         def __set__(self, x):
-            self.sens_v_reg_by_gen[:] = x
+            self.sens_v_set_reg[:] = x
 
     property sens_v_reg_by_tran:
         """ Objective function sensitivity with respect to bus voltage regulation by transformers (float or |Array|). """

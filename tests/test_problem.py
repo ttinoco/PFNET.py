@@ -487,7 +487,7 @@ class TestProblem(unittest.TestCase):
                              
             # Constraints
             p.add_constraint(pf.Constraint('AC power balance',net))
-            p.add_constraint(pf.Constraint('voltage regulation by generators',net))
+            p.add_constraint(pf.Constraint('voltage set point regulation',net))
             p.add_constraint(pf.Constraint('voltage regulation by transformers',net))
             p.add_constraint(pf.Constraint('voltage regulation by shunts',net))
             self.assertEqual(len(p.constraints),4)
@@ -719,14 +719,18 @@ class TestProblem(unittest.TestCase):
                           ['variable','bounded'],
                           'any',
                           'voltage magnitude')
-            self.assertEqual(net.num_vars,net.num_buses)
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          'reactive power')
+            self.assertEqual(net.num_vars,net.num_buses+net.num_generators)
 
             l = p.get_lower_limits()
             u = p.get_upper_limits()
             self.assertTrue(isinstance(l,np.ndarray))
             self.assertTrue(isinstance(u,np.ndarray))
-            self.assertTupleEqual(l.shape,(net.num_buses,))
-            self.assertTupleEqual(u.shape,(net.num_buses,))
+            self.assertTupleEqual(l.shape,(net.num_buses+net.num_generators,))
+            self.assertTupleEqual(u.shape,(net.num_buses+net.num_generators,))
             for bus in net.buses:
                 self.assertEqual(bus.v_max,u[bus.index_v_mag])
                 self.assertEqual(bus.v_min,l[bus.index_v_mag])
@@ -764,14 +768,14 @@ class TestProblem(unittest.TestCase):
             p.clear()
             
             # Voltage regulation by gen
-            constr = pf.Constraint('voltage regulation by generators',net)
+            constr = pf.Constraint('voltage set point regulation',net)
             p.add_constraint(constr)
             p.analyze()
 
             l = p.get_lower_limits()
             u = p.get_upper_limits()
-            
-            num_constr = 2*len([g for g in net.generators if g.is_regulator() and not g.is_slack()])
+
+            num_constr = 2*len([g for g in net.generators if g.is_regulator()])
 
             self.assertEqual(p.num_extra_vars,num_constr)
             self.assertEqual(l.size,net.num_vars+p.num_extra_vars)
@@ -781,18 +785,14 @@ class TestProblem(unittest.TestCase):
             self.assertTrue(np.all(l[net.num_vars:] == constr.l_extra_vars))
             self.assertTrue(np.all(u[net.num_vars:] == constr.u_extra_vars))
             offset = 0
-            flags = net.num_buses*[False]
-            for branch in net.branches:
-                for bus in [branch.bus_k,branch.bus_m]:
-                    if not flags[bus.index]:
-                        if bus.is_regulated_by_gen() and not bus.is_slack():
-                            for gen in bus.reg_generators:
-                                self.assertEqual(l[net.num_vars+offset],-INF)
-                                self.assertEqual(l[net.num_vars+offset+1],-INF)
-                                self.assertEqual(u[net.num_vars+offset],INF)
-                                self.assertEqual(u[net.num_vars+offset+1],INF)
-                                offset += 2
-                    flags[bus.index] = True
+            for bus in net.buses:
+                if bus.is_regulated_by_gen():
+                    for gen in bus.reg_generators:
+                        self.assertEqual(l[net.num_vars+offset],-INF)
+                        self.assertEqual(l[net.num_vars+offset+1],-INF)
+                        self.assertEqual(u[net.num_vars+offset],INF)
+                        self.assertEqual(u[net.num_vars+offset+1],INF)
+                        offset += 2
             self.assertEqual(offset,p.num_extra_vars)
 
             p.clear()

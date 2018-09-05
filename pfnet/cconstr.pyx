@@ -75,14 +75,6 @@ cdef class ConstraintBase:
 
         cconstr.CONSTR_del_matvec(self._c_constr)
 
-    def update(self):
-        """
-        Updates internal arrays to be compatible
-        with any network changes.
-        """
-
-        cconstr.CONSTR_update(self._c_constr)
-
     def clear_error(self):
         """
         Clears error flag and string.
@@ -95,7 +87,6 @@ cdef class ConstraintBase:
         Analyzes constraint structure and allocates required vectors and matrices.
         """
 
-        cconstr.CONSTR_del_matvec(self._c_constr)
         cconstr.CONSTR_count(self._c_constr)
         cconstr.CONSTR_allocate(self._c_constr)
         cconstr.CONSTR_analyze(self._c_constr)
@@ -627,8 +618,8 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_PVPQ_SWITCHING_new(net._c_net)
         elif name == "generator ramp limits":
             self._c_constr = cconstr.CONSTR_GEN_RAMP_new(net._c_net)
-        elif name == "voltage regulation by generators":
-            self._c_constr = cconstr.CONSTR_REG_GEN_new(net._c_net)
+        elif name == "voltage set point regulation":
+            self._c_constr = cconstr.CONSTR_REG_VSET_new(net._c_net)
         elif name == "voltage regulation by transformers":
             self._c_constr = cconstr.CONSTR_REG_TRAN_new(net._c_net)
         elif name == "voltage regulation by shunts":

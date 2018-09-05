@@ -285,7 +285,7 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
     test.assertLess(norminf(bus1.sens_v_mag_l_bound-bus2.sens_v_mag_l_bound), eps)
     test.assertLess(norminf(bus1.sens_v_ang_u_bound-bus2.sens_v_ang_u_bound), eps)
     test.assertLess(norminf(bus1.sens_v_ang_l_bound-bus2.sens_v_ang_l_bound), eps)
-    test.assertLess(norminf(bus1.sens_v_reg_by_gen-bus2.sens_v_reg_by_gen), eps)
+    test.assertLess(norminf(bus1.sens_v_set_reg-bus2.sens_v_set_reg), eps)
     test.assertLess(norminf(bus1.sens_v_reg_by_tran-bus2.sens_v_reg_by_tran), eps)
     test.assertLess(norminf(bus1.sens_v_reg_by_shunt-bus2.sens_v_reg_by_shunt), eps)
     if check_internals:

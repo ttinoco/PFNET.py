@@ -97,9 +97,9 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.J_nnz,Jnnz)
             self.assertEqual(constr.J_row,rowsJ)
             self.assertEqual(constr.num_extra_vars,0)
-            self.assertEqual(constr.J_row, constr.H_nnz.size)
-            self.assertEqual(2*net.num_loads*net.num_periods, constr.H_nnz.size)
-            self.assertTrue(np.all(constr.H_nnz == np.ones(2*net.num_loads*net.num_periods)))
+            self.assertLessEqual(constr.J_row, constr.H_nnz.size)
+            self.assertLessEqual(2*net.num_loads*net.num_periods, constr.H_nnz.size)
+            self.assertTrue(np.all(constr.H_nnz[:2*net.num_loads*net.num_periods] == 1))
 
             for i in range(rowsJ):
                 H = constr.get_H_single(i)
@@ -2819,7 +2819,7 @@ class TestConstraints(unittest.TestCase):
                                                              EPS,
                                                              h)
                     
-    def test_constr_REG_GEN(self):
+    def test_constr_REG_VSET(self):
 
         # Constants
         h = 1e-8
@@ -2853,8 +2853,8 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(x0.shape,(net.num_vars,))
 
             # Constraint
-            constr = pf.Constraint('voltage regulation by generators',net)
-            self.assertEqual(constr.name,'voltage regulation by generators')
+            constr = pf.Constraint('voltage set point regulation',net)
+            self.assertEqual(constr.name,'voltage set point regulation')
 
             f = constr.f
             J = constr.J
@@ -3008,7 +3008,7 @@ class TestConstraints(unittest.TestCase):
             for t in range(self.T):
                 for i in range(net.num_buses):
                     bus = net.get_bus(i)
-                    self.assertEqual(bus.sens_v_reg_by_gen[t],0.)
+                    self.assertEqual(bus.sens_v_set_reg[t],0.)
             sensf = np.zeros(constr.f.size)
             sensA = np.ones(constr.b.size)*10.5
             self.assertEqual(sensf.size,rowsJ*self.T)
@@ -3031,11 +3031,11 @@ class TestConstraints(unittest.TestCase):
                     bus = net.get_bus(i)
                     if bus.is_regulated_by_gen() and not bus.is_slack():
                         if bus.index % 2 == 1:
-                            self.assertEqual(bus.sens_v_reg_by_gen[t],bus.index+11)
+                            self.assertEqual(bus.sens_v_set_reg[t],bus.index+11)
                         else:
-                            self.assertEqual(bus.sens_v_reg_by_gen[t],-bus.index-10 if bus.index != 0 else 10.5)
+                            self.assertEqual(bus.sens_v_set_reg[t],-bus.index-10 if bus.index != 0 else 10.5)
 
-    def test_constr_REG_GEN_with_outages(self):
+    def test_constr_REG_VSET_with_outages(self):
 
         # Multiperiod
         for case in test_cases.CASES:
@@ -3065,7 +3065,7 @@ class TestConstraints(unittest.TestCase):
             self.assertTrue(type(x0) is np.ndarray)
             self.assertTupleEqual(x0.shape,(net.num_vars,))
 
-            constr0 = pf.Constraint('voltage regulation by generators', net)
+            constr0 = pf.Constraint('voltage set point regulation', net)
             constr0.analyze()
             constr0.eval(x0)
             
@@ -3074,7 +3074,7 @@ class TestConstraints(unittest.TestCase):
                     for branch in bus.branches:
                         branch.outage = True
 
-            constr1 = pf.Constraint('voltage regulation by generators', net)
+            constr1 = pf.Constraint('voltage set point regulation', net)
             constr1.analyze()
             constr1.eval(x0)
 
@@ -3089,7 +3089,7 @@ class TestConstraints(unittest.TestCase):
                         gen.outage = True
                     self.assertFalse(bus.is_regulated_by_gen())
 
-            constr2 = pf.Constraint('voltage regulation by generators', net)
+            constr2 = pf.Constraint('voltage set point regulation', net)
             constr2.analyze()
             constr2.eval(x0)
 
@@ -3578,7 +3578,7 @@ class TestConstraints(unittest.TestCase):
                            pf.Constraint('PVPQ switching',net),
                            pf.Constraint('AC power balance',net),
                            pf.Constraint('DC power balance',net),
-                           pf.Constraint('voltage regulation by generators',net),
+                           pf.Constraint('voltage set point regulation',net),
                            pf.Constraint('voltage regulation by transformers',net),
                            pf.Constraint('voltage regulation by shunts',net),
                            pf.Constraint('AC branch flow limits',net)]
@@ -3617,18 +3617,16 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
+            
             constraints = [pf.Constraint('variable fixing',net),
                            pf.Constraint('generator active power participation',net),
                            pf.Constraint('PVPQ switching',net),
                            pf.Constraint('AC power balance',net),
                            pf.Constraint('DC power balance',net),
-                           pf.Constraint('voltage regulation by generators',net),
+                           pf.Constraint('voltage set point regulation',net),
                            pf.Constraint('voltage regulation by transformers',net),
                            pf.Constraint('voltage regulation by shunts',net),
                            pf.Constraint('AC branch flow limits',net)]
-
-            # Update network
-            list(map(lambda c: c.update(),constraints))
             
             # After updating network
             list(map(lambda c: c.analyze(),constraints))
@@ -5975,7 +5973,7 @@ class TestConstraints(unittest.TestCase):
                            pf.Constraint('AC power balance', net), # nonlinear
                            pf.Constraint('DC power balance', net),
                            pf.Constraint('linearized AC power balance', net),
-                           pf.Constraint('voltage regulation by generators', net), # nonlinear
+                           pf.Constraint('voltage set point regulation', net), # nonlinear
                            pf.Constraint('voltage regulation by transformers', net), # nonlinear
                            pf.Constraint('voltage regulation by shunts', net), # nonlinear
                            pf.Constraint('AC branch flow limits', net), # nolinear

@@ -61,14 +61,6 @@ cdef class FunctionBase:
 
         cfunc.FUNC_del_matvec(self._c_func)
 
-    def update(self):
-        """
-        Updates internal arrays to be compatible
-        with any network changes.
-        """
-
-        cfunc.FUNC_update(self._c_func)
-
     def clear_error(self):
         """
         Clears error flag and string.
@@ -81,7 +73,6 @@ cdef class FunctionBase:
         Analyzes the structure of the function and allocates required vectors and matrices.
         """
 
-        cfunc.FUNC_del_matvec(self._c_func)
         cfunc.FUNC_count(self._c_func)
         cfunc.FUNC_allocate(self._c_func)
         cfunc.FUNC_analyze(self._c_func)

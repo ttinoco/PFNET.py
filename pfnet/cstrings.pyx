@@ -182,7 +182,7 @@ str2sens_bus = {'largest_sensitivity' : cbus.BUS_SENS_LARGEST,
                 'sens_v_mag_l_bound' : cbus.BUS_SENS_V_MAG_L_BOUND,
                 'sens_v_ang_u_bound' : cbus.BUS_SENS_V_ANG_U_BOUND,
                 'sens_v_ang_l_bound' : cbus.BUS_SENS_V_ANG_L_BOUND,
-                'sens_v_reg_by_gen' : cbus.BUS_SENS_V_REG_BY_GEN,
+                'sens_v_set_reg' : cbus.BUS_SENS_V_SET_REG,
                 'sens_v_reg_by_tran' : cbus.BUS_SENS_V_REG_BY_TRAN,
                 'sens_v_reg_by_shunt' : cbus.BUS_SENS_V_REG_BY_SHUNT}
 

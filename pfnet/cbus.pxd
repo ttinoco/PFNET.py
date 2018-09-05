@@ -45,7 +45,7 @@ cdef extern from "pfnet/bus.h":
     cdef char BUS_SENS_V_MAG_L_BOUND
     cdef char BUS_SENS_V_ANG_U_BOUND
     cdef char BUS_SENS_V_ANG_L_BOUND
-    cdef char BUS_SENS_V_REG_BY_GEN
+    cdef char BUS_SENS_V_SET_REG
     cdef char BUS_SENS_V_REG_BY_TRAN
     cdef char BUS_SENS_V_REG_BY_SHUNT
 
@@ -119,7 +119,7 @@ cdef extern from "pfnet/bus.h":
     REAL* BUS_get_sens_v_mag_l_bound_array(Bus* bus)
     REAL* BUS_get_sens_v_ang_u_bound_array(Bus* bus)
     REAL* BUS_get_sens_v_ang_l_bound_array(Bus* bus)
-    REAL* BUS_get_sens_v_reg_by_gen_array(Bus* bus)
+    REAL* BUS_get_sens_v_set_reg_array(Bus* bus)
     REAL* BUS_get_sens_v_reg_by_tran_array(Bus* bus)
     REAL* BUS_get_sens_v_reg_by_shunt_array(Bus* bus)
 

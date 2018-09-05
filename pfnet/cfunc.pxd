@@ -36,7 +36,6 @@ cdef extern from "pfnet/pfnet.h":
     void FUNC_clear_error(Func * f)
     char* FUNC_get_name(Func* f)
     char* FUNC_get_error_string(Func* f)
-    void FUNC_update(Func* f)
     void FUNC_set_parameter(Func* f, char* key, void* value)
     void FUNC_set_name(Func* f, char*)
     void FUNC_set_phi(Func* f, REAL phi)

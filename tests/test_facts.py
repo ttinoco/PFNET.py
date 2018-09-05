@@ -187,7 +187,7 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f2.v_min_m, 0.9263)
         self.assertEqual(f2.v_max_m, 1.134)
         self.assertEqual(f2.bus_k.number, 3006)
-        self.assertRaises(pf.BusError, lambda : f2.bus_m)
+        self.assertTrue(f2.bus_m is None)
 
         # Facts 153/3006 - 155 (SSSC)
         self.assertEqual(f3.name, 'FACTS_DVCE_3')

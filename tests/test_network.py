@@ -477,7 +477,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(bus.sens_v_mag_l_bound,0.)
                 self.assertEqual(bus.sens_v_ang_u_bound,0.)
                 self.assertEqual(bus.sens_v_ang_l_bound,0.)
-                self.assertEqual(bus.sens_v_reg_by_gen,0.)
+                self.assertEqual(bus.sens_v_set_reg,0.)
                 self.assertEqual(bus.sens_v_reg_by_tran,0.)
                 self.assertEqual(bus.sens_v_reg_by_shunt,0.)
                 self.assertTrue(isinstance(bus.reg_generators,list))
@@ -2496,7 +2496,7 @@ class TestNetwork(unittest.TestCase):
 
             # Store random bus sensitivities
             constr = [pf.Constraint('AC power balance',net),
-                      pf.Constraint('voltage regulation by generators',net),
+                      pf.Constraint('voltage set point regulation',net),
                       pf.Constraint('voltage regulation by transformers',net),
                       pf.Constraint('voltage regulation by shunts',net)]
             for c in constr:
@@ -2511,7 +2511,7 @@ class TestNetwork(unittest.TestCase):
                           'sens_Q_balance',
                           'sens_v_mag_u_bound',
                           'sens_v_mag_l_bound',
-                          'sens_v_reg_by_gen',
+                          'sens_v_set_reg',
                           'sens_v_reg_by_tran',
                           'sens_v_reg_by_shunt']
             mis_types = ['P_mismatch', 'Q_mismatch']
@@ -2523,7 +2523,7 @@ class TestNetwork(unittest.TestCase):
                         abs(bus.sens_Q_balance),
                         abs(bus.sens_v_mag_u_bound),
                         abs(bus.sens_v_mag_l_bound),
-                        abs(bus.sens_v_reg_by_gen),
+                        abs(bus.sens_v_set_reg),
                         abs(bus.sens_v_reg_by_tran),
                         abs(bus.sens_v_reg_by_shunt)]
                 sensm = max(sens)
@@ -2564,9 +2564,9 @@ class TestNetwork(unittest.TestCase):
                 bus.sens_v_ang_l_bound = -6.
                 self.assertEqual(bus.largest_sensitivity, bus.sens_v_ang_l_bound)
                 self.assertEqual(bus.get_largest_sensitivity_type(), 'sens_v_ang_l_bound')
-                bus.sens_v_reg_by_gen = 7.
-                self.assertEqual(bus.largest_sensitivity, bus.sens_v_reg_by_gen)
-                self.assertEqual(bus.get_largest_sensitivity_type(), 'sens_v_reg_by_gen')
+                bus.sens_v_set_reg = 7.
+                self.assertEqual(bus.largest_sensitivity, bus.sens_v_set_reg)
+                self.assertEqual(bus.get_largest_sensitivity_type(), 'sens_v_set_reg')
                 bus.sens_v_reg_by_shunt = -8.
                 self.assertEqual(bus.largest_sensitivity, bus.sens_v_reg_by_shunt)
                 self.assertEqual(bus.get_largest_sensitivity_type(), 'sens_v_reg_by_shunt')
@@ -4153,7 +4153,7 @@ class TestNetwork(unittest.TestCase):
                 bus.sens_v_mag_l_bound = np.random.randn(bus.num_periods)
                 bus.sens_v_ang_u_bound = np.random.randn(bus.num_periods)
                 bus.sens_v_ang_l_bound = np.random.randn(bus.num_periods)
-                bus.sens_v_reg_by_gen = np.random.randn(bus.num_periods)
+                bus.sens_v_set_reg = np.random.randn(bus.num_periods)
                 bus.sens_v_reg_by_tran = np.random.randn(bus.num_periods)
                 bus.sens_v_reg_by_shunt = np.random.randn(bus.num_periods)
             for branch in net1.branches:
