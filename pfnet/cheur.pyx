@@ -121,6 +121,8 @@ cdef class Heuristic(HeuristicBase):
                 
         if name == "PVPQ switching":
             self._c_heur = cheur.HEUR_PVPQ_SWITCHING_new(net._c_net)
+        elif name == "switching power factor regulation":
+            self._c_heur = cheur.HEUR_REG_PF_SWITCH_new(net._c_net)
         else:
             raise HeuristicError('invalid heuristic name')
             

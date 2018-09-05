@@ -27,6 +27,205 @@ class TestFunctions(unittest.TestCase):
         # Random
         np.random.seed(1)
 
+    def test_func_FACTS_PSET(self):
+
+        # Constants
+        h = 1e-8
+
+        # Multiperiod
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            f = pf.Function('FACTS active power control', 1.2, net)
+            self.assertEqual(f.name, 'FACTS active power control')
+            self.assertEqual(f.weight, 1.2)
+
+            f.analyze()
+            f.eval(net.get_var_values())
+            self.assertEqual(f.gphi.size, 0)
+            self.assertEqual(f.Hphi.nnz, 0)
+            self.assertTupleEqual(f.Hphi.shape, (0,0))
+
+            phi = 0.
+            for facts in net.facts:
+                if facts.is_in_normal_series_mode() and facts.P_max_dc > 0.:
+                    for t in range(self.T):
+                        phi += 0.5*((facts.P_m[t]-facts.P_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'active power')
+            self.assertEqual(net.num_vars, 3*self.T*net.num_facts)
+
+            f.analyze()
+
+            x0 = net.get_var_values()+np.random.randn(net.num_vars)
+
+            f.eval(x0)
+
+            phi = 0.
+            for facts in net.facts:
+                if facts.is_in_normal_series_mode() and facts.P_max_dc > 0.:
+                    self.assertTrue(facts.has_flags('variable', 'active power'))
+                    for t in range(self.T):
+                        phi += 0.5*((x0[facts.index_P_m[t]]-facts.P_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            # Gradient check
+            pf.tests.utils.check_function_gradient(self,
+                                                   f,
+                                                   x0,
+                                                   NUM_TRIALS,
+                                                   TOL,
+                                                   EPS,
+                                                   h)
+
+            # Hessian check
+            pf.tests.utils.check_function_Hessian(self,
+                                                  f,
+                                                  x0,
+                                                  NUM_TRIALS,
+                                                  TOL,
+                                                  EPS,
+                                                  h)
+
+    def test_func_FACTS_QSET(self):
+
+        # Constants
+        h = 1e-8
+
+        # Multiperiod
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            f = pf.Function('FACTS reactive power control', 1.2, net)
+            self.assertEqual(f.name, 'FACTS reactive power control')
+            self.assertEqual(f.weight, 1.2)
+
+            f.analyze()
+            f.eval(net.get_var_values())
+            self.assertEqual(f.gphi.size, 0)
+            self.assertEqual(f.Hphi.nnz, 0)
+            self.assertTupleEqual(f.Hphi.shape, (0,0))
+
+            phi = 0.
+            for facts in net.facts:
+                if facts.is_in_normal_series_mode():
+                    for t in range(self.T):
+                        phi += 0.5*((facts.Q_m[t]-facts.Q_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'reactive power')
+            self.assertEqual(net.num_vars, 4*self.T*net.num_facts)
+
+            f.analyze()
+
+            x0 = net.get_var_values()+np.random.randn(net.num_vars)
+
+            f.eval(x0)
+
+            phi = 0.
+            for facts in net.facts:
+                if facts.is_in_normal_series_mode():
+                    self.assertTrue(facts.has_flags('variable', 'reactive power'))
+                    for t in range(self.T):
+                        phi += 0.5*((x0[facts.index_Q_m[t]]-facts.Q_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            # Gradient check
+            pf.tests.utils.check_function_gradient(self,
+                                                   f,
+                                                   x0,
+                                                   NUM_TRIALS,
+                                                   TOL,
+                                                   EPS,
+                                                   h)
+
+            # Hessian check
+            pf.tests.utils.check_function_Hessian(self,
+                                                  f,
+                                                  x0,
+                                                  NUM_TRIALS,
+                                                  TOL,
+                                                  EPS,
+                                                  h)
+
+
+    def test_func_VSC_DC_PSET(self):
+
+        # Constants
+        h = 1e-8
+
+        # Multiperiod
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            f = pf.Function('VSC DC power control', 1.2, net)
+            self.assertEqual(f.name, 'VSC DC power control')
+            self.assertEqual(f.weight, 1.2)
+
+            f.analyze()
+            f.eval(net.get_var_values())
+            self.assertEqual(f.gphi.size, 0)
+            self.assertEqual(f.Hphi.nnz, 0)
+            self.assertTupleEqual(f.Hphi.shape, (0,0))
+
+            phi = 0.
+            for vsc in net.vsc_converters:
+                if vsc.is_in_P_dc_mode():
+                    for t in range(self.T):
+                        phi += 0.5*((vsc.P[t]+vsc.P_dc_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          'active power')
+            self.assertEqual(net.num_vars, self.T*net.num_vsc_converters)
+
+            f.analyze()
+
+            x0 = net.get_var_values()+np.random.randn(net.num_vars)
+
+            f.eval(x0)
+
+            phi = 0.
+            for vsc in net.vsc_converters:
+                if vsc.is_in_P_dc_mode():
+                    self.assertTrue(vsc.has_flags('variable', 'active power'))
+                    for t in range(self.T):
+                        phi += 0.5*((x0[vsc.index_P[t]]+vsc.P_dc_set[t])**2.)
+            self.assertLess(np.abs(phi-f.phi), 1e-10)
+
+            # Gradient check
+            pf.tests.utils.check_function_gradient(self,
+                                                   f,
+                                                   x0,
+                                                   NUM_TRIALS,
+                                                   TOL,
+                                                   EPS,
+                                                   h)
+
+            # Hessian check
+            pf.tests.utils.check_function_Hessian(self,
+                                                  f,
+                                                  x0,
+                                                  NUM_TRIALS,
+                                                  TOL,
+                                                  EPS,
+                                                  h)
+
     def test_func_REG_VMAG(self):
 
         # Constants

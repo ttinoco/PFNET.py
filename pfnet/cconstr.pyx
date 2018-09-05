@@ -606,6 +606,8 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_ACPF_new(net._c_net)
         elif name == "DC power balance":
             self._c_constr = cconstr.CONSTR_DCPF_new(net._c_net)
+        elif name == "HVDC power balance":
+            self._c_constr = cconstr.CONSTR_HVDCPF_new(net._c_net)
         elif name == "linearized AC power balance":
             self._c_constr = cconstr.CONSTR_LINPF_new(net._c_net)
         elif name == "variable fixing":
@@ -638,6 +640,22 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_LOAD_VDEP_new(net._c_net)
         elif name == "constrained function":
             self._c_constr = cconstr.CONSTR_CFUNC_new(net._c_net)
+        elif name == "VSC DC voltage control":
+            self._c_constr = cconstr.CONSTR_VSC_DC_VSET_new(net._c_net)
+        elif name == "VSC DC power control":
+            self._c_constr = cconstr.CONSTR_VSC_DC_PSET_new(net._c_net)
+        elif name == "VSC converter equations":
+            self._c_constr = cconstr.CONSTR_VSC_EQ_new(net._c_net)
+        elif name == "switching power factor regulation":
+            self._c_constr = cconstr.CONSTR_REG_PF_SWITCH_new(net._c_net)
+        elif name == "power factor regulation":
+            self._c_constr = cconstr.CONSTR_REG_PF_new(net._c_net)
+        elif name == "FACTS equations":
+            self._c_constr = cconstr.CONSTR_FACTS_EQ_new(net._c_net)
+        elif name == "switching FACTS active power control":
+            self._c_constr = cconstr.CONSTR_FACTS_PSET_SWITCH_new(net._c_net)
+        elif name == "switching FACTS reactive power control":
+            self._c_constr = cconstr.CONSTR_FACTS_QSET_SWITCH_new(net._c_net)
         else:
             raise ConstraintError('invalid constraint name')
         

@@ -22,7 +22,8 @@ Unreleased
 * Updated count/analyze/eval to also loop through dc buses, and updated python-based dummy func/constr.    
 * Changed bus sens_v_reg_by_gen to sens_v_set_reg.
 * Changed "voltage regulation by generators" constraints to "voltage set point regulation".
-  
+* Exposed HVDC and FACTS constraints/equations and added unittests. 
+
 Version 1.3.3
 -------------
 * Made Python wrapper its own repo.

@@ -28,6 +28,1244 @@ class TestConstraints(unittest.TestCase):
         # Random
         np.random.seed(0)
 
+    def test_constr_FACTS_EQ(self):
+
+        # Constants
+        h = 1e-8
+
+        # Multiperiods
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Vars
+            net.set_flags('bus',
+                          'variable',
+                          'any',
+                          ['voltage magnitude', 'voltage angle'])
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'all')
+            self.assertEqual(net.num_vars, (2*net.num_buses+9*net.num_facts)*self.T)
+
+            x0 = net.get_var_values()+1e-4*np.random.randn(net.num_vars)
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Constraint
+            constr = pf.Constraint('FACTS equations',net)
+            self.assertEqual(constr.name,'FACTS equations')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            num_statcom = len([f for f in net.facts if f.is_STATCOM()])
+            num_SSSC = len([f for f in net.facts if f.is_SSSC()])
+            num_UPFC = len([f for f in net.facts if f.is_UPFC()])
+            num_seriesenabled = len([f for f in net.facts if f.is_in_normal_series_mode()])
+            num_seriesdisabled = len([f for f in net.facts if f.is_series_link_disabled()])
+
+            # Verify analyze
+            Jnnz = 28*num_seriesenabled;
+            rowsJ = 4*num_seriesenabled
+            rowsA = 2*net.num_facts
+            Annz = 7*net.num_facts
+            for facts in net.facts:
+                if not facts.is_regulator():
+                    rowsA = rowsA+1
+                    Annz = Annz+1
+                if facts.P_max_dc == 0 or facts.is_series_link_disabled():
+                    rowsA = rowsA+1
+                    Annz = Annz+1
+                if facts.is_series_link_disabled():
+                    rowsA = rowsA+5
+                    Annz = Annz+5
+
+            constr.analyze()
+            self.assertEqual(constr.J_nnz, Jnnz*self.T)
+            self.assertEqual(constr.A_nnz, Annz*self.T)
+            self.assertEqual(constr.J_row, rowsJ*self.T)
+            self.assertEqual(constr.A_row, rowsA*self.T)
+
+            y_init = constr.init_extra_vars
+            self.assertEqual(y_init.size,constr.num_extra_vars)
+            self.assertTrue(np.all(y_init == 0.))
+            
+            y0 = np.random.rand(constr.num_extra_vars)
+            constr.eval(x0,y0)
+            self.assertEqual(constr.J_nnz,Jnnz*self.T)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,rowsJ*self.T)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # After
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(rowsJ*self.T,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(rowsA*self.T,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(rowsJ*self.T,net.num_vars+constr.num_extra_vars))
+            self.assertEqual(J.nnz,Jnnz*self.T)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(rowsA*self.T,net.num_vars+constr.num_extra_vars))
+            self.assertEqual(A.nnz,Annz*self.T)
+
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Ax=b check
+            for k in range(self.T):
+                for facts in net.facts:
+                    self.assertTrue(facts.has_flags('variable',
+                                                    ['active power',
+                                                     'reactive power',
+                                                     'series voltage magnitude',
+                                                     'series voltage angle']))
+                    index_Pk = np.where(A.col == facts.index_P_k[k])[0]
+                    index_Pm = np.where(A.col == facts.index_P_m[k])[0]
+                    index_Pdc = np.where(A.col == facts.index_P_dc[k])[0]
+                    index_Qk = np.where(A.col == facts.index_Q_k[k])[0]
+                    index_Qm = np.where(A.col == facts.index_Q_m[k])[0]
+                    index_Qsh = np.where(A.col == facts.index_Q_sh[k])[0]
+                    index_Qs = np.where(A.col == facts.index_Q_s[k])[0]
+                    index_vmags = np.where(A.col == facts.index_v_mag_s[k])[0]
+                    index_vangs = np.where(A.col == facts.index_v_ang_s[k])[0]
+                    self.assertEqual(index_Pk.size,1)
+                    self.assertEqual(index_Qk.size,1)
+                    self.assertEqual(A.data[index_Pk],1.)
+                    self.assertEqual(A.data[index_Qk],1.)
+                    self.assertEqual(b[A.row[index_Pk]],0.)
+                    self.assertEqual(b[A.row[index_Qk]],0.)
+                    if not facts.is_regulator():
+                        self.assertEqual(index_Qsh.size,2)
+                        self.assertEqual(A.data[index_Qsh[0]],1.)
+                        self.assertEqual(A.data[index_Qsh[1]],-1.)
+                        self.assertEqual(b[A.row[index_Qsh[0]]],0.)
+                        self.assertEqual(b[A.row[index_Qsh[1]]],0.)
+                    if facts.P_max_dc ==0 or facts.is_series_link_disabled():
+                        self.assertEqual(index_Pdc.size,2)
+                        self.assertEqual(A.data[index_Pdc[0]],-1.)
+                        self.assertEqual(A.data[index_Pdc[1]],1.)
+                        self.assertEqual(b[A.row[index_Pdc[0]]],0.)
+                        self.assertEqual(b[A.row[index_Pdc[1]]],0.)
+                    else:
+                        self.assertEqual(index_Pdc.size,1)
+                        self.assertEqual(A.data[index_Pdc],-1.)
+                        self.assertEqual(b[A.row[index_Pdc]],0.)
+                    if facts.is_series_link_disabled():
+                        self.assertEqual(index_Pm.size,2)
+                        for index in index_Pm:
+                            self.assertEqual(A.data[index],1.)
+                            self.assertEqual(b[A.row[index]],0.)
+                        self.assertEqual(index_Qm.size,2)
+                        for index in index_Qm:
+                            self.assertEqual(A.data[index],1.)
+                            self.assertEqual(b[A.row[index]],0.)
+                        self.assertEqual(index_Qs.size,2)
+                        self.assertEqual(index_vmags.size,1)
+                        self.assertEqual(index_vangs.size,1)
+                        self.assertEqual(A.data[index_Qs[0]],-1.)
+                        self.assertEqual(A.data[index_Qs[1]],1.)
+                        self.assertEqual(A.data[index_vmags],1.)
+                        self.assertEqual(A.data[index_vangs],1.)
+                        self.assertEqual(b[A.row[index_Qs[0]]],0.)
+                        self.assertEqual(b[A.row[index_Qs[1]]],0.)
+                        self.assertEqual(b[A.row[index_vmags]],0.)
+                        self.assertEqual(b[A.row[index_vangs]],0.)
+
+            # f check
+            flags = {}
+            for t in range(self.T):
+                for bus in net.buses:
+                    flags[(t,bus.index)] = False
+            J_row = 0
+            for t in range(self.T):
+                for branch in net.branches:
+                    for bus in [branch.bus_k, branch.bus_m]:
+                        if not flags[(t, bus.index)]:
+                            facts_onthisbus = [facts for facts in net.facts if ((facts.bus_k == bus) and (facts.is_in_normal_series_mode()))]
+                            for facts in facts_onthisbus:
+                                busk = facts.bus_k
+                                busm = facts.bus_m
+                                vmag_k = x0[busk.index_v_mag[t]]
+                                vang_k = x0[busk.index_v_ang[t]]
+                                vmag_m = x0[busm.index_v_mag[t]]
+                                vang_m = x0[busm.index_v_ang[t]]
+                                vmag_s = x0[facts.index_v_mag_s[t]]
+                                vang_s = x0[facts.index_v_ang_s[t]]
+                                P_m = x0[facts.index_P_m[t]]
+                                P_dc = x0[facts.index_P_dc[t]]
+                                Q_m = x0[facts.index_Q_m[t]]
+                                Q_s = x0[facts.index_Q_s[t]]
+                                f1 = -vmag_k*np.cos(vang_k)+vmag_m*np.cos(vang_m)-vmag_s*np.cos(vang_s)
+                                f2 = -vmag_k*np.sin(vang_k)+vmag_m*np.sin(vang_m)-vmag_s*np.sin(vang_s)
+                                f3 = vmag_s*P_m*np.cos(vang_s)-vmag_s*Q_m*np.sin(vang_s)-vmag_m*P_dc*np.cos(vang_m)+vmag_m*Q_s*np.sin(vang_m)
+                                f4 = vmag_s*P_m*np.sin(vang_s)+vmag_s*Q_m*np.cos(vang_s)-vmag_m*P_dc*np.sin(vang_m)-vmag_m*Q_s*np.cos(vang_m)
+                                self.assertAlmostEqual(f1,f[J_row])
+                                self.assertAlmostEqual(f2,f[J_row+1])
+                                self.assertAlmostEqual(f3,f[J_row+2])
+                                self.assertAlmostEqual(f4,f[J_row+3])
+                                J_row += 4
+                        flags[(t,bus.index)] = True
+
+            # Jacobian check
+            pf.tests.utils.check_constraint_Jacobian(self,
+                                                     constr,
+                                                     x0,
+                                                     np.zeros(0),
+                                                     NUM_TRIALS,
+                                                     TOL,
+                                                     EPS,
+                                                     h)
+
+            # Sigle Hessian check
+            pf.tests.utils.check_constraint_single_Hessian(self,
+                                                           constr,
+                                                           x0,
+                                                           np.zeros(0),
+                                                           NUM_TRIALS,
+                                                           TOL,
+                                                           EPS,
+                                                           h)
+
+            # Combined Hessian check
+            pf.tests.utils.check_constraint_combined_Hessian(self,
+                                                             constr,
+                                                             x0,
+                                                             np.zeros(0),
+                                                             NUM_TRIALS,
+                                                             TOL,
+                                                             EPS,
+                                                             h)
+
+    def test_constr_FACTS_PSET_SWITCH(self):
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Vars
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'active power')
+
+            self.assertEqual(net.num_vars, 3*net.num_facts*self.T)
+
+            # Constraint
+            constr = pf.Constraint('switching FACTS active power control',net)
+            self.assertEqual(constr.name,'switching FACTS active power control')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Verify analyze
+            constr.analyze()
+            num = len([f for f in net.facts if f.is_in_normal_series_mode() and f.P_max_dc > 0.])
+            Annz = num*self.T
+            Arow = Annz
+            self.assertEqual(constr.A_nnz,Annz)
+            self.assertEqual(constr.A_row,Arow)
+
+            # Verify evaluation
+            constr.eval(x0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            b = constr.b
+            A = constr.A
+
+            # After
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Ax = b Check
+            for t in range(self.T):
+                for f in net.facts:
+                    self.assertTrue(f.has_flags('variable', 'active power'))
+                    if f.is_in_normal_series_mode() and f.P_max_dc > 0.:
+                        indexP = np.where(A.col == f.index_P_m[t])[0]
+                        self.assertEqual(indexP.size,1)
+                        self.assertEqual(A.data[indexP],1)
+                        self.assertEqual(b[A.row[indexP]],f.P_set[t])
+
+    def test_constr_FACTS_QSET_SWITCH(self):
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+            num_vsc = net.num_vsc_converters
+            if num_vsc == 0:
+                continue
+
+            # Vars
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'reactive power')
+
+            self.assertEqual(net.num_vars, 4*net.num_facts*self.T)
+
+            # Constraint
+            constr = pf.Constraint('switching FACTS reactive power control',net)
+            self.assertEqual(constr.name,'switching FACTS reactive power control')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Verify analyze
+            constr.analyze()
+            num = len([f for f in net.facts if f.is_in_normal_series_mode()])
+            Annz = num*self.T
+            Arow = Annz
+            self.assertEqual(constr.A_nnz,Annz)
+            self.assertEqual(constr.A_row,Arow)
+
+            # Verify evaluation
+            constr.eval(x0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            b = constr.b
+            A = constr.A
+
+            # After
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Ax = b Check
+            for t in range(self.T):
+                for f in net.facts:
+                    self.assertTrue(f.has_flags('variable', 'reactive power'))
+                    if f.is_in_normal_series_mode():
+                        indexP = np.where(A.col == f.index_Q_m[t])[0]
+                        self.assertEqual(indexP.size,1)
+                        self.assertEqual(A.data[indexP],1)
+                        self.assertEqual(b[A.row[indexP]],f.Q_set[t])
+
+    def test_constr_REG_PF(self):
+
+        # Constants
+        h = 1e-8
+
+        # Multiperiod
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Vars
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power'])
+            self.assertEqual(net.num_vars, 2*net.get_num_vsc_converters()*self.T)
+
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # PF
+            for vsc in net.vsc_converters:
+                if vsc.is_in_f_ac_mode():
+                    vsc.target_power_factor = np.sign(np.random.randn())*np.minimum(np.random.rand(), 0.2)
+                    
+            # Constraint
+            constr = pf.Constraint('power factor regulation',net)
+            self.assertEqual(constr.name,'power factor regulation')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            Jnnz = 0
+            for i in range(net.num_buses):
+                bus = net.get_bus(i)
+                for vsc in bus.vsc_converters:
+                    if vsc.is_in_f_ac_mode():
+                        Jnnz += 4
+
+            Annz = 4*net.get_num_vsc_converters_in_f_ac_mode()
+
+            rowsJ = 2*net.get_num_vsc_converters_in_f_ac_mode()
+            rowsA = net.get_num_vsc_converters_in_f_ac_mode()
+
+            constr.analyze()
+            self.assertEqual(constr.J_nnz, Jnnz*self.T)
+            self.assertEqual(constr.A_nnz, Annz*self.T)
+            self.assertEqual(constr.J_row, rowsJ*self.T)
+            self.assertEqual(constr.A_row, rowsA*self.T)
+            self.assertEqual(constr.num_extra_vars, rowsJ*self.T)
+
+            y_init = constr.init_extra_vars
+            self.assertEqual(y_init.size,constr.num_extra_vars)
+            self.assertTrue(np.all(y_init == 0.))
+            
+            y0 = np.random.rand(constr.num_extra_vars)
+            constr.eval(x0,y0)
+            self.assertEqual(constr.J_nnz,Jnnz*self.T)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,rowsJ*self.T)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # After
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(rowsJ*self.T,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(rowsA*self.T,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(rowsJ*self.T,net.num_vars+constr.num_extra_vars))
+            self.assertEqual(J.nnz,Jnnz*self.T)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(rowsA*self.T,net.num_vars+constr.num_extra_vars))
+            self.assertEqual(A.nnz,Annz*self.T)
+
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Ax=b check
+            for k in range(J.shape[0]//2):
+                index1 = np.where(A.col == net.num_vars+2*k)[0]
+                index2 = np.where(A.col == net.num_vars+2*k+1)[0]
+                self.assertEqual(index1.size,1)
+                self.assertEqual(index2.size,1)
+                self.assertEqual(A.row[index1[0]],A.row[index2[0]])
+                index3 = np.where(A.row == A.row[index1[0]])[0]
+                self.assertEqual(index3.size,4)
+            for vsc in net.vsc_converters:
+                if vsc.is_in_f_ac_mode():
+                    gamma = vsc.target_power_factor
+                    factor = np.sqrt((1-gamma**2.)/(gamma**2.))
+                    for t in range(self.T):
+                        iQ = vsc.index_Q[t]
+                        iP = vsc.index_P[t]
+                        k = np.where(A.col == iQ)[0]
+                        self.assertEqual(k.size, 1)
+                        k = np.where(A.row == A.row[k])[0]
+                        self.assertEqual(k.size, 4)
+                        for kk in k:
+                            if A.col[kk] == iQ:
+                                self.assertEqual(A.data[kk], 1.)
+                            elif A.col[kk] == iP:
+                                if vsc.target_power_factor >= 0:
+                                    self.assertAlmostEqual(A.data[kk], -factor)
+                                else:
+                                    self.assertAlmostEqual(A.data[kk], factor)
+                            else:
+                                if (A.col[kk]-net.num_vars) % 2 == 0: 
+                                    self.assertAlmostEqual(A.data[kk], -factor) # y
+                                else:                 
+                                    self.assertAlmostEqual(A.data[kk], factor) # z
+                                    
+            # f check
+            eps = 1e-8
+            J_row = 0
+            for t in range(self.T):
+                for bus in net.buses:
+                    for vsc in bus.vsc_converters:
+                        if vsc.is_in_f_ac_mode():
+                            self.assertTrue(vsc.has_flags('variable', ['active power', 'reactive power']))
+                            y = y0[J_row]
+                            z = y0[J_row+1]
+                            Q = vsc.Q[t]
+                            Qmax = vsc.Q_max
+                            Qmin = vsc.Q_min
+                            CompY = (Q-Qmin)+y-np.sqrt((Q-Qmin)**2.+y**2.+2*eps)
+                            CompZ = (Qmax-Q)+z-np.sqrt((Qmax-Q)**2.+z**2.+2*eps)
+                            self.assertAlmostEqual(CompY,f[J_row])
+                            self.assertAlmostEqual(CompZ,f[J_row+1])
+                            J_row += 2
+
+            # Jacobian check
+            pf.tests.utils.check_constraint_Jacobian(self,
+                                                     constr,
+                                                     x0,
+                                                     y0,
+                                                     NUM_TRIALS,
+                                                     TOL,
+                                                     EPS,
+                                                     h)
+
+            # Sigle Hessian check
+            pf.tests.utils.check_constraint_single_Hessian(self,
+                                                           constr,
+                                                           x0,
+                                                           y0,
+                                                           NUM_TRIALS,
+                                                           TOL,
+                                                           EPS,
+                                                           h)
+            
+            # Combined Hessian check
+            pf.tests.utils.check_constraint_combined_Hessian(self,
+                                                             constr,
+                                                             x0,
+                                                             y0,
+                                                             NUM_TRIALS,
+                                                             TOL,
+                                                             EPS,
+                                                             h)
+            
+    def test_constr_REG_PF_SWITCH(self):
+
+        # Multiperiod
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+            self.assertEqual(net.num_vars,0)
+
+            # Vars
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power'])
+            self.assertEqual(net.num_vars, 2*net.get_num_vsc_converters()*self.T)
+            
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # PF
+            for vsc in net.vsc_converters:
+                if vsc.is_in_f_ac_mode():
+                    vsc.target_power_factor = np.sign(np.random.randn())*np.minimum(np.random.rand(), 0.2)
+            
+            # Constraint
+            constr = pf.Constraint('switching power factor regulation',net)
+            self.assertEqual(constr.name,'switching power factor regulation')
+            
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+            
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            
+            # Manual count
+            nnz = 0
+            num_constr = 0
+            for vsc in net.vsc_converters:
+                if vsc.is_in_f_ac_mode() and vsc.has_flags('variable', ['active power', 'reactive power']):
+                    num_constr += 1
+                    nnz += 2
+
+            constr.analyze()
+            self.assertEqual(constr.A.shape[0],num_constr*self.T)
+            self.assertEqual(nnz*self.T,constr.A_nnz)
+            constr.eval(x0)
+            self.assertEqual(0,constr.A_nnz)
+                
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+            
+            # After
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(num_constr*self.T,))
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(num_constr*self.T,net.num_vars))
+            self.assertEqual(A.nnz,nnz*self.T)
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,net.num_vars))
+            self.assertEqual(J.nnz,0)
+            
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+                
+            # Detailed check
+            Ai = A.row
+            Aj = A.col
+            Ad = A.data
+            self.assertEqual(Ai.size,nnz*self.T)
+            self.assertEqual(Aj.size,nnz*self.T)
+            self.assertEqual(Ad.size,nnz*self.T)
+            nnz = 0
+            row = 0
+
+            for t in range(self.T):
+                for bus in net.buses:
+                    for vsc in bus.vsc_converters:
+                        if vsc.is_in_f_ac_mode():
+                            gamma = vsc.target_power_factor
+                            factor = np.sqrt(1-gamma**2.)/np.abs(gamma)
+                            self.assertEqual(b[row], 0.)
+                            self.assertEqual(Ai[nnz], row)
+                            self.assertEqual(Aj[nnz], vsc.index_P[t])
+                            if gamma >= 0.:
+                                self.assertAlmostEqual(Ad[nnz], -factor)
+                            else:
+                                self.assertAlmostEqual(Ad[nnz], factor)
+                            nnz += 1
+                            self.assertEqual(Ai[nnz], row)
+                            self.assertEqual(Aj[nnz], vsc.index_Q[t])
+                            self.assertEqual(Ad[nnz], 1.)
+                            nnz += 1
+                            row += 1
+
+            self.assertEqual(row,A.shape[0])
+            self.assertEqual(nnz,A.nnz)
+
+    def test_constr_HVDCPF(self):
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case, self.T)
+            self.assertEqual(net.num_periods, self.T)
+
+            # Vars
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
+
+            # Vars
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          'dc power')
+
+            self.assertEqual(net.num_vars, (net.num_dc_buses +
+                                            2*net.num_vsc_converters)*self.T)
+
+            # Constraint
+            constr = pf.Constraint('HVDC power balance',net)
+            self.assertEqual(constr.name,'HVDC power balance')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+            G = constr.G
+            l = constr.l
+            u = constr.u
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTupleEqual(constr.H_combined.shape, (0,0))
+            self.assertTrue(type(G) is coo_matrix)
+            self.assertTupleEqual(G.shape,(0,0))
+            self.assertEqual(G.nnz,0)
+            self.assertEqual(constr.num_extra_vars,0)
+            
+            x0 = net.get_var_values()+1e-1*np.random.randn(net.num_vars)
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            flags = np.zeros(net.num_dc_buses*self.T, dtype=int)
+            for t in range(self.T):
+                for bus in net.dc_buses:
+                    flags[bus.index_t[t]] = 1
+            self.assertEqual(np.sum(flags), flags.size)
+
+            constr.analyze()
+
+            A = constr.A
+            b = constr.b
+
+            self.assertTupleEqual(constr.J.shape, (0, net.num_vars))
+            self.assertTupleEqual(constr.G.shape, (0, net.num_vars))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.f.size, 0)
+
+            self.assertTupleEqual(constr.A.shape, (net.num_dc_buses*self.T, net.num_vars))
+            self.assertEqual(constr.A.nnz, (net.num_vsc_converters +
+                                            4*net.num_dc_branches)*self.T)
+            self.assertEqual(constr.b.size, net.num_dc_buses*self.T)
+
+            i_mis_manual = np.zeros(net.num_dc_buses*self.T)
+            i_mis = A*x0-b
+
+            for t in range(self.T):
+                for bus in net.dc_buses:
+                    for branch in bus.branches:
+                        self.assertTrue(branch.bus_k.has_flags('variable', 'voltage'))
+                        self.assertTrue(branch.bus_m.has_flags('variable', 'voltage'))
+                        ikm = (x0[branch.bus_k.index_v[t]]-x0[branch.bus_m.index_v[t]])/branch.r
+                        self.assertEqual(ikm, branch.get_i_km(x0)[t])
+                        if bus.is_equal(branch.bus_k):
+                            i_out = ikm
+                        else:
+                            i_out = -ikm
+                        i_mis_manual[bus.index_t[t]] -= i_out
+                for conv in net.vsc_converters:
+                    self.assertTrue(conv.has_flags('variable', 'dc power'))
+                    i_in = x0[conv.index_i_dc[t]]
+                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+            if not i_mis.size:
+                self.assertTrue(np.all(i_mis_manual == i_mis))
+            else:
+                self.assertLessEqual(np.max(np.abs(i_mis_manual-i_mis)), 1e-10)
+
+            net.set_var_values(x0)
+
+            for t in range(self.T):
+                for bus in net.dc_buses:
+                    self.assertNotEqual(bus.v[t], 0.)
+                    self.assertNotEqual(bus.v[t], 1.)
+                for conv in net.vsc_converters:
+                    self.assertNotEqual(conv.P_dc[t], 0.)
+                    self.assertNotEqual(conv.i_dc[t], 0.)
+
+            # Test with no variables
+            net.clear_flags()
+            self.assertEqual(net.num_vars, 0)
+
+            constr.analyze()
+            
+            A = constr.A
+            b = constr.b
+
+            self.assertTupleEqual(constr.J.shape, (0, net.num_vars))
+            self.assertTupleEqual(constr.G.shape, (0, net.num_vars))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.f.size, 0)
+
+            self.assertTupleEqual(constr.A.shape, (net.num_dc_buses*self.T, 0))
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.b.size, net.num_dc_buses*self.T)
+
+            x0 = net.get_var_values()
+            self.assertEqual(x0.size, 0)
+            
+            i_mis_manual = np.zeros(net.num_dc_buses*self.T)
+            i_mis = A*x0-b
+
+            for t in range(self.T):
+                for bus in net.dc_buses:
+                    for branch in bus.branches:
+                        self.assertFalse(branch.bus_k.has_flags('variable', 'voltage'))
+                        self.assertFalse(branch.bus_m.has_flags('variable', 'voltage'))
+                        ikm = branch.i_km[t]
+                        if bus.is_equal(branch.bus_k):
+                            i_out = ikm
+                        else:
+                            i_out = -ikm
+                        i_mis_manual[bus.index_t[t]] -= i_out
+                for conv in net.vsc_converters:
+                    self.assertFalse(conv.has_flags('variable', 'dc power'))
+                    i_in = conv.i_dc[t]
+                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+            if not i_mis.size:
+                self.assertTrue(np.all(i_mis_manual == i_mis))
+            else:
+                self.assertLessEqual(np.max(np.abs(i_mis_manual-i_mis)), 1e-10)
+
+    def test_constr_VSC_EQ(self):
+
+        # Constants
+        h = 1e-10
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Vars
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          ['dc power', 'active power'])
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
+
+            # Check if dc bus indexes are setting to unique values
+            busindicest = [bus.index_t for bus in net.dc_buses]
+            self.assertEqual(len(np.unique(busindicest)), net.num_dc_buses*self.T)
+            busindicesv = [bus.index_v for bus in net.dc_buses]
+            self.assertEqual(len(np.unique(busindicesv)), net.num_dc_buses*self.T)
+
+            # Check if vsc different variables index are setting to unique values
+            vscindicesPac = [vsc.index_P for vsc in net.vsc_converters]
+            self.assertEqual(len(np.unique(vscindicesPac)), net.num_vsc_converters*self.T)
+            vscindicesPdc = [vsc.index_P_dc for vsc in net.vsc_converters]
+            self.assertEqual(len(np.unique(vscindicesPdc)), net.num_vsc_converters*self.T)
+            vscindicesidc = [vsc.index_i_dc for vsc in net.vsc_converters]
+            self.assertEqual(len(np.unique(vscindicesidc)), net.num_vsc_converters*self.T)
+
+            self.assertEqual(net.num_vars, (3*net.num_vsc_converters+net.num_dc_buses)*self.T)
+
+            # Constraint
+            constr = pf.Constraint('VSC converter equations',net)
+            self.assertEqual(constr.name,'VSC converter equations')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            x0 = net.get_var_values()+1e-4*np.random.randn(net.num_vars)
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Verify analyze
+            constr.analyze()
+
+            Annz = 3*net.num_vsc_converters*self.T
+            Jnnz =3*net.num_vsc_converters*self.T
+            Arow = net.num_vsc_converters*self.T
+            Jrow = net.num_vsc_converters*self.T
+
+            self.assertEqual(constr.A_nnz,Annz)
+            self.assertEqual(constr.A_row,Arow)
+            self.assertEqual(constr.J_nnz,Jnnz)
+            self.assertEqual(constr.J_row,Jrow)
+
+            # Verify evaluation
+            constr.eval(x0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.J_nnz,Jnnz)
+            self.assertEqual(constr.J_row,Jrow)
+
+            f = constr.f
+            J = constr.J
+            b = constr.b
+            A = constr.A
+
+            # After
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTupleEqual(b.shape,(Arow,))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTupleEqual(f.shape,(Jrow,))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTupleEqual(J.shape,(Jrow,net.num_vars))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+            self.assertTupleEqual(A.shape,(Arow,net.num_vars))
+
+            # Ax = b check
+            coeffB = [vsc.loss_coeff_B for vsc in net.vsc_converters]
+            sumcoefB = np.sum(np.abs(coeffB))
+            self.assertAlmostEqual(norm(A.data,1),2*Arow+sumcoefB*self.T) # Almost, because of float type, to avoid precision errors
+            for k in range(self.T):
+                for vsc in net.vsc_converters:
+                    self.assertTrue(vsc.has_flags('variable',['dc power','active power']))
+                    indexP = np.where(A.col == vsc.index_P[k])[0]
+                    indexPdc = np.where(A.col == vsc.index_P_dc[k])[0]
+                    indexidc = np.where(A.col == vsc.index_i_dc[k])[0]
+                    self.assertEqual(indexP.size,1)
+                    self.assertEqual(indexPdc.size,1)
+                    self.assertEqual(indexidc.size,1)
+                    self.assertEqual(A.data[indexP],1.)
+                    self.assertEqual(A.data[indexPdc],1.)
+                    if vsc.P_dc_set[k] <= 0:
+                        self.assertEqual(A.data[indexidc],-vsc.loss_coeff_B)
+                    else:
+                        self.assertEqual(A.data[indexidc],vsc.loss_coeff_B)
+                    self.assertEqual(b[A.row[indexP]],-1.*vsc.loss_coeff_A)
+
+            # f check
+            J_row = 0
+            for t in range(self.T):
+                for bus in net.dc_buses:
+                    vsc_onthisbus = [vsc for vsc in net.vsc_converters if vsc.dc_bus == bus]
+                    for vsc in vsc_onthisbus:
+                        indexPdc = np.where(J.col == vsc.index_P_dc[t])[0]
+                        indexidc = np.where(J.col == vsc.index_i_dc[t])[0]
+                        indexv = np.where(J.col == bus.index_v[t])[0]
+                        dP = x0[J.col[indexPdc]] - x0[J.col[indexidc]]*x0[J.col[indexv]]
+                        self.assertAlmostEqual(f[J_row],dP)
+                        J_row += 1
+
+            # Jacobian check
+            pf.tests.utils.check_constraint_Jacobian(self,
+                                                     constr,
+                                                     x0,
+                                                     np.zeros(0),
+                                                     NUM_TRIALS,
+                                                     TOL,
+                                                     EPS,
+                                                     h)
+
+            # Sigle Hessian check
+            pf.tests.utils.check_constraint_single_Hessian(self,
+                                                           constr,
+                                                           x0,
+                                                           np.zeros(0),
+                                                           NUM_TRIALS,
+                                                           TOL,
+                                                           EPS,
+                                                           h)
+
+            # Combined Hessian check
+            pf.tests.utils.check_constraint_combined_Hessian(self,
+                                                             constr,
+                                                             x0,
+                                                             np.zeros(0),
+                                                             NUM_TRIALS,
+                                                             TOL,
+                                                             EPS,
+                                                             h)
+
+    def test_constr_VSC_DC_PSET(self):
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+
+            # Check if bus indexes are setting to unique values
+            busindices = [bus.index_t for bus in net.dc_buses]
+            self.assertEqual(len(np.unique(busindices)), net.num_dc_buses*self.T)
+
+            # Vars
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          'active power')
+
+            self.assertEqual(net.num_vars, net.num_vsc_converters*self.T)
+
+            # Constraint
+            constr = pf.Constraint('VSC DC power control',net)
+            self.assertEqual(constr.name,'VSC DC power control')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Verify analyze
+            constr.analyze()
+
+            # Check if vsc index are setting to unique values
+            vscindices = [vsc.index_P for vsc in net.vsc_converters]
+            self.assertEqual(len(np.unique(vscindices)), net.num_vsc_converters*self.T)
+            dcmodevsc = [vsc for vsc in net.vsc_converters if vsc.is_in_P_dc_mode()]
+            Annz = len(dcmodevsc)*self.T
+            Arow = Annz
+            self.assertEqual(constr.A_nnz,Annz)
+            self.assertEqual(constr.A_row,Arow)
+
+            # Verify evaluation
+            constr.eval(x0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            b = constr.b
+            A = constr.A
+
+            # After
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Ax = b Check
+            for k in range(self.T):
+                for vsc in dcmodevsc:
+                    self.assertTrue(vsc.has_flags('variable', ['active power']))
+                    indexP = np.where(A.col == vsc.index_P[k])[0]
+                    self.assertEqual(indexP.size,1)
+                    self.assertEqual(A.data[indexP],-1)
+                    self.assertEqual(b[A.row[indexP]],vsc.P_dc_set[k])
+
+    def test_constr_VSC_DC_VSET(self):
+
+        # Multiperiods
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case,self.T)
+            self.assertEqual(net.num_periods,self.T)
+            
+            # Check if bus indexes are setting to unique values
+            busindices = [bus.index_t for bus in net.dc_buses]
+            self.assertEqual(len(np.unique(busindices)), net.num_dc_buses*self.T)
+
+            # Vars
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
+
+            self.assertEqual(net.num_vars, net.num_dc_buses*self.T)
+
+            # Constraint
+            constr = pf.Constraint('VSC DC voltage control',net)
+            self.assertEqual(constr.name,'VSC DC voltage control')
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # Before
+            self.assertTrue(type(f) is np.ndarray)
+            self.assertTupleEqual(f.shape,(0,))
+            self.assertTrue(type(b) is np.ndarray)
+            self.assertTupleEqual(b.shape,(0,))
+            self.assertTrue(type(J) is coo_matrix)
+            self.assertTupleEqual(J.shape,(0,0))
+            self.assertEqual(J.nnz,0)
+            self.assertTrue(type(A) is coo_matrix)
+            self.assertTupleEqual(A.shape,(0,0))
+            self.assertEqual(A.nnz,0)
+            self.assertEqual(constr.J_nnz,0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.J_row,0)
+            self.assertEqual(constr.A_row,0)
+            self.assertEqual(constr.num_extra_vars,0)
+
+            x0 = net.get_var_values()
+            self.assertTrue(type(x0) is np.ndarray)
+            self.assertTupleEqual(x0.shape,(net.num_vars,))
+
+            # Verify analyze
+            constr.analyze()
+            dcmodevsc = [vsc for vsc in net.vsc_converters if vsc.is_in_v_dc_mode()]
+            Annz = len(dcmodevsc)*self.T
+            Arow = Annz
+            self.assertEqual(constr.A_nnz,Annz)
+            self.assertEqual(constr.A_row,Arow)
+
+            # Verify evaluation
+            constr.eval(x0)
+            self.assertEqual(constr.A_nnz,0)
+            self.assertEqual(constr.A_row,0)
+
+            f = constr.f
+            J = constr.J
+            A = constr.A
+            b = constr.b
+
+            # After
+            self.assertTrue(not np.any(np.isinf(b)))
+            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isinf(f)))
+            self.assertTrue(not np.any(np.isnan(f)))
+            self.assertTrue(not np.any(np.isinf(J.data)))
+            self.assertTrue(not np.any(np.isnan(J.data)))
+            self.assertTrue(not np.any(np.isinf(A.data)))
+            self.assertTrue(not np.any(np.isnan(A.data)))
+
+            # Verify A matrix
+            self.assertTrue(np.all(A.data == 1))
+            for t in range(0,self.T):
+                indices = [vsc.dc_bus.index_v[t] for vsc in dcmodevsc]
+                self.assertTrue(np.all(A.col[t*len(dcmodevsc):(t*len(dcmodevsc)+len(dcmodevsc))] == indices))
+
+            # Verify b vector
+            for t in range(0,self.T):
+                setpoints = [vsc.v_dc_set[t] for vsc in dcmodevsc]
+                self.assertTrue(np.all(b[t*len(dcmodevsc):(t*len(dcmodevsc)+len(dcmodevsc))] == setpoints))
+                    
     def test_constr_LOAD_VDEP(self):
 
         # Constants

@@ -532,10 +532,11 @@ class TestHVDC(unittest.TestCase):
         self.assertEqual(net.num_vsc_converters, (net.get_num_vsc_converters_in_v_ac_mode()+
                                                   net.get_num_vsc_converters_in_f_ac_mode()))
 
-    """
     def test_ieee25_vsc_nr(self):
                 
-        case = './data/ieee25_vsc.raw'
+        case = os.path.join('data', 'ieee25_vsc.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
         
         net = pf.ParserRAW().parse(case)
         
@@ -609,7 +610,7 @@ class TestHVDC(unittest.TestCase):
         J = problem.J.copy()
 
         # PVPQ Switching heuristic
-        problem.add_heuristic(pf.HEUR_TYPE_PVPQ)
+        problem.add_heuristic(pf.Heuristic('PVPQ switching', net))
         problem.apply_heuristics(problem.get_init_point())
         problem.analyze()
         problem.eval(problem.get_init_point())
@@ -622,7 +623,4 @@ class TestHVDC(unittest.TestCase):
         # NR matrix - VSC after PVPQ
         M = bmat([[problem.A], [problem.J]])
         M = M.todense()
-        self.assertEqual(np.linalg.matrix_rank(M), M.shape[0]) 
-
-    """
-        
+        self.assertEqual(np.linalg.matrix_rank(M), M.shape[0])

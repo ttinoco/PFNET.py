@@ -24,3 +24,4 @@ cdef extern from "pfnet/heur.h":
     Heur* HEUR_get_next(Heur* h)
 
     Heur* HEUR_PVPQ_SWITCHING_new(Net* net)
+    Heur* HEUR_REG_PF_SWITCH_new(Net* net)
