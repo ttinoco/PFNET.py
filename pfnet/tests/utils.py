@@ -376,6 +376,7 @@ def compare_loads(test, load1, load2, check_internals=False, eps=1e-10):
     test.assertLess(norminf(load1.comp_cj-load2.comp_cj), eps)
     test.assertLess(norminf(load1.comp_cg-load2.comp_cg), eps)
     test.assertLess(norminf(load1.comp_cb-load2.comp_cb), eps)
+    test.assertEqual(load1.is_in_service(), load2.is_in_service())
     test.assertEqual(load1.is_P_adjustable(), load2.is_P_adjustable())
     test.assertEqual(load1.is_voltage_dependent(), load2.is_voltage_dependent())
     if check_internals:

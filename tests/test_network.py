@@ -1271,6 +1271,16 @@ class TestNetwork(unittest.TestCase):
 
                 load = net.get_load(i)
 
+                # in service
+                self.asserTrue(load.is_in_service())
+                self.asserTrue(load.in_service)
+                load.in_servie = False
+                self.asserFalse(load.is_in_service())
+                self.asserFalse(load.in_service)
+                load.in_servie = True
+                self.asserTrue(load.is_in_service())
+                self.asserTrue(load.in_service)
+
                 # obj type
                 self.assertEqual(load.obj_type,'load')
                 self.assertNotEqual(load.obj_type,'unknown')

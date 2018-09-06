@@ -80,6 +80,17 @@ cdef class Load:
 
         return cload.LOAD_is_equal(self._c_ptr, l_other._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether load is in service.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cload.LOAD_is_in_service(self._c_ptr)
+
     def is_P_adjustable(self):
         """
         Determines whether the load has adjustable active power.
@@ -143,6 +154,34 @@ cdef class Load:
             return s
         else:
             raise LoadError('index does not correspond to any variable')
+
+    def update_P_components(self, weight_cp, weight_ci, weight_cg, t=0):
+        """
+        Updates load active power components according to given weights.
+
+        Parameters
+        ----------
+        weight_cp : float
+        weigth_ci : float
+        weight_cg : float
+        t : int
+        """
+
+        cload.LOAD_update_P_components(self._c_ptr, weight_cp, weight_ci, weight_cg, t)
+
+    def update_Q_components(self, weight_cq, weight_cj, weight_cb, t=0):
+        """
+        Updates load reactive power components according to given weights.
+
+        Parameters
+        ----------
+        weight_cq : float
+        weigth_cj : float
+        weight_cb : float
+        t : int
+        """
+
+        cload.LOAD_update_Q_components(self._c_ptr, weight_cq, weight_cj, weight_cb, t)
         
     property name:
         """ Load name (string). """
@@ -151,6 +190,11 @@ cdef class Load:
         def __set__(self,name):
             name = name.encode('UTF-8')
             cload.LOAD_set_name(self._c_ptr,name)
+
+    property in_service:
+        """ Flag that indicates whehter load in in service (boolean). """
+        def __get__(self): return cload.LOAD_is_in_service(self._c_ptr)
+        def __set__(self, i): cload.LOAD_set_in_service(self._c_ptr, i);
 
     property num_periods:
         """ Number of time periods (int). """

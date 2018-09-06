@@ -22,7 +22,9 @@ Unreleased
 * Updated count/analyze/eval to also loop through dc buses, and updated python-based dummy func/constr.    
 * Changed bus sens_v_reg_by_gen to sens_v_set_reg.
 * Changed "voltage regulation by generators" constraints to "voltage set point regulation".
-* Exposed HVDC and FACTS constraints/equations and added unittests. 
+* Exposed HVDC and FACTS constraints/equations and added unittests.
+* Added "is_in_service" method and "in_service" attribute to load.
+* Exposed routines for updated load P and Q components according to provided weights.    
 
 Version 1.3.3
 -------------
