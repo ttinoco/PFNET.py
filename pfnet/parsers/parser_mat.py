@@ -19,7 +19,7 @@ class PyParserMAT(object):
 
         self.case = None
 
-    def parse(self, filename, num_periods=1):
+    def parse(self, filename, num_periods=None):
         """
         Parses Matpower .m file.
         
@@ -37,6 +37,9 @@ class PyParserMAT(object):
 
         case = mp.io.parse_mp_case_file(filename)
         self.case = case
+
+        if num_periods is None:
+            num_periods = 1
         
         net = pfnet.Network(num_periods=num_periods)
 
@@ -194,6 +197,9 @@ class PyParserMAT(object):
                     gen.cost_coeff_Q1 = c*net.base_power
                 if n == 0:
                     gen.cost_coeff_Q0
+
+        # Update props
+        net.update_properties()
 
         # Return
         return net
