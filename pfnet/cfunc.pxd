@@ -63,6 +63,7 @@ cdef extern from "pfnet/pfnet.h":
     Func* FUNC_SP_CONTROLS_new(REAL w, Net* net)
     Func* FUNC_REG_VAR_new(REAL w, Net* net)
     Func* FUNC_VSC_DC_PSET_new(REAL w, Net* net)
+    Func* FUNC_CSC_DC_PSET_new(REAL w, Net* net)
     Func* FUNC_FACTS_PSET_new(REAL w, Net* net)
     Func* FUNC_FACTS_QSET_new(REAL w, Net* net) 
 

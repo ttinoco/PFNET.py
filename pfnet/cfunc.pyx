@@ -260,6 +260,8 @@ cdef class Function(FunctionBase):
             self._c_func = cfunc.FUNC_SP_CONTROLS_new(weight, net._c_net)
         elif name == "VSC DC power control":
             self._c_func = cfunc.FUNC_VSC_DC_PSET_new(weight, net._c_net)
+        elif name == "CSC DC power control":
+            self._c_func = cfunc.FUNC_CSC_DC_PSET_new(weight, net._c_net)
         elif name == "FACTS active power control":
             self._c_func = cfunc.FUNC_FACTS_PSET_new(weight, net._c_net)
         elif name == "FACTS reactive power control":

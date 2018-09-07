@@ -115,6 +115,9 @@ cdef extern from "pfnet/constr.h":
     Constr* CONSTR_FACTS_EQ_new(Net* net)
     Constr* CONSTR_FACTS_PSET_SWITCH_new(Net* net)
     Constr* CONSTR_FACTS_QSET_SWITCH_new(Net* net)
+    Constr* CONSTR_CSC_DC_VSET_new(Net* net)
+    Constr* CONSTR_CSC_DC_PSET_new(Net* net)
+    Constr* CONSTR_CSC_EQ_new(Net* net)
 
     void* CONSTR_get_data(Constr* c)
     void CONSTR_set_data(Constr* c, void* data)

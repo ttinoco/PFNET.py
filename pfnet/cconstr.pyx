@@ -646,6 +646,12 @@ cdef class Constraint(ConstraintBase):
             self._c_constr = cconstr.CONSTR_VSC_DC_PSET_new(net._c_net)
         elif name == "VSC converter equations":
             self._c_constr = cconstr.CONSTR_VSC_EQ_new(net._c_net)
+        elif name == "CSC DC voltage control":
+            self._c_constr = cconstr.CONSTR_CSC_DC_VSET_new(net._c_net)
+        elif name == "CSC DC power control":
+            self._c_constr = cconstr.CONSTR_CSC_DC_PSET_new(net._c_net)
+        elif name == "CSC converter equations":
+            self._c_constr = cconstr.CONSTR_CSC_EQ_new(net._c_net)
         elif name == "switching power factor regulation":
             self._c_constr = cconstr.CONSTR_REG_PF_SWITCH_new(net._c_net)
         elif name == "power factor regulation":
