@@ -1272,14 +1272,14 @@ class TestNetwork(unittest.TestCase):
                 load = net.get_load(i)
 
                 # in service
-                self.asserTrue(load.is_in_service())
-                self.asserTrue(load.in_service)
-                load.in_servie = False
-                self.asserFalse(load.is_in_service())
-                self.asserFalse(load.in_service)
-                load.in_servie = True
-                self.asserTrue(load.is_in_service())
-                self.asserTrue(load.in_service)
+                self.assertTrue(load.is_in_service())
+                self.assertTrue(load.in_service)
+                load.in_service = False
+                self.assertFalse(load.is_in_service())
+                self.assertFalse(load.in_service)
+                load.in_service = True
+                self.assertTrue(load.is_in_service())
+                self.assertTrue(load.in_service)
 
                 # obj type
                 self.assertEqual(load.obj_type,'load')
@@ -4507,7 +4507,7 @@ class TestNetwork(unittest.TestCase):
                 copy_bat.E_max = orig_bat.E_max
 
             # Compare
-            pf.tests.utils.compare_networks(self, orig_net, copy_net)                    
+            pf.tests.utils.compare_networks(self, orig_net, copy_net)  
 
     def test_symmetric_connectors_removers(self):
 

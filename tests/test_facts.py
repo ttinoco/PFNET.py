@@ -128,8 +128,8 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f1.obj_type, 'facts')
         self.assertEqual(f1.index, 0)
         for t in range(T):
-            self.assertEqual(f1.v_mag_s[t], 0.)
-            self.assertEqual(f1.v_ang_s[t], 0.)
+            self.assertEqual(f1.v_mag_s[t], 0.01)
+            self.assertEqual(f1.v_ang_s[t], 0.01)
             self.assertEqual(f1.P_k[t], -3.5)
             self.assertEqual(f1.P_m[t], 3.5)
             self.assertEqual(f1.Q_k[t], -0.4)
@@ -166,8 +166,8 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f2.obj_type, 'facts')
         self.assertEqual(f2.index, 1)
         for t in range(T):
-            self.assertEqual(f2.v_mag_s[t], 0.)
-            self.assertEqual(f2.v_ang_s[t], 0.)
+            self.assertEqual(f2.v_mag_s[t], 0.01)
+            self.assertEqual(f2.v_ang_s[t], 0.01)
             self.assertEqual(f2.P_k[t], 0.)
             self.assertEqual(f2.P_m[t], 0.)
             self.assertEqual(f2.Q_k[t], 0.)

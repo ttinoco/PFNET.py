@@ -268,6 +268,33 @@ cdef class ConverterCSC:
             else:
                 return np.array(r)
 
+    property index_i_dc:
+        """ Index of DC current variable (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_i_dc(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property index_ratio:
+        """ Index of commutating transformer turns ratio variable (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_ratio(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property index_angle:
+        """ Index of ignition delay angle if rectifier or extinction advance angle if inverter (int or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_index_angle(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
     property ac_bus:
         """ |Bus| to which CSC converter is connected. """
         def __get__(self): 
@@ -322,6 +349,15 @@ cdef class ConverterCSC:
         """ DC power injection into DC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
             r = [cconv_csc.CONVCSC_get_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeFloat(r[0])
+            else:
+                return AttributeArray(r)
+
+    property i_dc:
+        """ DC current injection into DC bus (p.u. system base MVA) (float or |Array|). """
+        def __get__(self):
+            r = [cconv_csc.CONVCSC_get_i_dc(self._c_ptr,t) for t in range(self.num_periods)]
             if self.num_periods == 1:
                 return AttributeFloat(r[0])
             else:

@@ -770,8 +770,14 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           'dc power')
 
+            net.set_flags('csc converter',
+                          'variable',
+                          'any',
+                          'dc power')        
+
             self.assertEqual(net.num_vars, (net.num_dc_buses +
-                                            2*net.num_vsc_converters)*self.T)
+                                            2*net.num_vsc_converters +
+                                            2*net.num_csc_converters)*self.T)
 
             # Constraint
             constr = pf.Constraint('HVDC power balance',net)
@@ -832,6 +838,7 @@ class TestConstraints(unittest.TestCase):
 
             self.assertTupleEqual(constr.A.shape, (net.num_dc_buses*self.T, net.num_vars))
             self.assertEqual(constr.A.nnz, (net.num_vsc_converters +
+                                            net.num_csc_converters +
                                             4*net.num_dc_branches)*self.T)
             self.assertEqual(constr.b.size, net.num_dc_buses*self.T)
 
@@ -851,6 +858,10 @@ class TestConstraints(unittest.TestCase):
                             i_out = -ikm
                         i_mis_manual[bus.index_t[t]] -= i_out
                 for conv in net.vsc_converters:
+                    self.assertTrue(conv.has_flags('variable', 'dc power'))
+                    i_in = x0[conv.index_i_dc[t]]
+                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                for conv in net.csc_converters:
                     self.assertTrue(conv.has_flags('variable', 'dc power'))
                     i_in = x0[conv.index_i_dc[t]]
                     i_mis_manual[conv.dc_bus.index_t[t]] += i_in
@@ -908,6 +919,10 @@ class TestConstraints(unittest.TestCase):
                             i_out = -ikm
                         i_mis_manual[bus.index_t[t]] -= i_out
                 for conv in net.vsc_converters:
+                    self.assertFalse(conv.has_flags('variable', 'dc power'))
+                    i_in = conv.i_dc[t]
+                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                for conv in net.csc_converters:
                     self.assertFalse(conv.has_flags('variable', 'dc power'))
                     i_in = conv.i_dc[t]
                     i_mis_manual[conv.dc_bus.index_t[t]] += i_in
