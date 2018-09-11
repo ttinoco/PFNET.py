@@ -232,16 +232,6 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
     test.assertEqual(bus1.zone, bus2.zone)
     test.assertEqual(bus1.num_periods, bus2.num_periods)
     test.assertEqual(bus1.name.upper().strip(), bus2.name.upper().strip())
-    test.assertLess(norminf(bus1.v_base-bus2.v_base), eps)
-    test.assertLess(norminf(bus1.v_mag-bus2.v_mag), eps)
-    test.assertLess(norminf(bus1.v_ang-bus2.v_ang), eps)
-    test.assertLess(norminf(bus1.v_set-bus2.v_set), eps)
-    test.assertLess(norminf(bus1.v_max_reg-bus2.v_max_reg), eps)
-    test.assertLess(norminf(bus1.v_min_reg-bus2.v_min_reg), eps)
-    test.assertLess(norminf(bus1.v_max_norm-bus2.v_max_norm), eps)
-    test.assertLess(norminf(bus1.v_min_norm-bus2.v_min_norm), eps)
-    test.assertLess(norminf(bus1.v_max_emer-bus2.v_max_emer), eps)
-    test.assertLess(norminf(bus1.v_min_emer-bus2.v_min_emer), eps)
     test.assertEqual(bus1.is_slack(), bus2.is_slack())
     #test.assertEqual(bus1.is_star(), bus2.is_star())
     test.assertEqual(bus1.is_regulated_by_gen(),bus2.is_regulated_by_gen())
@@ -249,6 +239,21 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
     test.assertEqual(bus1.is_regulated_by_shunt(),bus2.is_regulated_by_shunt())
     test.assertEqual(bus1.is_regulated_by_facts(),bus2.is_regulated_by_facts())
     test.assertEqual(bus1.is_regulated_by_vsc_converter(),bus2.is_regulated_by_vsc_converter())
+    test.assertEqual(bus1.is_regulated_by_facts(),bus2.is_regulated_by_facts())
+    test.assertLess(norminf(bus1.v_base-bus2.v_base), eps)
+    test.assertLess(norminf(bus1.v_mag-bus2.v_mag), eps)
+    test.assertLess(norminf(bus1.v_ang-bus2.v_ang), eps)
+    if bus1.is_v_set_regulated():
+        test.assertTrue(bus2.is_v_set_regulated())
+        test.assertLess(norminf(bus1.v_set-bus2.v_set), eps)
+    else:
+        test.assertFalse(bus2.is_v_set_regulated())
+    test.assertLess(norminf(bus1.v_max_reg-bus2.v_max_reg), eps)
+    test.assertLess(norminf(bus1.v_min_reg-bus2.v_min_reg), eps)
+    test.assertLess(norminf(bus1.v_max_norm-bus2.v_max_norm), eps)
+    test.assertLess(norminf(bus1.v_min_norm-bus2.v_min_norm), eps)
+    test.assertLess(norminf(bus1.v_max_emer-bus2.v_max_emer), eps)
+    test.assertLess(norminf(bus1.v_min_emer-bus2.v_min_emer), eps)
     test.assertLess(norminf(bus1.price-bus2.price), eps)
     test.assertEqual(len(bus1.generators),len(bus2.generators))
     test.assertEqual(len(bus1.reg_generators),len(bus2.reg_generators))
@@ -583,9 +588,15 @@ def compare_csc_converters(test, conv1, conv2, check_internals=False, eps=1e-10)
     test.assertEqual(conv1.num_periods, conv2.num_periods)
     test.assertEqual(conv1.ac_bus.index, conv2.ac_bus.index)
     test.assertEqual(conv1.dc_bus.index, conv2.dc_bus.index)
-    test.assertLess(norminf(conv1.P_dc_set-conv2.P_dc_set), eps)
-    test.assertLess(norminf(conv1.i_dc_set-conv2.i_dc_set), eps)
-    test.assertLess(norminf(conv1.v_dc_set-conv2.v_dc_set), eps)
+    if conv1.is_in_P_dc_mode():
+        test.assertTrue(conv2.is_in_P_dc_mode())
+        test.assertLess(norminf(conv1.P_dc_set-conv2.P_dc_set), eps)
+    if conv1.is_in_i_dc_mode():
+        test.assertTrue(conv2.is_in_P_dc_mode())
+        test.assertLess(norminf(conv1.i_dc_set-conv2.i_dc_set), eps)
+    if conv1.is_in_v_dc_mode():
+        test.assertTrue(conv2.is_in_v_dc_mode())
+        test.assertLess(norminf(conv1.v_dc_set-conv2.v_dc_set), eps)
     test.assertLess(norminf(conv1.P-conv2.P), eps)
     test.assertLess(norminf(conv1.Q-conv2.Q), eps)
     test.assertLess(norminf(conv1.P_dc-conv2.P_dc), eps)
@@ -743,7 +754,7 @@ def compare_facts(test, facts1, facts2, check_internals=False, eps=1e-10):
         test.assertLess(norminf(facts1.index_Q_s-facts2.index_Q_s),eps)
         test.assertLess(norminf(facts1.index_P_dc-facts2.index_P_dc),eps)
     
-def compare_networks(test, net1, net2, check_internals=False):
+def compare_networks(test, net1, net2, check_internals=False, eps=1e-10):
     """
     Method for checking if two |Network| objects are held in different
     memory locations but are otherwise identical.
@@ -754,9 +765,8 @@ def compare_networks(test, net1, net2, check_internals=False):
     net1 : |Network|
     net2 : |Network|
     check_internals : |TrueFalse|
+    eps : float
     """
-
-    eps = 1e-10
 
     # Network
     test.assertTrue(net1 is not net2)

@@ -248,15 +248,18 @@ class TestContingency(unittest.TestCase):
                 if g.index == 0 or g.index == 5:
                     self.assertTrue(g.is_on_outage())
                     self.assertTrue(g.outage)
-                    self.assertTrue(g.is_regulator())
+                    if g.Q_max > g.Q_min:
+                        self.assertTrue(g.is_regulator())
                     g.bus
                     g.reg_bus
                     if g.index == 0:
                         self.assertTrue(g.index in [y.index for y in bus0.generators])
-                        self.assertTrue(g.index in [y.index for y in reg_bus0.reg_generators])
+                        if reg_bus0 is not None:
+                            self.assertTrue(g.index in [y.index for y in reg_bus0.reg_generators])
                     elif g.index == 5:
                         self.assertTrue(g.index in [y.index for y in bus5.generators])
-                        self.assertTrue(g.index in [y.index for y in reg_bus5.reg_generators])
+                        if reg_bus5 is not None:
+                            self.assertTrue(g.index in [y.index for y in reg_bus5.reg_generators])
                 else:
                     self.assertFalse(g.is_on_outage())
                     self.assertFalse(g.outage)
@@ -329,14 +332,16 @@ class TestContingency(unittest.TestCase):
                     self.assertFalse(g.outage)
                     if g.index == 0:
                         self.assertEqual(g.bus.index,bus0.index)
-                        self.assertEqual(g.reg_bus.index,reg_bus0.index)
                         self.assertTrue(g.index in [y.index for y in bus0.generators])
-                        self.assertTrue(g.index in [y.index for y in reg_bus0.reg_generators])
+                        if reg_bus0 is not None:
+                            self.assertEqual(g.reg_bus.index,reg_bus0.index)
+                            self.assertTrue(g.index in [y.index for y in reg_bus0.reg_generators])
                     elif g.index == 5:
                         self.assertEqual(g.bus.index,bus5.index)
-                        self.assertEqual(g.reg_bus.index,reg_bus5.index)
                         self.assertTrue(g.index in [y.index for y in bus5.generators])
-                        self.assertTrue(g.index in [y.index for y in reg_bus5.reg_generators])
+                        if reg_bus5 is not None:
+                            self.assertEqual(g.reg_bus.index,reg_bus5.index)
+                            self.assertTrue(g.index in [y.index for y in reg_bus5.reg_generators])
                 else:
                     self.assertFalse(g.is_on_outage())
                     self.assertFalse(g.outage)

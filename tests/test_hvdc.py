@@ -40,8 +40,8 @@ class TestHVDC(unittest.TestCase):
         self.assertFalse(convI.is_rectifier())
         self.assertTrue(convI.is_inverter())
 
-        self.assertEqual(convR.name, "TTDC 1 rec")
-        self.assertEqual(convI.name, "TTDC 1 inv")
+        self.assertEqual(convR.name, "1")
+        self.assertEqual(convI.name, "1")
         
         ac_busR = convR.ac_bus
         dc_busR = convR.dc_bus
@@ -209,8 +209,8 @@ class TestHVDC(unittest.TestCase):
         self.assertFalse(convI.is_rectifier())
         self.assertTrue(convI.is_inverter())
 
-        self.assertEqual(convR.name, "TTDC LINE 1 rec")
-        self.assertEqual(convI.name, "TTDC LINE 1 inv")
+        self.assertEqual(convR.name, "LINE 1")
+        self.assertEqual(convI.name, "LINE 1")
 
         self.assertEqual(convR.num_periods, T)
         self.assertEqual(convI.num_periods, T)
@@ -400,8 +400,8 @@ class TestHVDC(unittest.TestCase):
         conv0 = net.vsc_converters[0]
         conv1 = net.vsc_converters[1]
 
-        self.assertEqual(conv0.name, "VSCDC LINE 1 conv 0")
-        self.assertEqual(conv1.name, "VSCDC LINE 1 conv 1")
+        self.assertEqual(conv0.name, "LINE 1")
+        self.assertEqual(conv1.name, "LINE 1")
 
         self.assertEqual(conv0.num_periods, T)
         self.assertEqual(conv1.num_periods, T)

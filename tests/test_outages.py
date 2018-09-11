@@ -373,7 +373,7 @@ class TestOutages(unittest.TestCase):
                 gen.outage = True
                 net.update_properties()
                 cost -= gen.cost_coeff_Q0 + gen.cost_coeff_Q1*gen.P + gen.cost_coeff_Q2*(gen.P**2.)
-                self.assertLess(np.abs(cost-net.gen_P_cost), 1e-8)
+                self.assertLess(np.abs(cost-net.gen_P_cost), 1e-8*(1.+np.abs(cost)))
             
             # gen Q vio
             net.clear_outages()

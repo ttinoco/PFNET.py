@@ -3040,7 +3040,7 @@ class TestFunctions(unittest.TestCase):
             func.eval(x0)
             
             self.assertNotEqual(func.phi,0.)
-            self.assertLess(abs(func.phi-funcREF.phi),1e-8)
+            self.assertLess(abs(func.phi-funcREF.phi),1e-8*(1+np.abs(func.phi)))
             self.assertTrue(np.all(func.gphi == funcREF.gphi))
 
             phi = 0
