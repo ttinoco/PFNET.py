@@ -19,6 +19,18 @@ class PyParserMAT(object):
 
         self.case = None
 
+    def set(self, key, value):
+        """
+        Sets parser parameter.
+
+        Parameters
+        ----------
+        key : string
+        value : float
+        """
+        
+        pass
+
     def parse(self, filename, num_periods=None):
         """
         Parses Matpower .m file.

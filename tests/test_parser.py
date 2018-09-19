@@ -27,6 +27,7 @@ class TestParser(unittest.TestCase):
                 continue
             
             parser = pf.ParserRAW()
+            parser.set('output_level', 0)
             net1 = parser.parse(case, num_periods=2)
             
             try:
@@ -69,6 +70,7 @@ class TestParser(unittest.TestCase):
                 continue
 
             parser = pf.PyParserMAT()
+            parser.set('output_level', 0)
             net1 = parser.parse(case, num_periods=2)
 
             try:

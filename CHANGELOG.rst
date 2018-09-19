@@ -27,6 +27,7 @@ Unreleased
 * Exposed routines for updated load P and Q components according to provided weights.    
 * Exposed CSC HVDC constraints/functions.
 * Extended test utils to compare dc buses, dc branches, FACTS, csc converters, and vsc converters.    
+* Added "set" method to PyParserMAT to follow C parser API.
   
 Version 1.3.3
 -------------
