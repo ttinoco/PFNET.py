@@ -98,6 +98,17 @@ cdef class Shunt:
 
         return cshunt.SHUNT_is_switched(self._c_ptr)
 
+    def is_switched_locked(self):
+        """
+        Determines whether the shunt is switchable but currently locked.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_switched_locked(self._c_ptr)
+
     def is_switched_v(self):
         """
         Determines whether the shunt is switchable and regulates
@@ -109,6 +120,30 @@ cdef class Shunt:
         """
 
         return cshunt.SHUNT_is_switched_v(self._c_ptr)
+
+    def is_continuous(self):
+        """
+        Determines whether the shunt has continuous 
+        susceptance adjustments. 
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_continuous(self._c_ptr)
+
+    def is_discrete(self):
+        """
+        Determines whether the shunt has discrete
+        susceptance adjustments. 
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_discrete(self._c_ptr)
 
     def has_flags(self, flag_type, q):
         """
@@ -152,6 +187,21 @@ cdef class Shunt:
         else:
             raise ShuntError('index does not correspond to any variable')
 
+    def round_b(self, t=None):
+        """
+        Rounds susceptance to nearest valid discrete value.
+
+        Parameters
+        ----------
+        t : int (None for all)
+        """
+
+        if t is not None:
+            cshunt.SHUNT_round_b(self._c_ptr, t)
+        else:
+            for t in range(self.num_periods):
+                cshunt.SHUNT_round_b(self._c_ptr, t)
+
     def set_as_fixed(self):
         """
         Sets shunt as fixed.
@@ -172,6 +222,20 @@ cdef class Shunt:
         """
 
         cshunt.SHUNT_set_type(self._c_ptr,cshunt.SHUNT_TYPE_SWITCHED_V)
+
+    def set_as_continuous(self):
+        """
+        Sets shunt as having continuous susceptance adjustments.
+        """
+
+        cshunt.SHUNT_set_mode(self._c_ptr,cshunt.SHUNT_MODE_CONT)
+
+    def set_as_discrete(self):
+        """
+        Sets shunt as having discrete susceptance adjustments.
+        """
+
+        cshunt.SHUNT_set_mode(self._c_ptr,cshunt.SHUNT_MODE_DIS)
 
     def set_b_values(self, values):
         """

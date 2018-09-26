@@ -20,7 +20,10 @@ cdef extern from "pfnet/shunt.h":
 
     cdef int SHUNT_TYPE_FIXED
     cdef int SHUNT_TYPE_SWITCHED
-    cdef int SHUNT_TYPE_SWITCHED_V    
+    cdef int SHUNT_TYPE_SWITCHED_V
+
+    cdef int SHUNT_MODE_CONT
+    cdef int SHUNT_MODE_DIS
 
     cdef char SHUNT_PROP_ANY
     cdef char SHUNT_PROP_SWITCHED_V
@@ -53,12 +56,17 @@ cdef extern from "pfnet/shunt.h":
     bint SHUNT_is_equal(Shunt* load, Shunt* other)
     bint SHUNT_is_fixed(Shunt* shunt)
     bint SHUNT_is_switched(Shunt* shunt)
+    bint SHUNT_is_switched_locked(Shunt* shunt)
     bint SHUNT_is_switched_v(Shunt* shunt)
+    bint SHUNT_is_continuous(Shunt* shunt)
+    bint SHUNT_is_discrete(Shunt* shunt)
     bint SHUNT_has_flags(Shunt* shunt, char flag_type, char mask)
     Shunt* SHUNT_new(int num_periods)
     Shunt* SHUNT_array_new(int size, int num_periods)
     void SHUNT_array_del(Shunt* shunt_array, int size)
+    void SHUNT_round_b(Shunt* shunt, int t)
     void SHUNT_set_type(Shunt* shunt, char type)
+    void SHUNT_set_mode(Shunt* shunt, char mode)
     void SHUNT_set_name(Shunt* shunt, char* name)
     void SHUNT_set_bus(Shunt* shunt, Bus* bus)
     void SHUNT_set_reg_bus(Shunt* shunt, Bus* reg_bus)

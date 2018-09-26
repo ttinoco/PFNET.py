@@ -1289,7 +1289,7 @@ class TestProblem(unittest.TestCase):
             p2.eval(net.get_var_values())
             
             self.assertGreaterEqual(p1.phi,0)
-            self.assertLess(abs(p1.phi-p2.phi),1e-8)
+            self.assertLess(abs(p1.phi-p2.phi),1e-8*np.abs(p1.phi))
             self.assertTrue(np.all(p1.gphi == p2.gphi))
             self.assertEqual(p1.Hphi.nnz,p2.Hphi.nnz)
             self.assertTrue(np.all(p1.Hphi.row == p2.Hphi.row))

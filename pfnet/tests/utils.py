@@ -429,7 +429,14 @@ def compare_shunts(test, shunt1, shunt2, check_internals=False, eps=1e-10):
     test.assertEqual(shunt1.num_periods, shunt2.num_periods)
     test.assertEqual(shunt1.bus.index, shunt2.bus.index)
     test.assertEqual(shunt1.is_fixed(), shunt2.is_fixed())
+    test.assertEqual(shunt1.is_switched(), shunt2.is_switched())
+    test.assertEqual(shunt1.is_switched_locked(), shunt2.is_switched_locked())
     test.assertEqual(shunt1.is_switched_v(), shunt2.is_switched_v())
+    test.assertEqual(shunt1.is_discrete(), shunt2.is_discrete())
+    test.assertEqual(shunt1.is_continuous(), shunt2.is_continuous())
+    test.assertEqual(shunt1.b_values.size, shunt2.b_values.size)
+    if shunt1.b_values.size:
+        test.assertLess(norminf(shunt1.b_values-shunt2.b_values), eps)
     if shunt1.is_switched_v():
         test.assertEqual(shunt1.reg_bus.index, shunt2.reg_bus.index)
     test.assertLess(norminf(shunt1.g-shunt2.g),eps*(1+norminf(shunt1.g)))

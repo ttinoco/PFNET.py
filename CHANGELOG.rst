@@ -28,6 +28,7 @@ Unreleased
 * Exposed CSC HVDC constraints/functions.
 * Extended test utils to compare dc buses, dc branches, FACTS, csc converters, and vsc converters.    
 * Added "set" method to PyParserMAT to follow C parser API.
+* Added shunt adjustment mode (continuous/discrete) and rounding capability.
   
 Version 1.3.3
 -------------

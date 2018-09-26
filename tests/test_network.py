@@ -1199,6 +1199,14 @@ class TestNetwork(unittest.TestCase):
                 else:
                     self.assertTrue(shunt.reg_bus is None)
 
+                # mode
+                shunt.set_as_discrete()
+                self.assertTrue(shunt.is_discrete())
+                self.assertFalse(shunt.is_continuous())
+                shunt.set_as_continuous()
+                self.assertFalse(shunt.is_discrete())
+                self.assertTrue(shunt.is_continuous())
+
                 # b_values
                 if shunt.b_values.size:
                     x = np.random.randn(shunt.b_values.size)
@@ -4415,6 +4423,10 @@ class TestNetwork(unittest.TestCase):
                     copy_shunt.set_as_switched()
                 if orig_shunt.is_switched_v():
                     copy_shunt.set_as_switched_v()
+                if orig_shunt.is_discrete():
+                    copy_shunt.set_as_discrete()
+                if orig_shunt.is_continuous():
+                    copy_shunt.set_as_continuous()
                 
             # Branches
             for i in range(copy_net.num_branches):
