@@ -34,6 +34,12 @@ class TestShunts(unittest.TestCase):
 
         self.assertTrue(np.all(s.b_values == np.array([-1., -0.8, -0.6, -0.4, -0.2, 0.])))
 
+        n = s.round_b()
+        self.assertEqual(n, 0)
+
+        m = net.round_discrete_switched_shunts_b()
+        self.assertEqual(m, 0)
+
     def test_psse_sample_raw_case(self):
 
         case = os.path.join('data', 'psse_sample_case.raw')
@@ -95,7 +101,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s1.b_max-np.max(values)), eps)
         s1.b = -2.30
         new_b = s1.b_values[np.argmin(np.abs(s1.b_values-s1.b))]
-        s1.round_b()
+        self.assertEqual(s1.round_b(), 1)
         self.assertLess(np.abs(s1.b-new_b), eps)
         self.assertLess(np.abs(s1.b+2.29), eps)
 
@@ -115,7 +121,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s2.b_max-np.max(values)), eps)
         s2.b = 0.56
         new_b = s2.b_values[np.argmin(np.abs(s2.b_values-s2.b))]
-        s2.round_b()
+        self.assertEqual(s2.round_b(), 1)
         self.assertLess(np.abs(s2.b-new_b), eps)
         self.assertLess(np.abs(s2.b-0.6), eps)
 
@@ -127,7 +133,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s3.b_max-np.max(values)), eps)
         s3.b = 0.
         new_b = 0.
-        s3.round_b()
+        self.assertEqual(s3.round_b(), 0)
         self.assertLess(np.abs(s3.b-new_b), eps)
         self.assertLess(np.abs(s3.b-0.), eps)
 
@@ -147,7 +153,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s4.b_max-np.max(values)), eps)
         s4.b = 6.93
         new_b = s4.b_values[np.argmin(np.abs(s4.b_values-s4.b))]
-        s4.round_b()
+        self.assertEqual(s4.round_b(), 1)
         self.assertLess(np.abs(s4.b-new_b), eps)
         self.assertLess(np.abs(s4.b-7.00), eps)
 
@@ -167,7 +173,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s5.b_max-np.max(values)), eps)
         s5.b = 2.3
         new_b = s5.b_values[np.argmin(np.abs(s5.b_values-s5.b))]
-        s5.round_b()
+        self.assertEqual(s5.round_b(), 1)
         self.assertLess(np.abs(s5.b-new_b), eps)
         self.assertLess(np.abs(s5.b-2.), eps)
         
@@ -193,7 +199,7 @@ class TestShunts(unittest.TestCase):
         self.assertLess(np.abs(s6.b_max-np.max(values)), eps)
         s6.b = 0.15
         new_b = s6.b_values[np.argmin(np.abs(s6.b_values-s6.b))]
-        s6.round_b()
+        self.assertEqual(s6.round_b(), 1)
         self.assertLess(np.abs(s6.b-new_b), eps)
         self.assertLess(np.abs(s6.b-0.1144), eps)
 
@@ -203,7 +209,21 @@ class TestShunts(unittest.TestCase):
         for shunt in net.shunts:
             if shunt.is_fixed():
                 b = shunt.b
-                shunt.round_b()
+                self.assertEqual(shunt.round_b(), 0)
                 self.assertEqual(b, shunt.b)
                 tested = True
         self.assertTrue(tested)
+
+        m = 0
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                shunt.b = shunt.b_max + 1.
+                self.assertNotEqual(shunt.b, shunt.b_max)
+                m += 1
+        self.assertEqual(m, 3)
+        
+        self.assertEqual(net.round_discrete_switched_shunts_b(), 3)
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                self.assertEqual(shunt.b, shunt.b_max)
+        

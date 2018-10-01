@@ -194,13 +194,19 @@ cdef class Shunt:
         Parameters
         ----------
         t : int (None for all)
+
+        Returns
+        -------
+        num : int (number of significant changes)
         """
 
         if t is not None:
-            cshunt.SHUNT_round_b(self._c_ptr, t)
+            return cshunt.SHUNT_round_b(self._c_ptr, t)
         else:
+            num = 0
             for t in range(self.num_periods):
-                cshunt.SHUNT_round_b(self._c_ptr, t)
+                num += cshunt.SHUNT_round_b(self._c_ptr, t)
+            return num
 
     def set_as_fixed(self):
         """

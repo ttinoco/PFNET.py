@@ -1939,6 +1939,28 @@ cdef class Network:
 
         return cnet.NET_has_error(self._c_net)
 
+    def round_discrete_switched_shunts_b(self, t=None):
+        """
+        Rounds susceptances of all discrete switched 
+        shunt devices.
+
+        Parameters
+        ----------
+        t : int (None for all)
+        
+        Returns
+        -------
+        num : int (number of significant changes)
+        """
+
+        if t is not None:
+            return cnet.NET_round_discrete_switched_shunts_b(self._c_net, t)
+        else:
+            num = 0
+            for t in range(self.num_periods):
+                num += cnet.NET_round_discrete_switched_shunts_b(self._c_net, t)
+            return num
+
     def set_flags(self, obj_type, flags, props, q):
         """
         Sets flags of network components with specific properties.

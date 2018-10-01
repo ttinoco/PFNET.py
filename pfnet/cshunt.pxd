@@ -64,7 +64,7 @@ cdef extern from "pfnet/shunt.h":
     Shunt* SHUNT_new(int num_periods)
     Shunt* SHUNT_array_new(int size, int num_periods)
     void SHUNT_array_del(Shunt* shunt_array, int size)
-    void SHUNT_round_b(Shunt* shunt, int t)
+    int SHUNT_round_b(Shunt* shunt, int t)
     void SHUNT_set_type(Shunt* shunt, char type)
     void SHUNT_set_mode(Shunt* shunt, char mode)
     void SHUNT_set_name(Shunt* shunt, char* name)
