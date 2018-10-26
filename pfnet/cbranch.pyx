@@ -660,6 +660,48 @@ cdef class Branch:
         else:
             return np.array(r)
 
+    def power_flow_Jacobian_km(self, var_values, t=0):
+        """
+        Constructs Jacobian of (Pkm, Qkm) at the given 
+        point and time.
+
+        Parameters
+        ----------
+        var_values : |Array|
+        t : int
+
+        Returns
+        -------
+        J : |CooMatrix|
+        """
+
+        cdef np.ndarray[double,mode='c'] x = var_values
+        cdef cvec.Vec* v = cvec.VEC_new_from_array(<cnet.REAL*>(x.data),x.size)
+        m = Matrix(cbranch.BRANCH_power_flow_Jacobian(self._c_ptr, v, t, True), owndata=True)
+        free(v)
+        return m
+
+    def power_flow_Jacobian_mk(self, var_values, t=0):
+        """
+        Constructs Jacobian of (Pmk, Qmk) at the given 
+        point and time.
+
+        Parameters
+        ----------
+        var_values : |Array|
+        t : int
+
+        Returns
+        -------
+        J : |CooMatrix|
+        """
+
+        cdef np.ndarray[double,mode='c'] x = var_values
+        cdef cvec.Vec* v = cvec.VEC_new_from_array(<cnet.REAL*>(x.data),x.size)
+        m = Matrix(cbranch.BRANCH_power_flow_Jacobian(self._c_ptr, v, t, False), owndata=True)
+        free(v)
+        return m
+
     property name:
         """ Branch name (string). """
         def __get__(self):

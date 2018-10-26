@@ -7,6 +7,7 @@
 #***************************************************#
 
 cimport cvec
+cimport cmat
 
 cdef extern from "pfnet/branch.h":
 
@@ -142,3 +143,5 @@ cdef extern from "pfnet/branch.h":
     void BRANCH_set_ratingB(Branch* br, REAL r)
     void BRANCH_set_ratingC(Branch* br, REAL r)
     void BRANCH_show(Branch* br, int t)
+
+    cmat.Mat* BRANCH_power_flow_Jacobian(Branch* br, cvec.Vec* x, int t, bint km)
