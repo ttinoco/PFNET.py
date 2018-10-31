@@ -214,15 +214,15 @@ class TestJSON(unittest.TestCase):
             self.assertTrue(valid_json)
 
             # Detailed checks
-            self.assertEqual(json_model['num_periods'],self.T)
-            self.assertEqual(json_model['base_power'],net.base_power)
-            self.assertEqual(json_model['version'],pf.info['version'])
-            self.assertEqual(len(json_model['buses']),net.num_buses)
-            self.assertEqual(len(json_model['branches']),net.num_branches)
-            self.assertEqual(len(json_model['generators']),net.num_generators)
-            self.assertEqual(len(json_model['shunts']),net.num_shunts)
-            self.assertEqual(len(json_model['var_generators']),net.num_var_generators)
-            self.assertEqual(len(json_model['batteries']),net.num_batteries)
+            self.assertEqual(json_model['num_periods'], self.T)
+            self.assertEqual(json_model['base_power'], net.base_power)
+            self.assertEqual(json_model['version'], pf.__version__[:5])
+            self.assertEqual(len(json_model['buses']), net.num_buses)
+            self.assertEqual(len(json_model['branches']), net.num_branches)
+            self.assertEqual(len(json_model['generators']), net.num_generators)
+            self.assertEqual(len(json_model['shunts']), net.num_shunts)
+            self.assertEqual(len(json_model['var_generators']), net.num_var_generators)
+            self.assertEqual(len(json_model['batteries']), net.num_batteries)
             
     def tearDown(self):
 

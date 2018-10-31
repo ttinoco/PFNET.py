@@ -6,6 +6,7 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
+import os
 import sys
 import numpy as np
 from subprocess import call
@@ -28,9 +29,11 @@ elif 'linux' in sys.platform.lower():
 else:
     extra_link_args=['']
 
+exec(open(os.path.join('pfnet', 'version.py')).read())
+
 setup(name='PFNET',
       zip_safe=False,
-      version='1.3.3rc2',
+      version=__version__,
       description='Power Flow Network Library',
       url='https://github.com/ttinoco/PFNET',
       author='Tomas Tinoco De Rubira',

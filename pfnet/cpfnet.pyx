@@ -17,7 +17,6 @@ cimport cconstants
 cimport cvec
 cimport cmat
 cimport cparser_raw
-cimport cgraph
 
 from scipy import misc
 import tempfile
@@ -28,17 +27,16 @@ from libc.stdlib cimport free, malloc
 
 np.import_array()
 
-# Information
-#############
-
-info = {'graphviz': bool(cgraph.HAVE_GRAPHVIZ),
-        'raw_parser': bool(cparser_raw.HAVE_RAW_PARSER),
-        'version': str(cconstants.VERSION.decode('UTF-8'))}
-
 # Constants
 ###########
 
 PI = cconstants.PI
+
+# Information
+#############
+
+def has_raw_parser():
+    return bool(cparser_raw.HAVE_RAW_PARSER)
 
 # C pointer
 ###########
@@ -179,7 +177,6 @@ include "cvargen.pyx"
 include "cbat.pyx"
 include "cnet.pyx"
 include "ccont.pyx"
-include "cgraph.pyx"
 include "cfunc.pyx"
 include "cconstr.pyx"
 include "cheur.pyx"

@@ -17,10 +17,6 @@ class TestPackage(unittest.TestCase):
         
         pass
 
-    def test_info(self):
+    def test_version(self):
 
-        self.assertTrue(isinstance(pf.info,dict))
-        self.assertTrue('graphviz' in pf.info)
-        self.assertTrue('raw_parser' in pf.info)
-        self.assertTrue('version' in pf.info)
-        self.assertTrue(isinstance(pf.info['version'],str))
+        self.assertTrue(hasattr(pf, '__version__'))

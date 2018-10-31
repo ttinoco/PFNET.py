@@ -30,7 +30,11 @@ Unreleased
 * Added "set" method to PyParserMAT to follow C parser API.
 * Added shunt adjustment mode (continuous/discrete) and rounding capability.
 * Exposed branch power flow Jacobian routine.
-
+* Removed graph wrapper.
+* Removed module info dictionary.
+* Added package __version__.
+  
+  
 Version 1.3.3
 -------------
 * Made Python wrapper its own repo.
