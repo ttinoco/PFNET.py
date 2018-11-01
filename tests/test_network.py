@@ -173,10 +173,14 @@ class TestNetwork(unittest.TestCase):
             for bus in net.buses[:10]:
                 self.assertEqual(bus.index, net.get_bus_from_number(bus.number).index)
                 self.assertEqual(bus.name, net.get_bus_from_name(bus.name).name)
+                self.assertTrue(bus.is_equal(net.get_component_from_key((bus.obj_type, bus.number))))                                             
             for gen in net.generators[:10]:
                 self.assertEqual(gen.index,
                                  net.get_generator_from_name_and_bus_number(gen.name,
                                                                             gen.bus.number).index)
+                self.assertTrue(gen.is_equal(net.get_component_from_key((gen.obj_type,
+                                                                         gen.name,
+                                                                         gen.bus.number))))
             for branch in net.branches[:10]:
                 self.assertEqual(branch.index,
                                  net.get_branch_from_name_and_bus_numbers(branch.name,
@@ -186,25 +190,70 @@ class TestNetwork(unittest.TestCase):
                                  net.get_branch_from_name_and_bus_numbers(branch.name,
                                                                           branch.bus_m.number,
                                                                           branch.bus_k.number).index)
+                self.assertTrue(branch.is_equal(net.get_component_from_key((branch.obj_type,
+                                                                            branch.name,
+                                                                            branch.bus_k.number,
+                                                                            branch.bus_m.number))))
             for load in net.loads[:10]:
                 if load.name:
                     self.assertEqual(load.index,
                                      net.get_load_from_name_and_bus_number(load.name,
                                                                            load.bus.number).index)
+                    self.assertTrue(load.is_equal(net.get_component_from_key((load.obj_type,
+                                                                              load.name,
+                                                                              load.bus.number))))
             for shunt in net.shunts[:10]:
                 if shunt.name and shunt.name != 'SL' and shunt.name != 'TM':
                     self.assertEqual(shunt.index,
                                      net.get_shunt_from_name_and_bus_number(shunt.name,
                                                                             shunt.bus.number).index)
-
+                    self.assertTrue(shunt.is_equal(net.get_component_from_key((shunt.obj_type,
+                                                                               shunt.name,
+                                                                               shunt.bus.number))))
+                    if shunt.is_fixed():
+                        self.assertTrue(shunt.is_equal(net.get_component_from_key(('fixed '+shunt.obj_type,
+                                                                                   shunt.name,
+                                                                                   shunt.bus.number))))
+                    else:
+                        self.assertTrue(shunt.is_equal(net.get_component_from_key(('switched '+shunt.obj_type,
+                                                                                   shunt.name,
+                                                                                   shunt.bus.number))))
             for vargen in net.var_generators[:10]:
                 self.assertEqual(vargen.index,
                                  net.get_var_generator_from_name_and_bus_number(vargen.name,
                                                                                 vargen.bus.number).index)
+                self.assertTrue(vargen.is_equal(net.get_component_from_key((vargen.obj_type,
+                                                                            vargen.name,
+                                                                            vargen.bus.number))))
             for bat in net.batteries[:10]:
                 self.assertEqual(bat.index,
                                  net.get_battery_from_name_and_bus_number(bat.name,
                                                                           bat.bus.number).index)
+                self.assertTrue(bat.is_equal(net.get_component_from_key((bat.obj_type,
+                                                                         bat.name,
+                                                                         bat.bus.number))))
+
+            for csc in net.csc_converters:
+                self.assertTrue(csc.is_equal(net.get_component_from_key((csc.obj_type,
+                                                                         csc.name,
+                                                                         csc.ac_bus.number))))
+            for vsc in net.vsc_converters:
+                self.assertTrue(vsc.is_equal(net.get_component_from_key((vsc.obj_type,
+                                                                         vsc.name,
+                                                                         vsc.ac_bus.number))))
+            for facts in net.facts:
+                self.assertTrue(facts.is_equal(net.get_component_from_key((facts.obj_type,
+                                                                           facts.name,
+                                                                           facts.bus_k.number,
+                                                                           facts.bus_m.number if facts.bus_m else 0))))
+            for dc_bus in net.dc_buses:
+                self.assertTrue(dc_bus.is_equal(net.get_component_from_key((dc_bus.obj_type,
+                                                                            dc_bus.number))))
+            for dc_branch in net.dc_branches:
+                self.assertTrue(dc_branch.is_equal(net.get_component_from_key((dc_branch.obj_type,
+                                                                               dc_branch.name,
+                                                                               dc_branch.bus_k.name,
+                                                                               dc_branch.bus_m.name))))
 
             bus = None
             for bus in net.buses:

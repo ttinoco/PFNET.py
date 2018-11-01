@@ -943,6 +943,7 @@ cdef class Network:
     def get_csc_converter(self, index):
         """
         Gets CSC converter with the given index.
+
         Parameters
         ----------
         index : int
@@ -960,6 +961,7 @@ cdef class Network:
     def get_vsc_converter(self, index):
         """
         Gets VSC converter with the given index.
+
         Parameters
         ----------
         index : int
@@ -977,6 +979,7 @@ cdef class Network:
     def get_dc_bus(self, index):
         """
         Gets DC bus with the given index.
+
         Parameters
         ----------
         index : int
@@ -994,6 +997,7 @@ cdef class Network:
     def get_dc_branch(self, index):
         """
         Gets DC branch with the given index.
+
         Parameters
         ----------
         index : int
@@ -1011,6 +1015,7 @@ cdef class Network:
     def get_facts(self, index):
         """
         Gets FACTS device.
+
         Parameters
         ----------
         index : int
@@ -1301,7 +1306,7 @@ cdef class Network:
         name = name.encode('UTF-8')
         name1 = bus1_name.encode('UTF-8')
         name2 = bus2_name.encode('UTF-8')
-        ptr = cnet.NET_get_dc_branch_from_name_and_dc_bus_names(self._c_net, name, bus1_name, bus2_name)
+        ptr = cnet.NET_get_dc_branch_from_name_and_dc_bus_names(self._c_net, name, name1, name2)
         if ptr is not NULL:
             return new_BranchDC(ptr)
         else:
@@ -1327,6 +1332,52 @@ cdef class Network:
             return new_Facts(ptr)
         else:
             raise NetworkError('facts not found')
+
+    def get_component_from_key(self, key):
+        """
+        Gets network component from key, where key is of the form
+        ('obj_type', bus_num) or ('obj_type', equi_id, bus_num) or
+        ('obj_type, equip_id, bus_k_num, bus_m_num). 
+
+        Parameters
+        ----------
+        key : tuple
+
+        Returns
+        -------
+        obj : object
+        """
+
+        if key[0] == 'bus':
+            return self.get_bus_from_number(*key[1:])
+        elif key[0] == 'generator':
+            return self.get_generator_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'branch':
+            return self.get_branch_from_name_and_bus_numbers(*key[1:])
+        elif key[0] == 'shunt':
+            return self.get_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'fixed shunt':
+            return self.get_fixed_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'switched shunt':
+            return self.get_switched_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'load':
+            return self.get_load_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'variable generator':
+            return self.get_var_generator_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'battery':
+            return self.get_battery_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'csc converter':
+            return self.get_csc_converter_from_name_and_ac_bus_number(*key[1:])
+        elif key[0] == 'vsc converter':
+            return self.get_vsc_converter_from_name_and_ac_bus_number(*key[1:])
+        elif key[0] == 'dc bus':
+            return self.get_dc_bus_from_number(*key[1:])
+        elif key[0] == 'dc branch':
+            return self.get_dc_branch_from_name_and_dc_bus_names(*key[1:])
+        elif key[0] == 'facts':
+            return self.get_facts_from_name_and_bus_numbers(*key[1:])
+        else:
+            raise NetworkError('invalid key')
         
     def get_generator_buses(self):
         """

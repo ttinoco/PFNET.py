@@ -33,6 +33,7 @@ Unreleased
 * Removed graph wrapper.
 * Removed module info dictionary.
 * Added package __version__.
+* Added routine for getting any network component from key.    
   
   
 Version 1.3.3
