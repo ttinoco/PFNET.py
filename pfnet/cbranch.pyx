@@ -104,6 +104,10 @@ cdef class Branch:
         """
         Gets branch thermal rating.
 
+        Parameters
+        ----------
+        code : string ('A', 'B', 'C')
+
         Returns
         -------
         rating : float

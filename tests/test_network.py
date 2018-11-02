@@ -486,6 +486,24 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(bus.v_max_emer,1.234567)
                 bus.v_min_emer = 0.901234
                 self.assertEqual(bus.v_min_emer,0.901234)
+
+                bus.v_max_reg = 1.1
+                bus.v_max_norm = 1.2
+                bus.v_max_emer = 1.3
+                bus.v_min_reg = 0.9
+                bus.v_min_norm = 0.8
+                bus.v_min_emer = 0.7
+
+                self.assertEqual(bus.get_v_max('regulation'), 1.1)
+                self.assertEqual(bus.get_v_max('normal'), 1.2)
+                self.assertEqual(bus.get_v_max('emergency'), 1.3)
+
+                self.assertEqual(bus.get_v_min('regulation'), 0.9)
+                self.assertEqual(bus.get_v_min('normal'), 0.8)
+                self.assertEqual(bus.get_v_min('emergency'), 0.7)
+
+                self.assertRaises(pf.BusError, bus.get_v_max, 'foo')
+                self.assertRaises(pf.BusError, bus.get_v_min, 'bar')
                 
                 # Alias v_max, v_min for v_max_norm, v_min_norm set and get
                 self.assertEqual(bus.v_max_norm,bus.v_max)

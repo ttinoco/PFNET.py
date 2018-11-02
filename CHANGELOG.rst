@@ -34,6 +34,7 @@ Unreleased
 * Removed module info dictionary.
 * Added package __version__.
 * Added routine for getting any network component from key.    
+* Added bus function get_v_max(code) get_v_min(code).
   
   
 Version 1.3.3

@@ -471,6 +471,48 @@ cdef class Bus:
                                      reduce(lambda x,y: x|y,[str2q[self.obj_type][qq] for qq in q],0),
                                      t_start,
                                      t_end)
+
+    def get_v_max(self, code='normal'):
+        """
+        Gets bus voltage magnitude upper limit.
+
+        Parameters
+        ----------
+        code : string ('normal', 'emergency', 'regulation')
+
+        Returns
+        -------
+        v_max : float
+        """
+
+        if code == 'normal':
+            return self.v_max_norm
+        elif code == 'emergency':
+            return self.v_max_emer
+        elif code == 'regulation':
+            return self.v_max_reg
+        raise BusError('bus voltage magnitude limit must be normal, emergency, or regulation')
+
+    def get_v_min(self, code='normal'):
+        """
+        Gets bus voltage magnitude lower limit.
+
+        Parameters
+        ----------
+        code : string ('normal', 'emergency', 'regulation')
+
+        Returns
+        -------
+        v_min : float
+        """
+
+        if code == 'normal':
+            return self.v_min_norm
+        elif code == 'emergency':
+            return self.v_min_emer
+        elif code == 'regulation':
+            return self.v_min_reg
+        raise BusError('bus voltage magnitude limit must be normal, emergency, or regulation')
         
     def add_generator(self, gen):
         """
