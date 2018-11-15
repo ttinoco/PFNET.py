@@ -23,11 +23,52 @@ class TestParser(unittest.TestCase):
         case = os.path.join('data', 'psse_sample_case.raw')
 
         if os.path.isfile(case):
-            net = pf.ParserRAW().parse(case)
-            bus1 = net.get_bus_from_number(3006)
-            bus2 = net.get_bus_from_number(153)
+
+            # Parsed net
+            net1 = pf.ParserRAW().parse(case)
+
+            # Copied
+            net2 = net1.get_copy()
+            
+            # Extracted net (including)
+            net3 = net1.extract_subnetwork([net1.get_bus_from_number(153),
+                                            net1.get_bus_from_number(154),
+                                            net1.get_bus_from_number(3005)])
+            self.assertEqual(net3.num_buses, 3)
+
+            # Extracted net (not including)
+            net4 = net1.extract_subnetwork([net1.get_bus_from_number(101),
+                                            net1.get_bus_from_number(102),
+                                            net1.get_bus_from_number(151)])
+            self.assertEqual(net4.num_buses, 3)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 153)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 3006)
+
+            # Serialized net
+            try:
+                pf.ParserJSON().write(net1, 'foo.json')
+                net5 = pf.ParserJSON().parse('foo.json')
+            finally:
+                if os.path.isfile('foo.json'):
+                    os.remove('foo.json')
+
+            # Test
+            for net in [net1, net2, net3, net5]:
+                self.assertEqual(net.get_num_redundant_buses(), 1)
+                bus1 = net.get_bus_from_number(3006)
+                bus2 = net.get_bus_from_number(153)
+                self.assertTrue(bus1.is_equal(bus2))
+                load1 = net.get_load_from_name_and_bus_number('1', 3006)
+                load2 = net.get_load_from_name_and_bus_number('1', 153)
+                self.assertTrue(load1.is_equal(load2))
+                br1 = net.get_branch_from_name_and_bus_numbers('2', 3006, 154)
+                br2 = net.get_branch_from_name_and_bus_numbers('2', 153, 154)
+                self.assertTrue(br1.is_equal(br2))
+                br3 = net.get_branch_from_name_and_bus_numbers('1', 3006, 3005)
+                br4 = net.get_branch_from_name_and_bus_numbers('1', 153, 3005)
+                self.assertTrue(br3.is_equal(br4))
         else:
-            raise unittest.skipTest('no .m files')
+            raise unittest.skipTest('no .raw file')
         
     def test_parserraw_write(self):
 

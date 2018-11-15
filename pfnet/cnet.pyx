@@ -1494,6 +1494,18 @@ cdef class Network:
 
         return cnet.NET_get_num_star_buses(self._c_net)
 
+    def get_num_redundant_buses(self):
+        """
+        Gets number internal redundant buses in the network
+        (ones that have been merged with other buses).
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_red_buses(self._c_net)
+
     def get_num_buses_reg_by_gen(self):
         """
         Gets number of buses whose voltage magnitudes are regulated by generators.
@@ -1960,8 +1972,7 @@ cdef class Network:
                 'shunt_v_vio': self.shunt_v_vio,
                 'shunt_b_vio': self.shunt_b_vio,
                 'load_P_util': self.load_P_util,
-                'load_P_vio': self.load_P_vio,
-                'num_actions': self.num_actions}
+                'load_P_vio': self.load_P_vio}
 
     def has_same_ptr(self, Network other):
         """
@@ -2159,12 +2170,16 @@ cdef class Network:
         cnet.NET_set_var_values(self._c_net,v)
         free(v)
 
-    def show_components(self):
+    def show_components(self, output_level=0):
         """
         Shows information about the number of network components of each type.
+
+        Parameters
+        ----------
+        output_level : integer
         """
 
-        print(cnet.NET_get_show_components_str(self._c_net).decode('UTF-8'))
+        print(cnet.NET_get_show_components_str(self._c_net, output_level).decode('UTF-8'))
 
     def show_properties(self, t=0):
         """
@@ -2529,15 +2544,6 @@ cdef class Network:
             else:
                 return np.array(r)
 
-    property num_actions:
-        """ Number of control adjustments (int or |Array|). """
-        def __get__(self):
-            r = [cnet.NET_get_num_actions(self._c_net,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
     property var_generators_corr_radius:
         """ Correlation radius of variable generators (number of edges). """
         def __get__(self): return cnet.NET_get_vargen_corr_radius(self._c_net)
@@ -2548,7 +2554,7 @@ cdef class Network:
 
     property show_components_str:
         """ String with information about network components. """
-        def __get__(self): return cnet.NET_get_show_components_str(self._c_net).decode('UTF-8')
+        def __get__(self): return cnet.NET_get_show_components_str(self._c_net, 0).decode('UTF-8')
 
 cdef public new_Network(cnet.Net* n):
     if n is not NULL:

@@ -8,9 +8,9 @@ if [ ! -d "lib/pfnet" ]; then
   mv pfnet*/ pfnet
   cd pfnet
   if [ "$(uname)" == "Darwin" ]; then
-      ./configure --prefix=$PWD/build LDFLAGS="-Wl,-install_name,@loader_path/libpfnet.dylib"
+      ./configure --prefix="$PWD/build" LDFLAGS="-Wl,-install_name,@loader_path/libpfnet.dylib"
   else
-      ./configure --prefix=$PWD/build
+      ./configure --prefix="$PWD/build"
   fi
   make clean
   make uninstall

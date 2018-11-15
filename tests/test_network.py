@@ -136,7 +136,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(isinstance(net.shunt_b_vio,np.ndarray))
             self.assertTrue(isinstance(net.load_P_util,np.ndarray))
             self.assertTrue(isinstance(net.load_P_vio,np.ndarray))
-            self.assertTrue(isinstance(net.num_actions,np.ndarray))
 
             # prop shape
             self.assertTupleEqual(net.bus_v_max.shape,(self.T,))
@@ -155,7 +154,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTupleEqual(net.shunt_b_vio.shape,(self.T,))
             self.assertTupleEqual(net.load_P_util.shape,(self.T,))
             self.assertTupleEqual(net.load_P_vio.shape,(self.T,))
-            self.assertTupleEqual(net.num_actions.shape,(self.T,))
 
     def test_component_lookups(self):
         
@@ -2179,7 +2177,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(net.shunt_b_vio,0.)
             self.assertEqual(net.load_P_util,0.)
             self.assertEqual(net.load_P_vio,0.)
-            self.assertEqual(net.num_actions,0)
 
             self.assertEqual(netMP.bus_v_max.shape[0],self.T)
             self.assertEqual(netMP.bus_v_min.shape[0],self.T)
@@ -2197,7 +2194,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(netMP.shunt_b_vio.shape[0],self.T)
             self.assertEqual(netMP.load_P_util.shape[0],self.T)
             self.assertEqual(netMP.load_P_vio.shape[0],self.T)
-            self.assertEqual(netMP.num_actions.shape[0],self.T)
 
             self.assertTrue(np.all(netMP.bus_v_max == 0))
             self.assertTrue(np.all(netMP.bus_v_min == 0))
@@ -2215,7 +2211,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(np.all(netMP.shunt_b_vio == 0))
             self.assertTrue(np.all(netMP.load_P_util == 0))
             self.assertTrue(np.all(netMP.load_P_vio == 0))
-            self.assertTrue(np.all(netMP.num_actions == 0))
 
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
@@ -2280,7 +2275,6 @@ class TestNetwork(unittest.TestCase):
             self.assertGreaterEqual(net.shunt_b_vio,0.)
             self.assertNotEqual(net.load_P_util,0.)
             self.assertGreaterEqual(net.load_P_vio,0.)
-            self.assertGreaterEqual(net.num_actions,0.)
 
             self.assertEqual(net.bus_v_max,net.get_properties()['bus_v_max'])
             self.assertEqual(net.bus_v_min,net.get_properties()['bus_v_min'])
@@ -2302,9 +2296,7 @@ class TestNetwork(unittest.TestCase):
 
             self.assertEqual(net.load_P_util,net.get_properties()['load_P_util'])
             self.assertEqual(net.load_P_vio,net.get_properties()['load_P_vio'])
-
-            self.assertEqual(net.num_actions,net.get_properties()['num_actions'])
-
+            
             # Buses
             #######
             vmax = -np.inf
@@ -2531,7 +2523,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(net.shunt_b_vio,0.)
             self.assertEqual(net.load_P_util,0.)
             self.assertEqual(net.load_P_vio,0.)
-            self.assertEqual(net.num_actions,0.)
 
             self.assertTrue(np.all(netMP.bus_v_max == 0))
             self.assertTrue(np.all(netMP.bus_v_min == 0))
@@ -2549,7 +2540,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(np.all(netMP.shunt_b_vio == 0))
             self.assertTrue(np.all(netMP.load_P_util == 0))
             self.assertTrue(np.all(netMP.load_P_vio == 0))
-            self.assertTrue(np.all(netMP.num_actions == 0))
 
     def test_bus_mis_and_sens(self):
 

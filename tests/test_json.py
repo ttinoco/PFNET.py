@@ -223,6 +223,10 @@ class TestJSON(unittest.TestCase):
             self.assertEqual(len(json_model['shunts']), net.num_shunts)
             self.assertEqual(len(json_model['var_generators']), net.num_var_generators)
             self.assertEqual(len(json_model['batteries']), net.num_batteries)
+
+            # Bus order
+            for i in range(net.num_buses):
+                self.assertEqual(json_model['buses'][i]['index'], i)
             
     def tearDown(self):
 
