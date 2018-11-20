@@ -244,6 +244,10 @@ class TestFlags(unittest.TestCase):
                           ['charging power','energy level'])
             num_vars += 0
             self.assertEqual(net.num_vars,num_vars)
+            
+            # vsc converters
+            
+            # facts
 
             # Clear
             num_vars = 0
