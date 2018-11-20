@@ -2233,6 +2233,7 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power', 'reactive power'])
+
             num_vars_saved = net.num_vars
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_fixed,0)
@@ -2782,6 +2783,7 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power', 'reactive power'])
+
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_fixed,0)
             self.assertEqual(net.num_vars,
@@ -2946,6 +2948,7 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:battery:%d:energy level:%d' %(bat.index,t))
+
                 for vsc_conv in net.vsc_converters:
                     i = vsc_conv.index_P[t]
                     s = constr.get_G_row_info_string(i)
@@ -2957,6 +2960,7 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:vsc converter:%d:reactive power:%d' %(vsc_conv.index,t))
+
                 for facts in net.facts:
                     i = facts.index_v_mag_s[t]
                     s = constr.get_G_row_info_string(i)
