@@ -126,6 +126,34 @@ cdef class ConverterVSC:
 
         return cconv_vsc.CONVVSC_is_in_v_ac_mode(self._c_ptr)
 
+    def set_in_P_dc_mode(self):
+        """
+        Sets VSC converter to be in constant DC power mode.
+        """
+
+        cconv_vsc.CONVVSC_set_mode_dc(self._c_ptr, cconv_vsc.CONVVSC_MODE_DC_CP)
+
+    def set_in_v_dc_mode(self):
+        """
+        Sets VSC converter to be in constant DC voltage mode.
+        """
+
+        cconv_vsc.CONVVSC_set_mode_dc(self._c_ptr, cconv_vsc.CONVVSC_MODE_DC_CV)
+
+    def set_in_f_ac_mode(self):
+        """
+        Sets VSC converter to be in constant AC power factor mode.
+        """
+
+        cconv_vsc.CONVVSC_set_mode_ac(self._c_ptr, cconv_vsc.CONVVSC_MODE_AC_CF)
+
+    def set_in_v_ac_mode(self):
+        """
+        Sets VSC converter to be in constant AC voltage mode.
+        """
+
+        cconv_vsc.CONVVSC_set_mode_ac(self._c_ptr, cconv_vsc.CONVVSC_MODE_AC_CV)
+
     def has_flags(self, flag_type, q):
         """
         Determines whether the VSC converter has the flags associated with
@@ -167,30 +195,6 @@ cdef class ConverterVSC:
             return s
         else:
             raise ConverterVSCError('index does not correspond to any variable')
-
-    def set_P(self, P, t=0):
-        """
-        Sets active power.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cconv_vsc.CONVVSC_set_P(self._c_ptr,P,t)
-
-    def set_Q(self, Q, t=0):
-        """
-        Sets reactive power.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cconv_vsc.CONVVSC_set_Q(self._c_ptr,Q,t)
         
     property name:
         """ VSC converter name (string). """
@@ -215,38 +219,22 @@ cdef class ConverterVSC:
     property index_P:
         """ Index of active power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_vsc.CONVVSC_get_index_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q:
         """ Index of reactive power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_vsc.CONVVSC_get_index_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_P_dc:
         """ Index of DC power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_index_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_vsc.CONVVSC_get_index_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_i_dc:
         """ Index of DC current variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_index_i_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_vsc.CONVVSC_get_index_i_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property ac_bus:
         """ |Bus| to which VSC converter is connected. """
@@ -284,59 +272,48 @@ cdef class ConverterVSC:
     property P:
         """ Active power injection into AC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cconv_vsc.CONVVSC_set_P(self._c_ptr,Par[t],t)
+            return DoubleArray(cconv_vsc.CONVVSC_get_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_vsc.CONVVSC_get_P_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q:
         """ Reactive power injection into AC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cconv_vsc.CONVVSC_set_Q(self._c_ptr,Qar[t],t)
+            return DoubleArray(cconv_vsc.CONVVSC_get_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_vsc.CONVVSC_get_Q_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_max:
         """ Maximum active power injection into AC bus (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_P_max(self._c_ptr)
+        def __set__(self, v): cconv_vsc.CONVVSC_set_P_max(self._c_ptr, v)
 
     property P_min:
         """ Minimum active power injection into AC bus (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_P_min(self._c_ptr)
+        def __set__(self, v): cconv_vsc.CONVVSC_set_P_min(self._c_ptr, v)
                 
     property Q_max:
         """ Maximum reactive power injection into AC bus (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_Q_max(self._c_ptr)
+        def __set__(self, v): cconv_vsc.CONVVSC_set_Q_max(self._c_ptr, v)
 
     property Q_min:
         """ Minimum reactive power injection into AC bus (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_Q_min(self._c_ptr)
+        def __set__(self, v): cconv_vsc.CONVVSC_set_Q_min(self._c_ptr, v)
 
     property Q_par:
         """ Reactive power participation (unitless) (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_Q_par(self._c_ptr)
+        def __set__(self, v): cconv_vsc.CONVVSC_set_Q_par(self._c_ptr, v)
 
     property P_dc:
         """ DC power injection into DC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_vsc.CONVVSC_get_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_vsc.CONVVSC_get_P_dc_array(self._c_ptr), self.num_periods)[:] = v
 
     property i_dc:
         """ DC current injection into DC bus (p.u. system base MVA and DC bus v base) (float or |Array|). """
@@ -350,28 +327,26 @@ cdef class ConverterVSC:
     property P_dc_set:
         """ DC power set point (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_P_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_vsc.CONVVSC_get_P_dc_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_vsc.CONVVSC_get_P_dc_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_dc_set:
         """ DC voltage set point (p.u. DC base) (float or |Array|). """
         def __get__(self):
-            r = [cconv_vsc.CONVVSC_get_v_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_vsc.CONVVSC_get_v_dc_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_vsc.CONVVSC_get_v_dc_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property loss_coeff_A:
         """ Loss coefficient for constant term (p.u. system base power) (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_loss_coeff_A(self._c_ptr)
+        def __set__(self, A): cconv_vsc.CONVVSC_set_loss_coeff_A(self._c_ptr, A)
 
     property loss_coeff_B:
         """ Loss coefficient for linear term (p.u. system base power over DC current in p.u.) (float). """
         def __get__(self): return cconv_vsc.CONVVSC_get_loss_coeff_B(self._c_ptr)
+        def __set__(self, B): cconv_vsc.CONVVSC_set_loss_coeff_B(self._c_ptr, B)
 
     property target_power_factor:
         """ Target AC power factor (float). """

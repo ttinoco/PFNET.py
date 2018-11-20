@@ -27,6 +27,7 @@ cdef extern from "pfnet/conv_csc.h":
        
     cdef char CONVCSC_PROP_ANY
 
+    ConvCSC* CONVCSC_array_new(int size, int num_periods)
     void CONVCSC_array_del(ConvCSC* conv_array, int size)
   
     char CONVCSC_get_flags_vars(ConvCSC* conv)

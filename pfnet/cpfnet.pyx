@@ -130,13 +130,13 @@ cdef Matrix(cmat.Mat* m, owndata=False):
 
 class AttributeArray(np.ndarray):
 
-    def __new__(cls,data,func=None):
+    def __new__(cls, data, func=None):
         cls.func = func
         return np.asarray(data).view(cls)
 
-    def __setitem__(self,key,value):
-        self.func(value,key)
-        np.ndarray.__setitem__(self,key,value)
+    def __setitem__(self, key, value):
+        self.func(value, key)
+        np.ndarray.__setitem__(self, key, value)
 
 # Attribute int
 ###############

@@ -2081,7 +2081,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cbranch.Branch* array = cbranch.BRANCH_array_new(size,self.num_periods)
+        cdef cbranch.Branch* array = cbranch.BRANCH_array_new(size, self.num_periods)
         cnet.NET_set_branch_array(self._c_net,array,size)
 
     def set_bus_array(self, size):
@@ -2093,7 +2093,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cbus.Bus* array = cbus.BUS_array_new(size,self.num_periods)
+        cdef cbus.Bus* array = cbus.BUS_array_new(size, self.num_periods)
         cnet.NET_set_bus_array(self._c_net,array,size)
 
     def set_gen_array(self, size):
@@ -2105,7 +2105,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cgen.Gen* array = cgen.GEN_array_new(size,self.num_periods)
+        cdef cgen.Gen* array = cgen.GEN_array_new(size, self.num_periods)
         cnet.NET_set_gen_array(self._c_net,array,size)
 
     def set_load_array(self, size):
@@ -2117,7 +2117,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cload.Load* array = cload.LOAD_array_new(size,self.num_periods)
+        cdef cload.Load* array = cload.LOAD_array_new(size, self.num_periods)
         cnet.NET_set_load_array(self._c_net,array,size)
 
     def set_shunt_array(self, size):
@@ -2129,7 +2129,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cshunt.Shunt* array = cshunt.SHUNT_array_new(size,self.num_periods)
+        cdef cshunt.Shunt* array = cshunt.SHUNT_array_new(size, self.num_periods)
         cnet.NET_set_shunt_array(self._c_net,array,size)
 
     def set_vargen_array(self, size):
@@ -2141,7 +2141,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cvargen.Vargen* array = cvargen.VARGEN_array_new(size,self.num_periods)
+        cdef cvargen.Vargen* array = cvargen.VARGEN_array_new(size, self.num_periods)
         cnet.NET_set_vargen_array(self._c_net,array,size)
 
     def set_battery_array(self, size):
@@ -2153,8 +2153,68 @@ cdef class Network:
         size : int
         """
 
-        cdef cbat.Bat* array = cbat.BAT_array_new(size,self.num_periods)
-        cnet.NET_set_bat_array(self._c_net,array,size)
+        cdef cbat.Bat* array = cbat.BAT_array_new(size, self.num_periods)
+        cnet.NET_set_bat_array(self._c_net, array, size)
+
+    def set_vsc_converter_array(self, size):
+        """
+        Allocates and sets vsc converter array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cconv_vsc.ConvVSC* array = cconv_vsc.CONVVSC_array_new(size, self.num_periods)
+        cnet.NET_set_vsc_conv_array(self._c_net, array, size)
+
+    def set_csc_converter_array(self, size):
+        """
+        Allocates and sets csc converter array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cconv_csc.ConvCSC* array = cconv_csc.CONVCSC_array_new(size, self.num_periods)
+        cnet.NET_set_csc_conv_array(self._c_net, array, size)
+
+    def set_dc_bus_array(self, size):
+        """
+        Allocates and sets DC bus array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cbus_dc.BusDC* array = cbus_dc.BUSDC_array_new(size, self.num_periods)
+        cnet.NET_set_dc_bus_array(self._c_net, array, size)
+
+    def set_dc_branch_array(self, size):
+        """
+        Allocates and sets DC branch array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cbranch_dc.BranchDC* array = cbranch_dc.BRANCHDC_array_new(size, self.num_periods)
+        cnet.NET_set_dc_branch_array(self._c_net, array, size)
+
+    def set_facts_array(self, size):
+        """
+        Allocates and sets FACTS array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cfacts.Facts* array = cfacts.FACTS_array_new(size, self.num_periods)
+        cnet.NET_set_facts_array(self._c_net, array, size)
 
     def set_var_values(self, values):
         """
@@ -2228,17 +2288,12 @@ cdef class Network:
 
         cnet.NET_update_set_points(self._c_net)
 
-    def update_hashes(self):
+    def update_hash_tables(self):
         """
-        Updates the bus name and number hash lists.
+        Updates internal hash tables for looking up AC and DC buses.
         """
         
-        cdef Bus cb
-
-        for bus in self.buses:
-            cb = bus
-            cnet.NET_bus_hash_number_add(self._c_net,cb._c_ptr)
-            cnet.NET_bus_hash_name_add(self._c_net,cb._c_ptr)
+        cnet.NET_update_hash_tables(self._c_net)
 
     property state_tag:
         """ State tag. """

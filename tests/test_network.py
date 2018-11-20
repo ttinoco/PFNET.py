@@ -4358,7 +4358,7 @@ class TestNetwork(unittest.TestCase):
             
             self.assertEqual(copy_net.num_periods,2)
             
-            # Test allocated arrays
+            # Allocate arrays
             copy_net.set_bus_array(orig_net.num_buses)
             copy_net.set_gen_array(orig_net.num_generators)
             copy_net.set_shunt_array(orig_net.num_shunts)
@@ -4366,12 +4366,17 @@ class TestNetwork(unittest.TestCase):
             copy_net.set_branch_array(orig_net.num_branches)
             copy_net.set_vargen_array(orig_net.num_var_generators)
             copy_net.set_battery_array(orig_net.num_batteries)
+            copy_net.set_vsc_converter_array(orig_net.num_vsc_converters)
+            copy_net.set_csc_converter_array(orig_net.num_csc_converters)
+            copy_net.set_dc_bus_array(orig_net.num_dc_buses)
+            copy_net.set_dc_branch_array(orig_net.num_dc_branches)
+            copy_net.set_facts_array(orig_net.num_facts)
             
             # Buses (must be first)
             for i in range(copy_net.num_buses):
                 
-                copy_bus = copy_net.buses[i]
-                orig_bus = orig_net.buses[i]
+                copy_bus = copy_net.get_bus(i)
+                orig_bus = orig_net.get_bus(i)
                 
                 copy_bus.number = orig_bus.number
                 copy_bus.name = orig_bus.name
@@ -4392,15 +4397,27 @@ class TestNetwork(unittest.TestCase):
                 copy_bus.v_min_emer = orig_bus.v_min_emer
                 copy_bus.set_slack_flag(orig_bus.is_slack())
                 copy_bus.set_star_flag(orig_bus.is_star())
+
+            # DC buses
+            for i in range(copy_net.num_dc_buses):
+
+                copy_bus = copy_net.get_dc_bus(i)
+                orig_bus = orig_net.get_dc_bus(i)
+
+                copy_bus.name = orig_bus.name
+                copy_bus.number = orig_bus.number
+
+                copy_bus.v_base = orig_bus.v_base
+                copy_bus.v = orig_bus.v
                 
             # Update hash tables, important
-            copy_net.update_hashes()
+            copy_net.update_hash_tables()
             
             # Generators
             for i in range(copy_net.num_generators):
                 
-                copy_gen = copy_net.generators[i]
-                orig_gen = orig_net.generators[i]
+                copy_gen = copy_net.get_generator(i)
+                orig_gen = orig_net.get_generator(i)
 
                 copy_gen.name = orig_gen.name
                 
@@ -4427,8 +4444,8 @@ class TestNetwork(unittest.TestCase):
             # Loads
             for i in range(copy_net.num_loads):
      
-                copy_load = copy_net.loads[i]
-                orig_load = orig_net.loads[i]
+                copy_load = copy_net.get_load(i)
+                orig_load = orig_net.get_load(i)
 
                 copy_load.name = orig_load.name
      
@@ -4455,8 +4472,8 @@ class TestNetwork(unittest.TestCase):
             # Shunts
             for i in range(copy_net.num_shunts):
                 
-                copy_shunt = copy_net.shunts[i]
-                orig_shunt = orig_net.shunts[i]
+                copy_shunt = copy_net.get_shunt(i)
+                orig_shunt = orig_net.get_shunt(i)
 
                 copy_shunt.name = orig_shunt.name
                 
@@ -4488,8 +4505,8 @@ class TestNetwork(unittest.TestCase):
             # Branches
             for i in range(copy_net.num_branches):
                 
-                copy_branch = copy_net.branches[i]
-                orig_branch = orig_net.branches[i]
+                copy_branch = copy_net.get_branch(i)
+                orig_branch = orig_net.get_branch(i)
 
                 copy_branch.name = orig_branch.name
                 copy_branch.set_pos_ratio_v_sens(orig_branch.has_pos_ratio_v_sens())
@@ -4537,8 +4554,8 @@ class TestNetwork(unittest.TestCase):
             # Var generators
             for i in range(copy_net.num_var_generators):
      
-                copy_vargen = copy_net.var_generators[i]
-                orig_vargen = orig_net.var_generators[i]
+                copy_vargen = copy_net.get_var_generator(i)
+                orig_vargen = orig_net.get_var_generator(i)
 
                 copy_vargen.name = orig_vargen.name
      
@@ -4557,8 +4574,8 @@ class TestNetwork(unittest.TestCase):
             # Batteries
             for i in range(copy_net.num_batteries):
      
-                copy_bat = copy_net.batteries[i]
-                orig_bat = orig_net.batteries[i]
+                copy_bat = copy_net.get_battery(i)
+                orig_bat = orig_net.get_battery(i)
 
                 copy_bat.name = orig_bat.name
                 
@@ -4575,8 +4592,68 @@ class TestNetwork(unittest.TestCase):
                 copy_bat.E_final = orig_bat.E_final
                 copy_bat.E_max = orig_bat.E_max
 
+            # DC branches
+            for i in range(copy_net.num_dc_branches):
+
+                copy_br = copy_net.get_dc_branch(i)
+                orig_br = orig_net.get_dc_branch(i)
+
+                copy_br.name = orig_br.name
+
+                copy_br.bus_k = copy_net.get_dc_bus_from_number(orig_br.bus_k.number)
+                copy_br.bus_m = copy_net.get_dc_bus_from_number(orig_br.bus_m.number)
+
+                copy_br.r = orig_br.r
+
+            # CSC converters
+            for i in range(copy_net.num_csc_converters):
+
+                copy_csc = copy_net.get_csc_converter(i)
+                orig_csc = orig_net.get_csc_converter(i)
+
+                copy_csc.ac_bus = copy_net.get_bus_from_number(orig_csc.ac_bus.number)
+                copy_csc.dc_bus = copy_net.get_dc_bus_from_number(orig_csc.dc_bus.number)
+
+            # VSC converters
+            for i in range(copy_net.num_vsc_converters):
+
+                copy_vsc = copy_net.get_vsc_converter(i)
+                orig_vsc = orig_net.get_vsc_converter(i)
+
+                copy_vsc.ac_bus = copy_net.get_bus_from_number(orig_vsc.ac_bus.number)
+                copy_vsc.dc_bus = copy_net.get_dc_bus_from_number(orig_vsc.dc_bus.number)
+                try:
+                    copy_vsc.reg_bus = copy_net.get_bus_from_number(orig_vsc.reg_bus.number)
+                except AttributeError:
+                    pass
+
+                copy_vsc.name = orig_vsc.name
+
+                copy_vsc.P_dc_set = orig_vsc.P_dc_set
+                copy_vsc.v_dc_set = orig_vsc.v_dc_set
+                copy_vsc.P = orig_vsc.P
+                copy_vsc.Q = orig_vsc.Q
+                copy_vsc.P_dc = orig_vsc.P_dc
+                copy_vsc.loss_coeff_A = orig_vsc.loss_coeff_A
+                copy_vsc.loss_coeff_B = orig_vsc.loss_coeff_B
+                copy_vsc.P_max = orig_vsc.P_max
+                copy_vsc.P_min = orig_vsc.P_min
+                copy_vsc.Q_max = orig_vsc.Q_max
+                copy_vsc.Q_min = orig_vsc.Q_min
+                copy_vsc.Q_par = orig_vsc.Q_par
+                copy_vsc.target_power_factor = orig_vsc.target_power_factor
+
+                if orig_vsc.is_in_P_dc_mode():
+                    copy_vsc.set_in_P_dc_mode()
+                if orig_vsc.is_in_v_dc_mode():
+                    copy_vsc.set_in_v_dc_mode()
+                if orig_vsc.is_in_f_ac_mode():
+                    copy_vsc.set_in_f_ac_mode()
+                if orig_vsc.is_in_v_ac_mode():
+                    copy_vsc.set_in_v_ac_mode()
+                
             # Compare
-            pf.tests.utils.compare_networks(self, orig_net, copy_net)  
+            pf.tests.utils.compare_networks(self, orig_net, copy_net)
 
     def test_symmetric_connectors_removers(self):
 

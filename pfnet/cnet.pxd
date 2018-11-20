@@ -199,6 +199,7 @@ cdef extern from "pfnet/net.h":
     void NET_update_properties(Net* net, cvec.Vec* values)
     void NET_propagate_data_in_time(Net* net, int start, int end)
     void NET_update_set_points(Net* net)
+    void NET_update_hash_tables(Net* net)
 
     void NET_set_bus_array(Net* net, cbus.Bus* bus_list, int num_buses)
     void NET_set_branch_array(Net* net, cbranch.Branch* branch_list, int num_branches)
@@ -207,3 +208,8 @@ cdef extern from "pfnet/net.h":
     void NET_set_shunt_array(Net* net, cshunt.Shunt* shunt_list, int num_shunts)
     void NET_set_vargen_array(Net* net, cvargen.Vargen* vargen_list, int num_vargens)
     void NET_set_bat_array(Net* net, cbat.Bat* bat_list, int num_batteries)
+    void NET_set_vsc_conv_array(Net* net, cconv_vsc.ConvVSC* conv, int num)
+    void NET_set_csc_conv_array(Net* net, cconv_csc.ConvCSC* conv, int num)
+    void NET_set_dc_bus_array(Net* net, cbus_dc.BusDC* bus, int num)
+    void NET_set_dc_branch_array(Net* net, cbranch_dc.BranchDC* branch, int num)
+    void NET_set_facts_array(Net* net, cfacts.Facts* facts, int num)

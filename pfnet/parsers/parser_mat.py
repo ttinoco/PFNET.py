@@ -93,7 +93,7 @@ class PyParserMAT(object):
                 bus_index += 1
 
         # Hashes
-        net.update_hashes()
+        net.update_hash_tables()
         
         # Load and shunts
         load_index = 0
