@@ -943,6 +943,7 @@ cdef class Network:
     def get_csc_converter(self, index):
         """
         Gets CSC converter with the given index.
+
         Parameters
         ----------
         index : int
@@ -960,6 +961,7 @@ cdef class Network:
     def get_vsc_converter(self, index):
         """
         Gets VSC converter with the given index.
+
         Parameters
         ----------
         index : int
@@ -977,6 +979,7 @@ cdef class Network:
     def get_dc_bus(self, index):
         """
         Gets DC bus with the given index.
+
         Parameters
         ----------
         index : int
@@ -994,6 +997,7 @@ cdef class Network:
     def get_dc_branch(self, index):
         """
         Gets DC branch with the given index.
+
         Parameters
         ----------
         index : int
@@ -1011,6 +1015,7 @@ cdef class Network:
     def get_facts(self, index):
         """
         Gets FACTS device.
+
         Parameters
         ----------
         index : int
@@ -1301,7 +1306,7 @@ cdef class Network:
         name = name.encode('UTF-8')
         name1 = bus1_name.encode('UTF-8')
         name2 = bus2_name.encode('UTF-8')
-        ptr = cnet.NET_get_dc_branch_from_name_and_dc_bus_names(self._c_net, name, bus1_name, bus2_name)
+        ptr = cnet.NET_get_dc_branch_from_name_and_dc_bus_names(self._c_net, name, name1, name2)
         if ptr is not NULL:
             return new_BranchDC(ptr)
         else:
@@ -1327,6 +1332,52 @@ cdef class Network:
             return new_Facts(ptr)
         else:
             raise NetworkError('facts not found')
+
+    def get_component_from_key(self, key):
+        """
+        Gets network component from key, where key is of the form
+        ('obj_type', bus_num) or ('obj_type', equi_id, bus_num) or
+        ('obj_type, equip_id, bus_k_num, bus_m_num). 
+
+        Parameters
+        ----------
+        key : tuple
+
+        Returns
+        -------
+        obj : object
+        """
+
+        if key[0] == 'bus':
+            return self.get_bus_from_number(*key[1:])
+        elif key[0] == 'generator':
+            return self.get_generator_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'branch':
+            return self.get_branch_from_name_and_bus_numbers(*key[1:])
+        elif key[0] == 'shunt':
+            return self.get_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'fixed shunt':
+            return self.get_fixed_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'switched shunt':
+            return self.get_switched_shunt_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'load':
+            return self.get_load_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'variable generator':
+            return self.get_var_generator_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'battery':
+            return self.get_battery_from_name_and_bus_number(*key[1:])
+        elif key[0] == 'csc converter':
+            return self.get_csc_converter_from_name_and_ac_bus_number(*key[1:])
+        elif key[0] == 'vsc converter':
+            return self.get_vsc_converter_from_name_and_ac_bus_number(*key[1:])
+        elif key[0] == 'dc bus':
+            return self.get_dc_bus_from_number(*key[1:])
+        elif key[0] == 'dc branch':
+            return self.get_dc_branch_from_name_and_dc_bus_names(*key[1:])
+        elif key[0] == 'facts':
+            return self.get_facts_from_name_and_bus_numbers(*key[1:])
+        else:
+            raise NetworkError('invalid key')
         
     def get_generator_buses(self):
         """
@@ -1442,6 +1493,18 @@ cdef class Network:
         """
 
         return cnet.NET_get_num_star_buses(self._c_net)
+
+    def get_num_redundant_buses(self):
+        """
+        Gets number internal redundant buses in the network
+        (ones that have been merged with other buses).
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_red_buses(self._c_net)
 
     def get_num_buses_reg_by_gen(self):
         """
@@ -1909,8 +1972,7 @@ cdef class Network:
                 'shunt_v_vio': self.shunt_v_vio,
                 'shunt_b_vio': self.shunt_b_vio,
                 'load_P_util': self.load_P_util,
-                'load_P_vio': self.load_P_vio,
-                'num_actions': self.num_actions}
+                'load_P_vio': self.load_P_vio}
 
     def has_same_ptr(self, Network other):
         """
@@ -2019,7 +2081,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cbranch.Branch* array = cbranch.BRANCH_array_new(size,self.num_periods)
+        cdef cbranch.Branch* array = cbranch.BRANCH_array_new(size, self.num_periods)
         cnet.NET_set_branch_array(self._c_net,array,size)
 
     def set_bus_array(self, size):
@@ -2031,7 +2093,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cbus.Bus* array = cbus.BUS_array_new(size,self.num_periods)
+        cdef cbus.Bus* array = cbus.BUS_array_new(size, self.num_periods)
         cnet.NET_set_bus_array(self._c_net,array,size)
 
     def set_gen_array(self, size):
@@ -2043,7 +2105,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cgen.Gen* array = cgen.GEN_array_new(size,self.num_periods)
+        cdef cgen.Gen* array = cgen.GEN_array_new(size, self.num_periods)
         cnet.NET_set_gen_array(self._c_net,array,size)
 
     def set_load_array(self, size):
@@ -2055,7 +2117,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cload.Load* array = cload.LOAD_array_new(size,self.num_periods)
+        cdef cload.Load* array = cload.LOAD_array_new(size, self.num_periods)
         cnet.NET_set_load_array(self._c_net,array,size)
 
     def set_shunt_array(self, size):
@@ -2067,7 +2129,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cshunt.Shunt* array = cshunt.SHUNT_array_new(size,self.num_periods)
+        cdef cshunt.Shunt* array = cshunt.SHUNT_array_new(size, self.num_periods)
         cnet.NET_set_shunt_array(self._c_net,array,size)
 
     def set_vargen_array(self, size):
@@ -2079,7 +2141,7 @@ cdef class Network:
         size : int
         """
 
-        cdef cvargen.Vargen* array = cvargen.VARGEN_array_new(size,self.num_periods)
+        cdef cvargen.Vargen* array = cvargen.VARGEN_array_new(size, self.num_periods)
         cnet.NET_set_vargen_array(self._c_net,array,size)
 
     def set_battery_array(self, size):
@@ -2091,8 +2153,68 @@ cdef class Network:
         size : int
         """
 
-        cdef cbat.Bat* array = cbat.BAT_array_new(size,self.num_periods)
-        cnet.NET_set_bat_array(self._c_net,array,size)
+        cdef cbat.Bat* array = cbat.BAT_array_new(size, self.num_periods)
+        cnet.NET_set_bat_array(self._c_net, array, size)
+
+    def set_vsc_converter_array(self, size):
+        """
+        Allocates and sets vsc converter array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cconv_vsc.ConvVSC* array = cconv_vsc.CONVVSC_array_new(size, self.num_periods)
+        cnet.NET_set_vsc_conv_array(self._c_net, array, size)
+
+    def set_csc_converter_array(self, size):
+        """
+        Allocates and sets csc converter array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cconv_csc.ConvCSC* array = cconv_csc.CONVCSC_array_new(size, self.num_periods)
+        cnet.NET_set_csc_conv_array(self._c_net, array, size)
+
+    def set_dc_bus_array(self, size):
+        """
+        Allocates and sets DC bus array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cbus_dc.BusDC* array = cbus_dc.BUSDC_array_new(size, self.num_periods)
+        cnet.NET_set_dc_bus_array(self._c_net, array, size)
+
+    def set_dc_branch_array(self, size):
+        """
+        Allocates and sets DC branch array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cbranch_dc.BranchDC* array = cbranch_dc.BRANCHDC_array_new(size, self.num_periods)
+        cnet.NET_set_dc_branch_array(self._c_net, array, size)
+
+    def set_facts_array(self, size):
+        """
+        Allocates and sets FACTS array.
+
+        Parameters
+        ----------
+        size : int
+        """
+
+        cdef cfacts.Facts* array = cfacts.FACTS_array_new(size, self.num_periods)
+        cnet.NET_set_facts_array(self._c_net, array, size)
 
     def set_var_values(self, values):
         """
@@ -2108,12 +2230,16 @@ cdef class Network:
         cnet.NET_set_var_values(self._c_net,v)
         free(v)
 
-    def show_components(self):
+    def show_components(self, output_level=0):
         """
         Shows information about the number of network components of each type.
+
+        Parameters
+        ----------
+        output_level : integer
         """
 
-        print(cnet.NET_get_show_components_str(self._c_net).decode('UTF-8'))
+        print(cnet.NET_get_show_components_str(self._c_net, output_level).decode('UTF-8'))
 
     def show_properties(self, t=0):
         """
@@ -2162,17 +2288,12 @@ cdef class Network:
 
         cnet.NET_update_set_points(self._c_net)
 
-    def update_hashes(self):
+    def update_hash_tables(self):
         """
-        Updates the bus name and number hash lists.
+        Updates internal hash tables for looking up AC and DC buses.
         """
         
-        cdef Bus cb
-
-        for bus in self.buses:
-            cb = bus
-            cnet.NET_bus_hash_number_add(self._c_net,cb._c_ptr)
-            cnet.NET_bus_hash_name_add(self._c_net,cb._c_ptr)
+        cnet.NET_update_hash_tables(self._c_net)
 
     property state_tag:
         """ State tag. """
@@ -2478,15 +2599,6 @@ cdef class Network:
             else:
                 return np.array(r)
 
-    property num_actions:
-        """ Number of control adjustments (int or |Array|). """
-        def __get__(self):
-            r = [cnet.NET_get_num_actions(self._c_net,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
     property var_generators_corr_radius:
         """ Correlation radius of variable generators (number of edges). """
         def __get__(self): return cnet.NET_get_vargen_corr_radius(self._c_net)
@@ -2497,7 +2609,7 @@ cdef class Network:
 
     property show_components_str:
         """ String with information about network components. """
-        def __get__(self): return cnet.NET_get_show_components_str(self._c_net).decode('UTF-8')
+        def __get__(self): return cnet.NET_get_show_components_str(self._c_net, 0).decode('UTF-8')
 
 cdef public new_Network(cnet.Net* n):
     if n is not NULL:

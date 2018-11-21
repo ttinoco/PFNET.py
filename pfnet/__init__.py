@@ -13,3 +13,4 @@ from . import parsers
 from . import tests
 from .parsers import PyParserMAT
 
+from .version import __version__

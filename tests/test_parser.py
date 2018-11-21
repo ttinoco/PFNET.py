@@ -18,6 +18,58 @@ class TestParser(unittest.TestCase):
         
         pass
 
+    def test_parserraw_zi_lines(self):
+
+        case = os.path.join('data', 'psse_sample_case.raw')
+
+        if os.path.isfile(case):
+
+            # Parsed net
+            net1 = pf.ParserRAW().parse(case)
+
+            # Copied
+            net2 = net1.get_copy()
+            
+            # Extracted net (including)
+            net3 = net1.extract_subnetwork([net1.get_bus_from_number(153),
+                                            net1.get_bus_from_number(154),
+                                            net1.get_bus_from_number(3005)])
+            self.assertEqual(net3.num_buses, 3)
+
+            # Extracted net (not including)
+            net4 = net1.extract_subnetwork([net1.get_bus_from_number(101),
+                                            net1.get_bus_from_number(102),
+                                            net1.get_bus_from_number(151)])
+            self.assertEqual(net4.num_buses, 3)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 153)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 3006)
+
+            # Serialized net
+            try:
+                pf.ParserJSON().write(net1, 'foo.json')
+                net5 = pf.ParserJSON().parse('foo.json')
+            finally:
+                if os.path.isfile('foo.json'):
+                    os.remove('foo.json')
+
+            # Test
+            for net in [net1, net2, net3, net5]:
+                self.assertEqual(net.get_num_redundant_buses(), 1)
+                bus1 = net.get_bus_from_number(3006)
+                bus2 = net.get_bus_from_number(153)
+                self.assertTrue(bus1.is_equal(bus2))
+                load1 = net.get_load_from_name_and_bus_number('1', 3006)
+                load2 = net.get_load_from_name_and_bus_number('1', 153)
+                self.assertTrue(load1.is_equal(load2))
+                br1 = net.get_branch_from_name_and_bus_numbers('2', 3006, 154)
+                br2 = net.get_branch_from_name_and_bus_numbers('2', 153, 154)
+                self.assertTrue(br1.is_equal(br2))
+                br3 = net.get_branch_from_name_and_bus_numbers('1', 3006, 3005)
+                br4 = net.get_branch_from_name_and_bus_numbers('1', 153, 3005)
+                self.assertTrue(br3.is_equal(br4))
+        else:
+            raise unittest.skipTest('no .raw file')
+        
     def test_parserraw_write(self):
 
         tested = False
@@ -47,7 +99,7 @@ class TestParser(unittest.TestCase):
             tested = True
             
         if not tested:
-            self.skipTest("no .raw files")
+            raise unittest.skipTest("no .raw files")
 
     def test_case118_m(self):
 
@@ -59,7 +111,7 @@ class TestParser(unittest.TestCase):
             net_m = pf.Parser(case_m).parse(case_m, num_periods=2)
             pf.tests.utils.compare_networks(self, net_mat, net_m)
         else:
-            self.skipTest('no .m files')
+            raise unittest.skipTest('no .m files')
 
     def test_pyparsermat_write(self):
 
@@ -86,7 +138,7 @@ class TestParser(unittest.TestCase):
             pf.tests.utils.compare_networks(self, net1, net2)
             tested = True
         if not tested:
-            self.skipTest("no .m files")
+            raise unittest.skipTest("no .m files")
 
     def test_ieee25_raw(self):
 
@@ -515,60 +567,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(branch13.ratingB,4000./100.)
         self.assertEqual(branch13.ratingC,4000./100.)
 
-    def test_cas32art(self):
-
-        case = os.path.join('data', 'case32.art')
-        if not os.path.isfile(case):
-            raise unittest.SkipTest('file not available')
-
-        net = pf.ParserART().parse(case)
-        
-        self.assertEqual(net.num_buses,31)
-        self.assertEqual(net.num_batteries,3)
-        b1 = net.get_battery(0)
-        b2 = net.get_battery(1)
-        b3 = net.get_battery(2)
-        self.assertRaises(pf.NetworkError,net.get_battery,3)
-        
-        self.assertEqual(b1.bus.name,"N18")
-        self.assertEqual(b1.index,0)
-        self.assertTrue(all(list(map(lambda y: isinstance(y,pf.Battery),b1.bus.batteries))))
-        self.assertEqual(len(b1.bus.batteries),2)
-        self.assertEqual(list(map(lambda y: y.index,b1.bus.batteries)),[b1.index,b2.index])
-        self.assertEqual(b1.P,6./net.base_power)
-        self.assertEqual(b1.P_min,-7./net.base_power)
-        self.assertEqual(b1.P_max,8./net.base_power)
-        self.assertEqual(b1.E,14./net.base_power)
-        self.assertEqual(b1.E_max,22./net.base_power)
-        self.assertEqual(b1.eta_c,0.93)
-        self.assertEqual(b1.eta_d,0.97)
-        
-        self.assertEqual(b2.bus.name,"N18")
-        self.assertEqual(b2.index,1)
-        self.assertTrue(all(list(map(lambda y: isinstance(y,pf.Battery),b2.bus.batteries))))
-        self.assertEqual(len(b2.bus.batteries),2)
-        self.assertEqual(list(map(lambda y: y.index,b2.bus.batteries)),[b1.index,b2.index])
-        self.assertEqual(b2.P,3./net.base_power)
-        self.assertEqual(b2.P_min,-3./net.base_power)
-        self.assertEqual(b2.P_max,9./net.base_power)
-        self.assertEqual(b2.E,12./net.base_power)
-        self.assertEqual(b2.E_max,21./net.base_power)
-        self.assertEqual(b2.eta_c,0.94)
-        self.assertEqual(b2.eta_d,0.92)
-        
-        self.assertEqual(b3.bus.name,"N15")
-        self.assertEqual(b3.index,2)
-        self.assertTrue(all(list(map(lambda y: isinstance(y,pf.Battery),b3.bus.batteries))))
-        self.assertEqual(len(b3.bus.batteries),1)
-        self.assertEqual(list(map(lambda y: y.index,b3.bus.batteries)),[b3.index])
-        self.assertEqual(b3.P,2./net.base_power)
-        self.assertEqual(b3.P_min,-4./net.base_power)
-        self.assertEqual(b3.P_max,5./net.base_power)
-        self.assertEqual(b3.E,10./net.base_power)
-        self.assertEqual(b3.E_max,20./net.base_power)
-        self.assertEqual(b3.eta_c,0.95)
-        self.assertEqual(b3.eta_d,0.93)
-
     def test_ieee14_gen_cost(self):
 
         case = os.path.join('data', 'ieee14.mat')
@@ -597,24 +595,24 @@ class TestParser(unittest.TestCase):
         for case in test_cases.CASES:
 
             if case.split('.')[-1] == 'mat':
-                self.assertRaises(pf.ParserError,pf.ParserART().parse,case)
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
-                if pf.info['raw_parser']:
+                self.assertRaises(pf.ParserError,pf.PyParserMAT().parse,case)
+                if pf.has_raw_parser():
                     self.assertRaises(pf.ParserError,pf.ParserRAW().parse,case)
                 net = pf.ParserMAT().parse(case)
                 self.assertGreater(net.num_buses,0)
-            elif case.split('.')[-1] == 'art':
-                self.assertRaises(pf.ParserError,pf.ParserMAT().parse,case)
+            if case.split('.')[-1] == 'm':
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
-                if pf.info['raw_parser']:
+                self.assertRaises(pf.ParserError,pf.ParserMAT().parse,case)
+                if pf.has_raw_parser():
                     self.assertRaises(pf.ParserError,pf.ParserRAW().parse,case)
-                net = pf.ParserART().parse(case)
+                net = pf.PyParserMAT().parse(case)
                 self.assertGreater(net.num_buses,0)
             elif case.split('.')[-1] == 'raw':
                 self.assertRaises(pf.ParserError,pf.ParserMAT().parse,case)
-                self.assertRaises(pf.ParserError,pf.ParserART().parse,case)
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
-                if pf.info['raw_parser']:
+                self.assertRaises(pf.ParserError,pf.PyParserMAT().parse,case)
+                if pf.has_raw_parser():
                     net = pf.ParserRAW().parse(case)
                     self.assertGreater(net.num_buses,0)
 

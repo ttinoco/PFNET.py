@@ -29,7 +29,16 @@ Unreleased
 * Extended test utils to compare dc buses, dc branches, FACTS, csc converters, and vsc converters.    
 * Added "set" method to PyParserMAT to follow C parser API.
 * Added shunt adjustment mode (continuous/discrete) and rounding capability.
-  
+* Exposed branch power flow Jacobian routine.
+* Removed graph wrapper.
+* Removed module info dictionary.
+* Added package __version__.
+* Added routine for getting any network component from key.    
+* Added bus function get_v_max(code) get_v_min(code).
+* Added output_level to network show_components.
+* Added unittest for redundant buses.
+* Fixed build_lib.sh to handle PWD with white spaces.
+
 Version 1.3.3
 -------------
 * Made Python wrapper its own repo.

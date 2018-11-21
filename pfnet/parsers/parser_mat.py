@@ -47,6 +47,9 @@ class PyParserMAT(object):
 
         import grg_mpdata as mp
 
+        if os.path.splitext(filename)[-1][1:] != 'm':
+            raise pfnet.ParserError('invalid file extension')
+
         case = mp.io.parse_mp_case_file(filename)
         self.case = case
 
@@ -90,7 +93,7 @@ class PyParserMAT(object):
                 bus_index += 1
 
         # Hashes
-        net.update_hashes()
+        net.update_hash_tables()
         
         # Load and shunts
         load_index = 0

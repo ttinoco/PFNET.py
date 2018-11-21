@@ -9,11 +9,6 @@
 import sys
 sys.path.append('.')
 
-# Getting started - Installation
-
-import pfnet
-print(pfnet.info)
-
 # Getting Started - Example
 
 import pfnet

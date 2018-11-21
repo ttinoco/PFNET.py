@@ -136,7 +136,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(isinstance(net.shunt_b_vio,np.ndarray))
             self.assertTrue(isinstance(net.load_P_util,np.ndarray))
             self.assertTrue(isinstance(net.load_P_vio,np.ndarray))
-            self.assertTrue(isinstance(net.num_actions,np.ndarray))
 
             # prop shape
             self.assertTupleEqual(net.bus_v_max.shape,(self.T,))
@@ -155,7 +154,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTupleEqual(net.shunt_b_vio.shape,(self.T,))
             self.assertTupleEqual(net.load_P_util.shape,(self.T,))
             self.assertTupleEqual(net.load_P_vio.shape,(self.T,))
-            self.assertTupleEqual(net.num_actions.shape,(self.T,))
 
     def test_component_lookups(self):
         
@@ -173,10 +171,14 @@ class TestNetwork(unittest.TestCase):
             for bus in net.buses[:10]:
                 self.assertEqual(bus.index, net.get_bus_from_number(bus.number).index)
                 self.assertEqual(bus.name, net.get_bus_from_name(bus.name).name)
+                self.assertTrue(bus.is_equal(net.get_component_from_key((bus.obj_type, bus.number))))                                             
             for gen in net.generators[:10]:
                 self.assertEqual(gen.index,
                                  net.get_generator_from_name_and_bus_number(gen.name,
                                                                             gen.bus.number).index)
+                self.assertTrue(gen.is_equal(net.get_component_from_key((gen.obj_type,
+                                                                         gen.name,
+                                                                         gen.bus.number))))
             for branch in net.branches[:10]:
                 self.assertEqual(branch.index,
                                  net.get_branch_from_name_and_bus_numbers(branch.name,
@@ -186,25 +188,70 @@ class TestNetwork(unittest.TestCase):
                                  net.get_branch_from_name_and_bus_numbers(branch.name,
                                                                           branch.bus_m.number,
                                                                           branch.bus_k.number).index)
+                self.assertTrue(branch.is_equal(net.get_component_from_key((branch.obj_type,
+                                                                            branch.name,
+                                                                            branch.bus_k.number,
+                                                                            branch.bus_m.number))))
             for load in net.loads[:10]:
                 if load.name:
                     self.assertEqual(load.index,
                                      net.get_load_from_name_and_bus_number(load.name,
                                                                            load.bus.number).index)
+                    self.assertTrue(load.is_equal(net.get_component_from_key((load.obj_type,
+                                                                              load.name,
+                                                                              load.bus.number))))
             for shunt in net.shunts[:10]:
                 if shunt.name and shunt.name != 'SL' and shunt.name != 'TM':
                     self.assertEqual(shunt.index,
                                      net.get_shunt_from_name_and_bus_number(shunt.name,
                                                                             shunt.bus.number).index)
-
+                    self.assertTrue(shunt.is_equal(net.get_component_from_key((shunt.obj_type,
+                                                                               shunt.name,
+                                                                               shunt.bus.number))))
+                    if shunt.is_fixed():
+                        self.assertTrue(shunt.is_equal(net.get_component_from_key(('fixed '+shunt.obj_type,
+                                                                                   shunt.name,
+                                                                                   shunt.bus.number))))
+                    else:
+                        self.assertTrue(shunt.is_equal(net.get_component_from_key(('switched '+shunt.obj_type,
+                                                                                   shunt.name,
+                                                                                   shunt.bus.number))))
             for vargen in net.var_generators[:10]:
                 self.assertEqual(vargen.index,
                                  net.get_var_generator_from_name_and_bus_number(vargen.name,
                                                                                 vargen.bus.number).index)
+                self.assertTrue(vargen.is_equal(net.get_component_from_key((vargen.obj_type,
+                                                                            vargen.name,
+                                                                            vargen.bus.number))))
             for bat in net.batteries[:10]:
                 self.assertEqual(bat.index,
                                  net.get_battery_from_name_and_bus_number(bat.name,
                                                                           bat.bus.number).index)
+                self.assertTrue(bat.is_equal(net.get_component_from_key((bat.obj_type,
+                                                                         bat.name,
+                                                                         bat.bus.number))))
+
+            for csc in net.csc_converters:
+                self.assertTrue(csc.is_equal(net.get_component_from_key((csc.obj_type,
+                                                                         csc.name,
+                                                                         csc.ac_bus.number))))
+            for vsc in net.vsc_converters:
+                self.assertTrue(vsc.is_equal(net.get_component_from_key((vsc.obj_type,
+                                                                         vsc.name,
+                                                                         vsc.ac_bus.number))))
+            for facts in net.facts:
+                self.assertTrue(facts.is_equal(net.get_component_from_key((facts.obj_type,
+                                                                           facts.name,
+                                                                           facts.bus_k.number,
+                                                                           facts.bus_m.number if facts.bus_m else 0))))
+            for dc_bus in net.dc_buses:
+                self.assertTrue(dc_bus.is_equal(net.get_component_from_key((dc_bus.obj_type,
+                                                                            dc_bus.number))))
+            for dc_branch in net.dc_branches:
+                self.assertTrue(dc_branch.is_equal(net.get_component_from_key((dc_branch.obj_type,
+                                                                               dc_branch.name,
+                                                                               dc_branch.bus_k.name,
+                                                                               dc_branch.bus_m.name))))
 
             bus = None
             for bus in net.buses:
@@ -437,6 +484,24 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(bus.v_max_emer,1.234567)
                 bus.v_min_emer = 0.901234
                 self.assertEqual(bus.v_min_emer,0.901234)
+
+                bus.v_max_reg = 1.1
+                bus.v_max_norm = 1.2
+                bus.v_max_emer = 1.3
+                bus.v_min_reg = 0.9
+                bus.v_min_norm = 0.8
+                bus.v_min_emer = 0.7
+
+                self.assertEqual(bus.get_v_max('regulation'), 1.1)
+                self.assertEqual(bus.get_v_max('normal'), 1.2)
+                self.assertEqual(bus.get_v_max('emergency'), 1.3)
+
+                self.assertEqual(bus.get_v_min('regulation'), 0.9)
+                self.assertEqual(bus.get_v_min('normal'), 0.8)
+                self.assertEqual(bus.get_v_min('emergency'), 0.7)
+
+                self.assertRaises(pf.BusError, bus.get_v_max, 'foo')
+                self.assertRaises(pf.BusError, bus.get_v_min, 'bar')
                 
                 # Alias v_max, v_min for v_max_norm, v_min_norm set and get
                 self.assertEqual(bus.v_max_norm,bus.v_max)
@@ -2112,7 +2177,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(net.shunt_b_vio,0.)
             self.assertEqual(net.load_P_util,0.)
             self.assertEqual(net.load_P_vio,0.)
-            self.assertEqual(net.num_actions,0)
 
             self.assertEqual(netMP.bus_v_max.shape[0],self.T)
             self.assertEqual(netMP.bus_v_min.shape[0],self.T)
@@ -2130,7 +2194,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(netMP.shunt_b_vio.shape[0],self.T)
             self.assertEqual(netMP.load_P_util.shape[0],self.T)
             self.assertEqual(netMP.load_P_vio.shape[0],self.T)
-            self.assertEqual(netMP.num_actions.shape[0],self.T)
 
             self.assertTrue(np.all(netMP.bus_v_max == 0))
             self.assertTrue(np.all(netMP.bus_v_min == 0))
@@ -2148,7 +2211,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(np.all(netMP.shunt_b_vio == 0))
             self.assertTrue(np.all(netMP.load_P_util == 0))
             self.assertTrue(np.all(netMP.load_P_vio == 0))
-            self.assertTrue(np.all(netMP.num_actions == 0))
 
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
@@ -2213,7 +2275,6 @@ class TestNetwork(unittest.TestCase):
             self.assertGreaterEqual(net.shunt_b_vio,0.)
             self.assertNotEqual(net.load_P_util,0.)
             self.assertGreaterEqual(net.load_P_vio,0.)
-            self.assertGreaterEqual(net.num_actions,0.)
 
             self.assertEqual(net.bus_v_max,net.get_properties()['bus_v_max'])
             self.assertEqual(net.bus_v_min,net.get_properties()['bus_v_min'])
@@ -2235,9 +2296,7 @@ class TestNetwork(unittest.TestCase):
 
             self.assertEqual(net.load_P_util,net.get_properties()['load_P_util'])
             self.assertEqual(net.load_P_vio,net.get_properties()['load_P_vio'])
-
-            self.assertEqual(net.num_actions,net.get_properties()['num_actions'])
-
+            
             # Buses
             #######
             vmax = -np.inf
@@ -2464,7 +2523,6 @@ class TestNetwork(unittest.TestCase):
             self.assertEqual(net.shunt_b_vio,0.)
             self.assertEqual(net.load_P_util,0.)
             self.assertEqual(net.load_P_vio,0.)
-            self.assertEqual(net.num_actions,0.)
 
             self.assertTrue(np.all(netMP.bus_v_max == 0))
             self.assertTrue(np.all(netMP.bus_v_min == 0))
@@ -2482,7 +2540,6 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(np.all(netMP.shunt_b_vio == 0))
             self.assertTrue(np.all(netMP.load_P_util == 0))
             self.assertTrue(np.all(netMP.load_P_vio == 0))
-            self.assertTrue(np.all(netMP.num_actions == 0))
 
     def test_bus_mis_and_sens(self):
 
@@ -4301,7 +4358,7 @@ class TestNetwork(unittest.TestCase):
             
             self.assertEqual(copy_net.num_periods,2)
             
-            # Test allocated arrays
+            # Allocate arrays
             copy_net.set_bus_array(orig_net.num_buses)
             copy_net.set_gen_array(orig_net.num_generators)
             copy_net.set_shunt_array(orig_net.num_shunts)
@@ -4309,12 +4366,17 @@ class TestNetwork(unittest.TestCase):
             copy_net.set_branch_array(orig_net.num_branches)
             copy_net.set_vargen_array(orig_net.num_var_generators)
             copy_net.set_battery_array(orig_net.num_batteries)
+            copy_net.set_vsc_converter_array(orig_net.num_vsc_converters)
+            copy_net.set_csc_converter_array(orig_net.num_csc_converters)
+            copy_net.set_dc_bus_array(orig_net.num_dc_buses)
+            copy_net.set_dc_branch_array(orig_net.num_dc_branches)
+            copy_net.set_facts_array(orig_net.num_facts)
             
             # Buses (must be first)
             for i in range(copy_net.num_buses):
                 
-                copy_bus = copy_net.buses[i]
-                orig_bus = orig_net.buses[i]
+                copy_bus = copy_net.get_bus(i)
+                orig_bus = orig_net.get_bus(i)
                 
                 copy_bus.number = orig_bus.number
                 copy_bus.name = orig_bus.name
@@ -4335,15 +4397,27 @@ class TestNetwork(unittest.TestCase):
                 copy_bus.v_min_emer = orig_bus.v_min_emer
                 copy_bus.set_slack_flag(orig_bus.is_slack())
                 copy_bus.set_star_flag(orig_bus.is_star())
+
+            # DC buses
+            for i in range(copy_net.num_dc_buses):
+
+                copy_bus = copy_net.get_dc_bus(i)
+                orig_bus = orig_net.get_dc_bus(i)
+
+                copy_bus.name = orig_bus.name
+                copy_bus.number = orig_bus.number
+
+                copy_bus.v_base = orig_bus.v_base
+                copy_bus.v = orig_bus.v
                 
             # Update hash tables, important
-            copy_net.update_hashes()
+            copy_net.update_hash_tables()
             
             # Generators
             for i in range(copy_net.num_generators):
                 
-                copy_gen = copy_net.generators[i]
-                orig_gen = orig_net.generators[i]
+                copy_gen = copy_net.get_generator(i)
+                orig_gen = orig_net.get_generator(i)
 
                 copy_gen.name = orig_gen.name
                 
@@ -4370,8 +4444,8 @@ class TestNetwork(unittest.TestCase):
             # Loads
             for i in range(copy_net.num_loads):
      
-                copy_load = copy_net.loads[i]
-                orig_load = orig_net.loads[i]
+                copy_load = copy_net.get_load(i)
+                orig_load = orig_net.get_load(i)
 
                 copy_load.name = orig_load.name
      
@@ -4398,8 +4472,8 @@ class TestNetwork(unittest.TestCase):
             # Shunts
             for i in range(copy_net.num_shunts):
                 
-                copy_shunt = copy_net.shunts[i]
-                orig_shunt = orig_net.shunts[i]
+                copy_shunt = copy_net.get_shunt(i)
+                orig_shunt = orig_net.get_shunt(i)
 
                 copy_shunt.name = orig_shunt.name
                 
@@ -4431,8 +4505,8 @@ class TestNetwork(unittest.TestCase):
             # Branches
             for i in range(copy_net.num_branches):
                 
-                copy_branch = copy_net.branches[i]
-                orig_branch = orig_net.branches[i]
+                copy_branch = copy_net.get_branch(i)
+                orig_branch = orig_net.get_branch(i)
 
                 copy_branch.name = orig_branch.name
                 copy_branch.set_pos_ratio_v_sens(orig_branch.has_pos_ratio_v_sens())
@@ -4480,8 +4554,8 @@ class TestNetwork(unittest.TestCase):
             # Var generators
             for i in range(copy_net.num_var_generators):
      
-                copy_vargen = copy_net.var_generators[i]
-                orig_vargen = orig_net.var_generators[i]
+                copy_vargen = copy_net.get_var_generator(i)
+                orig_vargen = orig_net.get_var_generator(i)
 
                 copy_vargen.name = orig_vargen.name
      
@@ -4500,8 +4574,8 @@ class TestNetwork(unittest.TestCase):
             # Batteries
             for i in range(copy_net.num_batteries):
      
-                copy_bat = copy_net.batteries[i]
-                orig_bat = orig_net.batteries[i]
+                copy_bat = copy_net.get_battery(i)
+                orig_bat = orig_net.get_battery(i)
 
                 copy_bat.name = orig_bat.name
                 
@@ -4518,8 +4592,68 @@ class TestNetwork(unittest.TestCase):
                 copy_bat.E_final = orig_bat.E_final
                 copy_bat.E_max = orig_bat.E_max
 
+            # DC branches
+            for i in range(copy_net.num_dc_branches):
+
+                copy_br = copy_net.get_dc_branch(i)
+                orig_br = orig_net.get_dc_branch(i)
+
+                copy_br.name = orig_br.name
+
+                copy_br.bus_k = copy_net.get_dc_bus_from_number(orig_br.bus_k.number)
+                copy_br.bus_m = copy_net.get_dc_bus_from_number(orig_br.bus_m.number)
+
+                copy_br.r = orig_br.r
+
+            # CSC converters
+            for i in range(copy_net.num_csc_converters):
+
+                copy_csc = copy_net.get_csc_converter(i)
+                orig_csc = orig_net.get_csc_converter(i)
+
+                copy_csc.ac_bus = copy_net.get_bus_from_number(orig_csc.ac_bus.number)
+                copy_csc.dc_bus = copy_net.get_dc_bus_from_number(orig_csc.dc_bus.number)
+
+            # VSC converters
+            for i in range(copy_net.num_vsc_converters):
+
+                copy_vsc = copy_net.get_vsc_converter(i)
+                orig_vsc = orig_net.get_vsc_converter(i)
+
+                copy_vsc.ac_bus = copy_net.get_bus_from_number(orig_vsc.ac_bus.number)
+                copy_vsc.dc_bus = copy_net.get_dc_bus_from_number(orig_vsc.dc_bus.number)
+                try:
+                    copy_vsc.reg_bus = copy_net.get_bus_from_number(orig_vsc.reg_bus.number)
+                except AttributeError:
+                    pass
+
+                copy_vsc.name = orig_vsc.name
+
+                copy_vsc.P_dc_set = orig_vsc.P_dc_set
+                copy_vsc.v_dc_set = orig_vsc.v_dc_set
+                copy_vsc.P = orig_vsc.P
+                copy_vsc.Q = orig_vsc.Q
+                copy_vsc.P_dc = orig_vsc.P_dc
+                copy_vsc.loss_coeff_A = orig_vsc.loss_coeff_A
+                copy_vsc.loss_coeff_B = orig_vsc.loss_coeff_B
+                copy_vsc.P_max = orig_vsc.P_max
+                copy_vsc.P_min = orig_vsc.P_min
+                copy_vsc.Q_max = orig_vsc.Q_max
+                copy_vsc.Q_min = orig_vsc.Q_min
+                copy_vsc.Q_par = orig_vsc.Q_par
+                copy_vsc.target_power_factor = orig_vsc.target_power_factor
+
+                if orig_vsc.is_in_P_dc_mode():
+                    copy_vsc.set_in_P_dc_mode()
+                if orig_vsc.is_in_v_dc_mode():
+                    copy_vsc.set_in_v_dc_mode()
+                if orig_vsc.is_in_f_ac_mode():
+                    copy_vsc.set_in_f_ac_mode()
+                if orig_vsc.is_in_v_ac_mode():
+                    copy_vsc.set_in_v_ac_mode()
+                
             # Compare
-            pf.tests.utils.compare_networks(self, orig_net, copy_net)  
+            pf.tests.utils.compare_networks(self, orig_net, copy_net)
 
     def test_symmetric_connectors_removers(self):
 

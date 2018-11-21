@@ -87,7 +87,7 @@ class TestShunts(unittest.TestCase):
         # s1
         v = [(1, -15.00), (2, -5.00), (3, -10.00), (4, -8.00), (5, -7.00), (6, -5.00), (7, -7.00), (8, -4.00)]
         v.reverse()
-        b = np.sum(map(lambda x: x[0]*x[1], v))/100.
+        b = np.sum(list(map(lambda x: x[0]*x[1], v)))/100.
         values = [b]
         for steps, inc in v:
             for i in range(steps):
@@ -181,7 +181,7 @@ class TestShunts(unittest.TestCase):
         v1 = [(2, -30.00), (1, -5.00)]
         v2 = [(1, 1.44), (3, 10)]
         v1.reverse()
-        b = np.sum(map(lambda x: x[0]*x[1], v1))/100.
+        b = np.sum(list(map(lambda x: x[0]*x[1], v1)))/100.
         values = [b]
         for steps, inc in v1:
             for i in range(steps):
