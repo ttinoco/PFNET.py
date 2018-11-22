@@ -68,7 +68,7 @@ class TestParser(unittest.TestCase):
                 br4 = net.get_branch_from_name_and_bus_numbers('1', 153, 3005)
                 self.assertTrue(br3.is_equal(br4))
         else:
-            raise unittest.skipTest('no .raw file')
+            raise unittest.SkipTest('no .raw file')
         
     def test_parserraw_write(self):
 
@@ -99,7 +99,7 @@ class TestParser(unittest.TestCase):
             tested = True
             
         if not tested:
-            raise unittest.skipTest("no .raw files")
+            raise unittest.SkipTest("no .raw files")
 
     def test_case118_m(self):
 
@@ -111,7 +111,7 @@ class TestParser(unittest.TestCase):
             net_m = pf.Parser(case_m).parse(case_m, num_periods=2)
             pf.tests.utils.compare_networks(self, net_mat, net_m)
         else:
-            raise unittest.skipTest('no .m files')
+            raise unittest.SkipTest('no .m files')
 
     def test_pyparsermat_write(self):
 
@@ -138,7 +138,7 @@ class TestParser(unittest.TestCase):
             pf.tests.utils.compare_networks(self, net1, net2)
             tested = True
         if not tested:
-            raise unittest.skipTest("no .m files")
+            raise unittest.SkipTest("no .m files")
 
     def test_ieee25_raw(self):
 

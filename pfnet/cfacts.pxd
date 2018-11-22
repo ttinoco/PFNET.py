@@ -25,6 +25,12 @@ cdef extern from "pfnet/facts.h":
     cdef double FACTS_INF_P
     cdef double FACTS_INF_Q
 
+    cdef char FACTS_SERIES_MODE_DISABLED
+    cdef char FACTS_SERIES_MODE_NORMAL
+    cdef char FACTS_SERIES_MODE_BYPASS
+    cdef char FACTS_SERIES_MODE_CZ
+    cdef char FACTS_SERIES_MODE_CV
+
     cdef char FACTS_PROP_ANY
 
     void FACTS_array_del(Facts* facts_array, int size)
@@ -44,16 +50,7 @@ cdef extern from "pfnet/facts.h":
     int FACTS_get_index(Facts* facts)
 
     char FACTS_get_mode_s(Facts* facts)
-    REAL FACTS_get_P_k(Facts* facts, int t)
-    REAL FACTS_get_P_m(Facts* facts, int t)
-    REAL FACTS_get_Q_k(Facts* facts, int t)
-    REAL FACTS_get_Q_m(Facts* facts, int t)
-    REAL FACTS_get_Q_sh(Facts* facts, int t)
-    REAL FACTS_get_Q_s(Facts* facts, int t)
-    REAL FACTS_get_P_dc(Facts* facts, int t)
     REAL FACTS_get_Q_par(Facts* facts)
-    REAL FACTS_get_P_set(Facts* facts, int t)
-    REAL FACTS_get_Q_set(Facts* facts, int t)
     REAL FACTS_get_Q_max_s(Facts* facts)
     REAL FACTS_get_Q_max_sh(Facts* facts)
     REAL FACTS_get_Q_min_s(Facts* facts)
@@ -63,24 +60,35 @@ cdef extern from "pfnet/facts.h":
     REAL FACTS_get_P_max_dc(Facts* facts)
     REAL FACTS_get_v_min_m(Facts* facts)
     REAL FACTS_get_v_max_m(Facts* facts)
+    REAL FACTS_get_v_max_s(Facts* facts)
     REAL FACTS_get_g(Facts* facts)
     REAL FACTS_get_b(Facts* facts)
+ 
+    int* FACTS_get_index_v_mag_s_array(Facts* facts)
+    int* FACTS_get_index_v_ang_s_array(Facts* facts)
+    int* FACTS_get_index_P_k_array(Facts* facts)
+    int* FACTS_get_index_P_m_array(Facts* facts)
+    int* FACTS_get_index_Q_k_array(Facts* facts)
+    int* FACTS_get_index_Q_m_array(Facts* facts)
+    int* FACTS_get_index_P_dc_array(Facts* facts)
+    int* FACTS_get_index_Q_s_array(Facts* facts)
+    int* FACTS_get_index_Q_sh_array(Facts* facts)
 
-    int FACTS_get_index_v_mag_s(Facts* facts, int t)
-    int FACTS_get_index_v_ang_s(Facts* facts, int t)
-    int FACTS_get_index_P_k(Facts* facts, int t)
-    int FACTS_get_index_P_m(Facts* facts, int t)
-    int FACTS_get_index_P_dc(Facts* facts, int t)
-    int FACTS_get_index_Q_k(Facts* facts, int t)
-    int FACTS_get_index_Q_m(Facts* facts, int t)
-    int FACTS_get_index_Q_s(Facts* facts, int t)
-    int FACTS_get_index_Q_sh(Facts* facts, int t)
+    REAL* FACTS_get_v_mag_s_array(Facts* facts)
+    REAL* FACTS_get_v_ang_s_array(Facts* facts)
+    REAL* FACTS_get_P_k_array(Facts* facts)
+    REAL* FACTS_get_P_m_array(Facts* facts)
+    REAL* FACTS_get_Q_k_array(Facts* facts)
+    REAL* FACTS_get_Q_m_array(Facts* facts)
+    REAL* FACTS_get_Q_sh_array(Facts* facts)
+    REAL* FACTS_get_Q_s_array(Facts* facts)
+    REAL* FACTS_get_P_dc_array(Facts* facts)
+    REAL* FACTS_get_P_set_array(Facts* facts)
+    REAL* FACTS_get_Q_set_array(Facts* facts)
+
     Facts* FACTS_get_reg_next(Facts* facts)
     Facts* FACTS_get_next_k(Facts* facts)
     Facts* FACTS_get_next_m(Facts* facts)
-    REAL FACTS_get_v_max_s(Facts* facts)
-    REAL FACTS_get_v_mag_s(Facts* facts, int t)
-    REAL FACTS_get_v_ang_s(Facts* facts, int t)
     char* FACTS_get_var_info_string(Facts* facts, int index)
     char* FACTS_get_json_string(Facts* facts, char* output)
     bint FACTS_has_flags(void* facts, char flag_type, unsigned char mask)
@@ -102,23 +110,11 @@ cdef extern from "pfnet/facts.h":
     void FACTS_set_reg_bus(Facts* facts, Bus* bus)
     void FACTS_set_bus_k(Facts* facts, Bus* bus)
     void FACTS_set_bus_m(Facts* facts, Bus* bus)
-    void FACTS_set_v_mag_s(Facts* facts, REAL v_mag_s, int t)
-    void FACTS_set_v_ang_s(Facts* facts, REAL v_ang_s, int t)
     void FACTS_set_v_max_s(Facts* facts, REAL v_max)
     void FACTS_set_g(Facts* facts, REAL g)
     void FACTS_set_b(Facts* facts, REAL b)
-
     void FACTS_set_mode_s(Facts* facts, char mode)
-    void FACTS_set_P_k(Facts* facts, REAL P, int t)
-    void FACTS_set_P_m(Facts* facts, REAL P, int t)
-    void FACTS_set_Q_k(Facts* facts, REAL Q, int t)
-    void FACTS_set_Q_m(Facts* facts, REAL Q, int t)
-    void FACTS_set_Q_s(Facts* facts, REAL Q, int t)
-    void FACTS_set_Q_sh(Facts* facts, REAL Q, int t)
-    void FACTS_set_P_dc(Facts* facts, REAL P, int t)
     void FACTS_set_Q_par(Facts* facts, REAL Q_par)
-    void FACTS_set_P_set(Facts* facts, REAL P, int t)
-    void FACTS_set_Q_set(Facts* facts, REAL Q, int t)
     void FACTS_set_Q_max_s(Facts* facts, REAL Q_max)
     void FACTS_set_Q_max_sh(Facts* facts, REAL Q_max)
     void FACTS_set_Q_min_s(Facts* facts, REAL Q_min)

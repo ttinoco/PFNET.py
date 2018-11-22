@@ -4699,6 +4699,45 @@ class TestNetwork(unittest.TestCase):
                     copy_facts.reg_bus = copy_net.get_bus_from_number(orig_facts.reg_bus.number)
                 except AttributeError:
                     pass
+
+                if orig_facts.is_series_link_disabled():
+                    copy_facts.set_series_link_disabled()
+                if orig_facts.is_series_link_bypassed():
+                    copy_facts.set_series_link_bypassed()
+                if orig_facts.is_in_normal_series_mode():
+                    copy_facts.set_in_normal_series_mode()
+                if orig_facts.is_in_constant_series_z_mode():
+                    copy_facts.set_in_constant_series_z_mode()
+                if orig_facts.is_in_constant_series_v_mode():
+                    copy_facts.set_in_constant_series_v_mode()
+
+                copy_facts.name = orig_facts.name
+                copy_facts.P_k = orig_facts.P_k
+                copy_facts.Q_k = orig_facts.Q_k
+                copy_facts.P_m = orig_facts.P_m
+                copy_facts.Q_m = orig_facts.Q_m
+                copy_facts.Q_sh = orig_facts.Q_sh
+                copy_facts.Q_s = orig_facts.Q_s
+                copy_facts.P_dc = orig_facts.P_dc
+                copy_facts.Q_par = orig_facts.Q_par
+                copy_facts.P_set = orig_facts.P_set
+                copy_facts.Q_set = orig_facts.Q_set
+
+                copy_facts.Q_max_s = orig_facts.Q_max_s
+                copy_facts.Q_min_s = orig_facts.Q_min_s
+                copy_facts.Q_max_sh = orig_facts.Q_max_sh
+                copy_facts.Q_min_sh = orig_facts.Q_min_sh
+                copy_facts.i_max_s = orig_facts.i_max_s
+                copy_facts.i_max_sh = orig_facts.i_max_sh
+                copy_facts.P_max_dc = orig_facts.P_max_dc
+                copy_facts.v_min_m = orig_facts.v_min_m
+                copy_facts.v_max_m = orig_facts.v_max_m
+
+                copy_facts.v_mag_s = orig_facts.v_mag_s
+                copy_facts.v_ang_s = orig_facts.v_ang_s
+                copy_facts.v_max_s = orig_facts.v_max_s
+                copy_facts.g = orig_facts.g
+                copy_facts.b = orig_facts.b
                 
             # Compare
             pf.tests.utils.compare_networks(self, orig_net, copy_net)
