@@ -4614,6 +4614,38 @@ class TestNetwork(unittest.TestCase):
                 copy_csc.ac_bus = copy_net.get_bus_from_number(orig_csc.ac_bus.number)
                 copy_csc.dc_bus = copy_net.get_dc_bus_from_number(orig_csc.dc_bus.number)
 
+                copy_csc.name = orig_csc.name
+
+                copy_csc.P = orig_csc.P
+                copy_csc.Q = orig_csc.Q
+                copy_csc.P_dc = orig_csc.P_dc
+                copy_csc.P_dc_set = orig_csc.P_dc_set
+                copy_csc.v_dc_set = orig_csc.v_dc_set
+                copy_csc.i_dc_set = orig_csc.i_dc_set
+                copy_csc.num_bridges = orig_csc.num_bridges
+                copy_csc.x_cap = orig_csc.x_cap
+                copy_csc.x = orig_csc.x
+                copy_csc.r = orig_csc.r
+                copy_csc.angle = orig_csc.angle
+                copy_csc.ratio = orig_csc.ratio
+                copy_csc.angle_max = orig_csc.angle_max
+                copy_csc.angle_min = orig_csc.angle_min
+                copy_csc.ratio_max = orig_csc.ratio_max
+                copy_csc.ratio_min = orig_csc.ratio_min
+                copy_csc.v_base_p = orig_csc.v_base_p
+                copy_csc.v_base_s = orig_csc.v_base_s
+
+                if orig_csc.is_inverter():
+                    copy_csc.set_as_inverter()
+                if orig_csc.is_rectifier():
+                    copy_csc.set_as_rectifier()
+                if orig_csc.is_in_P_dc_mode():
+                    copy_csc.set_in_P_dc_mode()
+                if orig_csc.is_in_v_dc_mode():
+                    copy_csc.set_in_v_dc_mode()
+                if orig_csc.is_in_i_dc_mode():
+                    copy_csc.set_in_i_dc_mode()
+
             # VSC converters
             for i in range(copy_net.num_vsc_converters):
 
@@ -4629,11 +4661,11 @@ class TestNetwork(unittest.TestCase):
 
                 copy_vsc.name = orig_vsc.name
 
-                copy_vsc.P_dc_set = orig_vsc.P_dc_set
-                copy_vsc.v_dc_set = orig_vsc.v_dc_set
                 copy_vsc.P = orig_vsc.P
                 copy_vsc.Q = orig_vsc.Q
                 copy_vsc.P_dc = orig_vsc.P_dc
+                copy_vsc.P_dc_set = orig_vsc.P_dc_set
+                copy_vsc.v_dc_set = orig_vsc.v_dc_set
                 copy_vsc.loss_coeff_A = orig_vsc.loss_coeff_A
                 copy_vsc.loss_coeff_B = orig_vsc.loss_coeff_B
                 copy_vsc.P_max = orig_vsc.P_max
@@ -4651,6 +4683,22 @@ class TestNetwork(unittest.TestCase):
                     copy_vsc.set_in_f_ac_mode()
                 if orig_vsc.is_in_v_ac_mode():
                     copy_vsc.set_in_v_ac_mode()
+
+            # FACTS
+            for i in range(copy_net.num_facts):
+
+                copy_facts = copy_net.get_facts(i)
+                orig_facts = orig_net.get_facts(i)
+
+                copy_facts.bus_k = copy_net.get_bus_from_number(orig_facts.bus_k.number)
+                try:
+                    copy_facts.bus_m = copy_net.get_bus_from_number(orig_facts.bus_m.number)
+                except AttributeError:
+                    pass
+                try:
+                    copy_facts.reg_bus = copy_net.get_bus_from_number(orig_facts.reg_bus.number)
+                except AttributeError:
+                    pass
                 
             # Compare
             pf.tests.utils.compare_networks(self, orig_net, copy_net)

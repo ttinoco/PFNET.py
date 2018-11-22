@@ -139,6 +139,41 @@ cdef class ConverterCSC:
 
         return cconv_csc.CONVCSC_is_in_v_dc_mode(self._c_ptr)
 
+    def set_as_inverter(self):
+        """
+        Sets CSC converter to be inverter.
+        """
+
+        cconv_csc.CONVCSC_set_type(self._c_ptr, cconv_csc.CONVCSC_TYPE_INV)
+
+    def set_as_rectifier(self):
+        """
+        Sets CSC converter to be rectifier.
+        """
+
+        cconv_csc.CONVCSC_set_type(self._c_ptr, cconv_csc.CONVCSC_TYPE_REC)
+
+    def set_in_P_dc_mode(self):
+        """
+        Sets CSC converter to be in constant DC power mode.
+        """
+
+        cconv_csc.CONVCSC_set_mode_dc(self._c_ptr, cconv_csc.CONVCSC_MODE_DC_CP)
+
+    def set_in_v_dc_mode(self):
+        """
+        Sets CSC converter to be in constant DC voltage mode.
+        """
+
+        cconv_csc.CONVCSC_set_mode_dc(self._c_ptr, cconv_csc.CONVCSC_MODE_DC_CV)
+
+    def set_in_i_dc_mode(self):
+        """
+        Sets CSC converter to be in constant DC current mode.
+        """
+
+        cconv_csc.CONVCSC_set_mode_dc(self._c_ptr, cconv_csc.CONVCSC_MODE_DC_CC)
+
     def has_flags(self, flag_type, q):
         """
         Determines whether the CSC converter has the flags associated with
@@ -180,30 +215,6 @@ cdef class ConverterCSC:
             return s
         else:
             raise ConverterCSCError('index does not correspond to any variable')
-
-    def set_P(self, P, t=0):
-        """
-        Sets active power.
-
-        Parameters
-        ----------
-        P : float
-        t : int
-        """
-
-        cconv_csc.CONVCSC_set_P(self._c_ptr,P,t)
-
-    def set_Q(self, Q, t=0):
-        """
-        Sets reactive power.
-
-        Parameters
-        ----------
-        Q : float
-        t : int
-        """
-
-        cconv_csc.CONVCSC_set_Q(self._c_ptr,Q,t)
         
     property name:
         """ CSC converter name (string). """
@@ -220,18 +231,22 @@ cdef class ConverterCSC:
     property num_bridges:
         """ Number of bridges in series (int). """
         def __get__(self): return cconv_csc.CONVCSC_get_num_bridges(self._c_ptr)
+        def __set__(self, n): cconv_csc.CONVCSC_set_num_bridges(self._c_ptr, n)
 
     property x_cap:
         """ Commutating capacitor reactance as seen by each individual bridge (p.u. DC base) (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_x_cap(self._c_ptr)
+        def __set__(self, x): cconv_csc.CONVCSC_set_x_cap(self._c_ptr, x)
 
     property x:
         """ Commutating transformer reactance as seen by each individual bridge (p.u. DC base) (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_x(self._c_ptr)
+        def __set__(self, x): cconv_csc.CONVCSC_set_x(self. _c_ptr, x)
 
     property r:
         """ Commutating transformer resistance as seen by each individual bridge (p.u. DC base) (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_r(self._c_ptr)
+        def __set__(self, r): cconv_csc.CONVCSC_set_r(self._c_ptr, r)
 
     property obj_type:
         """ Object type (string). """
@@ -244,56 +259,32 @@ cdef class ConverterCSC:
     property index_P:
         """ Index of active power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_csc.CONVCSC_get_index_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q:
         """ Index of reactive power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
+            return IntArray(cconv_csc.CONVCSC_get_index_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+    
     property index_P_dc:
         """ Index of DC power variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_csc.CONVCSC_get_index_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_i_dc:
         """ Index of DC current variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_i_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
+            return IntArray(cconv_csc.CONVCSC_get_index_i_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        
     property index_ratio:
         """ Index of commutating transformer turns ratio variable (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_ratio(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_csc.CONVCSC_get_index_ratio_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_angle:
         """ Index of ignition delay angle if rectifier or extinction advance angle if inverter (int or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_index_angle(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cconv_csc.CONVCSC_get_index_angle_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property ac_bus:
         """ |Bus| to which CSC converter is connected. """
@@ -320,39 +311,23 @@ cdef class ConverterCSC:
     property P:
         """ Active power injection into AC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_P)
-        def __set__(self,P):
-            cdef int t
-            cdef np.ndarray Par = np.array(P).flatten()
-            for t in range(np.minimum(Par.size,self.num_periods)):
-                cconv_csc.CONVCSC_set_P(self._c_ptr,Par[t],t)
+            return DoubleArray(cconv_csc.CONVCSC_get_P_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_P_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q:
         """ Reactive power injection into AC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_Q)
-        def __set__(self,Q):
-            cdef int t
-            cdef np.ndarray Qar = np.array(Q).flatten()
-            for t in range(np.minimum(Qar.size,self.num_periods)):
-                cconv_csc.CONVCSC_set_Q(self._c_ptr,Qar[t],t)
+            return DoubleArray(cconv_csc.CONVCSC_get_Q_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_Q_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_dc:
         """ DC power injection into DC bus (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_P_dc_array(self._c_ptr), self.num_periods)[:] = v
 
     property i_dc:
         """ DC current injection into DC bus (p.u. system base MVA) (float or |Array|). """
@@ -362,75 +337,71 @@ cdef class ConverterCSC:
                 return AttributeFloat(r[0])
             else:
                 return AttributeArray(r)
-                
+            
     property P_dc_set:
         """ DC power set point (p.u. system base MVA) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_P_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_P_dc_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_P_dc_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property i_dc_set:
         """ DC current set point (p.u. DC base) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_i_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_i_dc_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_i_dc_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_dc_set:
         """ DC voltage set point (p.u. DC base) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_v_dc_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_v_dc_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_v_dc_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property angle:
         """ Ignition delay angle if rectifier or extinction advance angle if inverter (radians) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_angle(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_angle_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_angle_array(self._c_ptr), self.num_periods)[:] = v
 
     property angle_max:
         """ Maximum angle (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_angle_max(self._c_ptr)
+        def __set__(self, a): cconv_csc.CONVCSC_set_angle_max(self._c_ptr, a)
 
     property angle_min:
         """ Minimum angle (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_angle_min(self._c_ptr)
+        def __set__(self, a): cconv_csc.CONVCSC_set_angle_min(self._c_ptr, a)
 
     property ratio:
         """ Commutating transformer turns ratio (AC bus base voltage / DC bus base voltage) (float or |Array|). """
         def __get__(self):
-            r = [cconv_csc.CONVCSC_get_ratio(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cconv_csc.CONVCSC_get_ratio_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cconv_csc.CONVCSC_get_ratio_array(self._c_ptr), self.num_periods)[:] = v
 
     property ratio_max:
         """ Maximum turns ratio (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_ratio_max(self._c_ptr)
+        def __set__(self, r): cconv_csc.CONVCSC_set_ratio_max(self._c_ptr, r)
 
     property ratio_min:
         """ Minimum ratio (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_ratio_min(self._c_ptr)
+        def __set__(self, r): cconv_csc.CONVCSC_set_ratio_min(self._c_ptr, r)
 
     property v_base_p:
         """ Primary side bus base AC voltage (kv) (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_v_base_p(self._c_ptr)
+        def __set__(self, v): cconv_csc.CONVCSC_set_v_base_p(self._c_ptr, v)
 
     property v_base_s:
         """ Secondary side bus base AC voltage (kv) (float). """
         def __get__(self): return cconv_csc.CONVCSC_get_v_base_s(self._c_ptr)
+        def __set__(self, v): cconv_csc.CONVCSC_set_v_base_s(self._c_ptr, v)
 
     property json_string:
         """ JSON string (string). """
