@@ -181,30 +181,42 @@ cdef class Facts:
         """
 
         return cfacts.FACTS_is_in_constant_series_v_mode(self._c_ptr)
-    
-    def set_v_mag_s(self, v, t=0):
+
+    def set_series_link_disabled(self):
         """
-        Sets facts series voltage magnitude.
-        
-        Parameters
-        ----------
-        v : float
-        t : int
+        Sets series link to disabled.
         """
         
-        cfacts.FACTS_set_v_mag_s(self._c_ptr,v,t)
+        cfacts.FACTS_set_mode_s(self._c_ptr, cfacts.FACTS_SERIES_MODE_DISABLED)
 
-    def set_v_ang_s(self, a, t=0):
+    def set_series_link_bypassed(self):
+
         """
-        Sets facts series voltage angle.
-
-        Parameters
-        ----------
-        a : float
-        t : int
+        Sets series link to bypassed.
         """
+        
+        cfacts.FACTS_set_mode_s(self._c_ptr, cfacts.FACTS_SERIES_MODE_BYPASS)
 
-        cfacts.FACTS_set_v_ang_s(self._c_ptr,a,t)
+    def set_in_normal_series_mode(self):
+        """
+        Sets FACTS to normal series mode.
+        """
+        
+        cfacts.FACTS_set_mode_s(self._c_ptr, cfacts.FACTS_SERIES_MODE_NORMAL)
+
+    def set_in_constant_series_z_mode(self):
+        """
+        Sets FACTS to constant series z mode.
+        """
+        
+        cfacts.FACTS_set_mode_s(self._c_ptr, cfacts.FACTS_SERIES_MODE_CZ)
+
+    def set_in_constant_series_v_mode(self):
+        """
+        Sets FACTS to normal series v mode.
+        """
+        
+        cfacts.FACTS_set_mode_s(self._c_ptr, cfacts.FACTS_SERIES_MODE_CV)
 
     def __richcmp__(self, other, op):
         """
@@ -292,111 +304,61 @@ cdef class Facts:
     property index_v_mag_s:
         """ Index of series voltage magnitude variable (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_v_mag_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_v_mag_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_v_ang_s:
         """ Index of series voltage angle variable (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_v_ang_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_v_ang_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_P_k:
         """ Index of active power injection into "k" bus (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_P_k(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_P_k_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_P_m:
         """ Index of active power injection into "m" bus (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_P_m(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_P_m_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_P_dc:
         """ Index of DC power exchanged from shunt to series converter (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q_k:
         """ Index of reactive power injection into "k" bus (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_Q_k(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_Q_k_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q_m:
         """ Index of reactive power injection into "m" bus (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_Q_m(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_Q_m_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q_s:
         """ Index of reactive power provided by series converter (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_Q_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_Q_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property index_Q_sh:
         """ Index of reactive power provided by shunt converter (int or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_index_Q_sh(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
+            return IntArray(cfacts.FACTS_get_index_Q_sh_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
 
     property v_mag_s:
         """ Series voltage magnitude (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_v_mag_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_v_mag_s)
-        def __set__(self,v):
-            cdef int t
-            cdef np.ndarray var = np.array(v).flatten()
-            for t in range(np.minimum(var.size,self.num_periods)):
-                cfacts.FACTS_set_v_mag_s(self._c_ptr,var[t],t)
+            return DoubleArray(cfacts.FACTS_get_v_mag_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_v_mag_s_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_ang_s:
         """ Series voltage angle (radians with respect to bus_k voltage angle) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_v_ang_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r,self.set_v_ang_s)
-        def __set__(self,a):
-            cdef int t
-            cdef np.ndarray aar = np.array(a).flatten()
-            for t in range(np.minimum(aar.size,self.num_periods)):
-                cfacts.FACTS_set_v_ang_s(self._c_ptr,aar[t],t)
+            return DoubleArray(cfacts.FACTS_get_v_ang_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_v_ang_s_array(self._c_ptr), self.num_periods)[:] = v
 
     property v_max_s:
         """ Maximum series voltage magnitude (p.u.) (float). """
@@ -416,84 +378,65 @@ cdef class Facts:
     property P_k:
         """ Active power injected into the "k" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_P_k(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_P_k_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_P_k_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_m:
         """ Active power injected into the "m" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_P_m(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_P_m_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_P_m_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_k:
         """ Reactive power injected into the "k" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_Q_k(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_Q_k_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_Q_k_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_m:
         """ Reactive power injected into the "m" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_Q_m(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_Q_m_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_Q_m_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_sh:
         """ Reactive power provided by shunt converter (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_Q_sh(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_Q_sh_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_Q_sh_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_s:
         """ Reactive power provided by series converter (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_Q_s(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_Q_s_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_Q_s_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_dc:
         """ DC power exchanged from shunt to series converter (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_P_dc(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
-
+            return DoubleArray(cfacts.FACTS_get_P_dc_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_P_dc_array(self._c_ptr), self.num_periods)[:] = v
 
     property P_set:
         """ Active power set-point at the "m" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_P_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_P_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_P_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_set:
         """ Reactive power set-point at the "m" bus (p.u.) (float or |Array|). """
         def __get__(self):
-            r = [cfacts.FACTS_get_Q_set(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeFloat(r[0])
-            else:
-                return AttributeArray(r)
+            return DoubleArray(cfacts.FACTS_get_Q_set_array(self._c_ptr), self.num_periods, owndata=False, toscalar=True)
+        def __set__(self, v):
+            DoubleArray(cfacts.FACTS_get_Q_set_array(self._c_ptr), self.num_periods)[:] = v
 
     property Q_par:
         """ Reactive power participation factor of shunt converter for regulating bus voltage magnitude (unitless) (float). """
