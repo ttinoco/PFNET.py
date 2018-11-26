@@ -1535,7 +1535,7 @@ class TestFunctions(unittest.TestCase):
     def test_func_SP_CONTROLS(self):
 
         # Constants
-        h = 1e-10
+        h = 1e-9
 
         # Single period
         for case in test_cases.CASES:
