@@ -13,6 +13,8 @@ cimport cfacts
 # Infinite
 FACTS_INF_VMAG_S = cfacts.FACTS_INF_VMAG_S
 FACTS_INF_VANG_S = cfacts.FACTS_INF_VANG_S
+FACTS_INF_P = cfacts.FACTS_INF_P
+FACTS_INF_Q = cfacts.FACTS_INF_Q
 
 class FactsError(Exception):
     """

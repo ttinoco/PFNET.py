@@ -2161,12 +2161,6 @@ class TestConstraints(unittest.TestCase):
 
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
-            
-            # DEBUG
-            if net.num_vsc_converters > 0:
-                print('{} has {} vscs'.format(case,net.num_vsc_converters))
-            if net.num_facts > 0:
-                print('{} has {} facts'.format(case,net.num_facts))
 
             # add vargens
             net.add_var_generators_from_parameters(net.get_load_buses(),80.,50.,30.,5,0.05)
@@ -2227,7 +2221,7 @@ class TestConstraints(unittest.TestCase):
             net.set_flags('vsc converter',
                           'variable',
                           'any',
-                          ['active power', 'reactive power'])
+                          ['dc power', 'active power', 'reactive power'])
             net.set_flags('facts',
                           'variable',
                           'any',
@@ -2238,16 +2232,16 @@ class TestConstraints(unittest.TestCase):
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_fixed,0)
             self.assertEqual(net.num_vars,
-                             net.get_num_buses_reg_by_gen()*2 +
-                             net.get_num_reg_gens()*2 +
-                             2*net.get_num_P_adjust_loads() +
-                             net.get_num_tap_changers() +
-                             net.get_num_phase_shifters()*1 +
-                             net.get_num_switched_v_shunts() +
-                             net.num_var_generators*2+
-                             3*net.num_batteries+
-                             2*net.num_vsc_converters+
-                             4*net.num_facts)
+                             (net.get_num_buses_reg_by_gen()*2 +
+                              net.get_num_reg_gens()*2 +
+                              2*net.get_num_P_adjust_loads() +
+                              net.get_num_tap_changers() +
+                              net.get_num_phase_shifters()*1 +
+                              net.get_num_switched_v_shunts() +
+                              net.num_var_generators*2+
+                              3*net.num_batteries+
+                              4*net.num_vsc_converters+
+                              9*net.num_facts))
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -2416,10 +2410,15 @@ class TestConstraints(unittest.TestCase):
             for vsc_conv in net.vsc_converters:
                 self.assertTrue(vsc_conv.has_flags('variable','active power'))
                 self.assertTrue(vsc_conv.has_flags('variable','reactive power'))
+                self.assertTrue(vsc_conv.has_flags('variable','dc power'))
                 self.assertEqual(u[vsc_conv.index_P],pf.CONVVSC_INF_P)
                 self.assertEqual(l[vsc_conv.index_P],-pf.CONVVSC_INF_P)
                 self.assertEqual(u[vsc_conv.index_Q],pf.CONVVSC_INF_Q)
                 self.assertEqual(l[vsc_conv.index_Q],-pf.CONVVSC_INF_Q)
+                self.assertEqual(u[vsc_conv.index_P_dc],pf.CONVVSC_INF_PDC)
+                self.assertEqual(l[vsc_conv.index_P_dc],-pf.CONVVSC_INF_PDC)
+                self.assertEqual(u[vsc_conv.index_i_dc],pf.CONVVSC_INF_PDC)
+                self.assertEqual(l[vsc_conv.index_i_dc],-pf.CONVVSC_INF_PDC)
             
             for facts in net.facts:
                 self.assertTrue(facts.has_flags('variable','series voltage magnitude'))
@@ -2430,10 +2429,20 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(l[facts.index_v_mag_s],0.)
                 self.assertEqual(u[facts.index_v_ang_s],pf.FACTS_INF_VANG_S)
                 self.assertEqual(l[facts.index_v_ang_s],-pf.FACTS_INF_VANG_S)
-                self.assertEqual(u[facts.index_P],pf.FACTS_INF_P)
-                self.assertEqual(l[facts.index_P],-pf.FACTS_INF_P)
-                self.assertEqual(u[facts.index_Q],pf.FACTS_INF_Q)
-                self.assertEqual(l[facts.index_Q],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_P_k],pf.FACTS_INF_P)
+                self.assertEqual(l[facts.index_P_k],-pf.FACTS_INF_P)
+                self.assertEqual(u[facts.index_P_m],pf.FACTS_INF_P)
+                self.assertEqual(l[facts.index_P_m],-pf.FACTS_INF_P)
+                self.assertEqual(u[facts.index_P_dc],pf.FACTS_INF_P)
+                self.assertEqual(l[facts.index_P_dc],-pf.FACTS_INF_P)
+                self.assertEqual(u[facts.index_Q_k],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_k],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_Q_m],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_m],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_Q_s],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_s],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_Q_sh],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_sh],-pf.FACTS_INF_Q)
 
             # Add bounded flags
             net.set_flags('bus',
@@ -2471,7 +2480,7 @@ class TestConstraints(unittest.TestCase):
             net.set_flags('vsc converter',
                           'bounded',
                           'any',
-                          ['active power','reactive power'])
+                          ['dc power', 'active power','reactive power'])
             net.set_flags('facts',
                           'bounded',
                           'any',
@@ -2589,10 +2598,15 @@ class TestConstraints(unittest.TestCase):
             for vsc_conv in net.vsc_converters:
                 self.assertTrue(vsc_conv.has_flags('bounded','active power'))
                 self.assertTrue(vsc_conv.has_flags('bounded','reactive power'))
+                self.assertTrue(vsc_conv.has_flags('bounded','dc power'))
                 self.assertEqual(u[vsc_conv.index_P],vsc_conv.P_max)
                 self.assertEqual(l[vsc_conv.index_P],vsc_conv.P_min)
                 self.assertEqual(u[vsc_conv.index_Q],vsc_conv.Q_max)
                 self.assertEqual(l[vsc_conv.index_Q],vsc_conv.Q_min)
+                self.assertEqual(u[vsc_conv.index_P_dc],pf.CONVVSC_INF_PDC)
+                self.assertEqual(l[vsc_conv.index_P_dc],-pf.CONVVSC_INF_PDC)
+                self.assertEqual(u[vsc_conv.index_i_dc],pf.CONVVSC_INF_PDC)
+                self.assertEqual(l[vsc_conv.index_i_dc],-pf.CONVVSC_INF_PDC)
                 
             for facts in net.facts:
                 self.assertTrue(facts.has_flags('bounded','series voltage magnitude'))
@@ -2601,12 +2615,22 @@ class TestConstraints(unittest.TestCase):
                 self.assertTrue(facts.has_flags('bounded','reactive power'))
                 self.assertEqual(u[facts.index_v_mag_s],facts.v_max_s)
                 self.assertEqual(l[facts.index_v_mag_s],0.)
-                self.assertEqual(u[facts.index_v_mag_s],pf.FACTS_INF_VANG_S)
-                self.assertEqual(l[facts.index_v_mag_s],-pf.FACTS_INF_VANG_S)
-                self.assertEqual(u[facts.index_P_k],facts.P_max_dc)
-                self.assertEqual(l[facts.index_P_k],-facts.P_max_dc)
+                self.assertEqual(u[facts.index_v_ang_s],pf.FACTS_INF_VANG_S)
+                self.assertEqual(l[facts.index_v_ang_s],-pf.FACTS_INF_VANG_S)
+                self.assertEqual(u[facts.index_P_k],pf.FACTS_INF_P)
+                self.assertEqual(l[facts.index_P_k],-pf.FACTS_INF_P)
+                self.assertEqual(u[facts.index_P_m],pf.FACTS_INF_P)
+                self.assertEqual(l[facts.index_P_m],-pf.FACTS_INF_P)
+                self.assertEqual(u[facts.index_P_dc],facts.P_max_dc)
+                self.assertEqual(l[facts.index_P_dc],-facts.P_max_dc)
+                self.assertEqual(u[facts.index_Q_k],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_k],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_Q_m],pf.FACTS_INF_Q)
+                self.assertEqual(l[facts.index_Q_m],-pf.FACTS_INF_Q)
+                self.assertEqual(u[facts.index_Q_s],facts.Q_max_s)
+                self.assertEqual(l[facts.index_Q_s],facts.Q_min_s)
                 self.assertEqual(u[facts.index_Q_sh],facts.Q_max_sh)
-                self.assertEqual(l[facts.index_Q_sh],-facts.Q_max_sh)
+                self.assertEqual(l[facts.index_Q_sh],facts.Q_min_sh)
                 
             # Sensitivities
             net.clear_sensitivities()
@@ -2777,7 +2801,7 @@ class TestConstraints(unittest.TestCase):
             net.set_flags('vsc converter',
                           'variable',
                           'any',
-                          ['active power', 'reactive power'])
+                          ['dc power', 'active power', 'reactive power'])
             net.set_flags('facts',
                           'variable',
                           'any',
@@ -2795,8 +2819,8 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_switched_v_shunts() +
                               net.num_var_generators*2+
                               3*net.num_batteries+
-                              2*net.num_vsc_converters+
-                              4*net.num_facts)*self.T)
+                              4*net.num_vsc_converters+
+                              9*net.num_facts)*self.T)
 
             x0 = net.get_var_values()
             constr = pf.Constraint('variable bounds',net)
@@ -2852,19 +2876,40 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(u[shunt.index_b[t]],pf.SHUNT_INF_SUSC)
                         self.assertEqual(l[shunt.index_b[t]],-pf.SHUNT_INF_SUSC)
                 for vsc_conv in net.vsc_converters:
+                    self.assertTrue(vsc_conv.has_flags('variable','active power'))
+                    self.assertTrue(vsc_conv.has_flags('variable','reactive power'))
+                    self.assertTrue(vsc_conv.has_flags('variable','dc power'))
                     self.assertEqual(u[vsc_conv.index_P[t]],pf.CONVVSC_INF_P)
                     self.assertEqual(l[vsc_conv.index_P[t]],-pf.CONVVSC_INF_P)
                     self.assertEqual(u[vsc_conv.index_Q[t]],pf.CONVVSC_INF_Q)
                     self.assertEqual(l[vsc_conv.index_Q[t]],-pf.CONVVSC_INF_Q)
+                    self.assertEqual(u[vsc_conv.index_P_dc[t]],pf.CONVVSC_INF_PDC)
+                    self.assertEqual(l[vsc_conv.index_P_dc[t]],-pf.CONVVSC_INF_PDC)
+                    self.assertEqual(u[vsc_conv.index_i_dc[t]],pf.CONVVSC_INF_PDC)
+                    self.assertEqual(l[vsc_conv.index_i_dc[t]],-pf.CONVVSC_INF_PDC)
                 for facts in net.facts:
+                    self.assertTrue(facts.has_flags('variable','series voltage magnitude'))
+                    self.assertTrue(facts.has_flags('variable','series voltage angle'))
+                    self.assertTrue(facts.has_flags('variable','active power'))
+                    self.assertTrue(facts.has_flags('variable','reactive power'))
                     self.assertEqual(u[facts.index_v_mag_s[t]],pf.FACTS_INF_VMAG_S)
                     self.assertEqual(l[facts.index_v_mag_s[t]],0.)
                     self.assertEqual(u[facts.index_v_ang_s[t]],pf.FACTS_INF_VANG_S)
                     self.assertEqual(l[facts.index_v_ang_s[t]],-pf.FACTS_INF_VANG_S)
-                    self.assertEqual(u[facts.index_P[t]],pf.FACTS_INF_P)
-                    self.assertEqual(l[facts.index_P[t]],-pf.FACTS_INF_P)
-                    self.assertEqual(u[facts.index_Q[t]],pf.FACTS_INF_Q)
-                    self.assertEqual(l[facts.index_Q[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_P_k[t]],pf.FACTS_INF_P)
+                    self.assertEqual(l[facts.index_P_k[t]],-pf.FACTS_INF_P)
+                    self.assertEqual(u[facts.index_P_m[t]],pf.FACTS_INF_P)
+                    self.assertEqual(l[facts.index_P_m[t]],-pf.FACTS_INF_P)
+                    self.assertEqual(u[facts.index_P_dc[t]],pf.FACTS_INF_P)
+                    self.assertEqual(l[facts.index_P_dc[t]],-pf.FACTS_INF_P)
+                    self.assertEqual(u[facts.index_Q_k[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_k[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_Q_m[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_m[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_Q_s[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_s[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_Q_sh[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_sh[t]],-pf.FACTS_INF_Q)
 
             # Row info
             for t in range(self.T):
@@ -2960,7 +3005,17 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:vsc converter:%d:reactive power:%d' %(vsc_conv.index,t))
-
+                    i = vsc_conv.index_P_dc[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:vsc converter:%d:dc power:%d' %(vsc_conv.index,t))
+                    i = vsc_conv.index_i_dc[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:vsc converter:%d:dc current:%d' %(vsc_conv.index,t))
+                    
                 for facts in net.facts:
                     i = facts.index_v_mag_s[t]
                     s = constr.get_G_row_info_string(i)
@@ -2972,17 +3027,42 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:facts:%d:series voltage angle:%d' %(facts.index,t))
-                    i = facts.index_P[t]
+                    i = facts.index_P_k[t]
                     s = constr.get_G_row_info_string(i)
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
-                    self.assertEqual(s,'variable bounds:facts:%d:active power:%d' %(facts.index,t))
-                    i = facts.index_Q[t]
+                    self.assertEqual(s,'variable bounds:facts:%d:active power k:%d' %(facts.index,t))
+                    i = facts.index_P_m[t]
                     s = constr.get_G_row_info_string(i)
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
-                    self.assertEqual(s,'variable bounds:facts:%d:reactive power:%d' %(facts.index,t))
-            
+                    self.assertEqual(s,'variable bounds:facts:%d:active power m:%d' %(facts.index,t))
+                    i = facts.index_P_dc[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:facts:%d:dc power:%d' %(facts.index,t))
+                    i = facts.index_Q_k[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:facts:%d:reactive power k:%d' %(facts.index,t))
+                    i = facts.index_Q_m[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:facts:%d:reactive power m:%d' %(facts.index,t))
+                    i = facts.index_Q_s[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:facts:%d:series reactive power:%d' %(facts.index,t))
+                    i = facts.index_Q_sh[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:facts:%d:shunt reactive power:%d' %(facts.index,t))
+                    
             # Bounded
             net.set_flags('bus',
                           'bounded',
@@ -3019,7 +3099,7 @@ class TestConstraints(unittest.TestCase):
             net.set_flags('vsc converter',
                           'bounded',
                           'any',
-                          ['active power','reactive power'])
+                          ['dc power', 'active power','reactive power'])
             net.set_flags('facts',
                           'bounded',
                           'any',
@@ -3073,19 +3153,41 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(u[shunt.index_b[t]],shunt.b_max)
                         self.assertEqual(l[shunt.index_b[t]],shunt.b_min)
                 for vsc_conv in net.vsc_converters:
-                    self.assertEqual(u[vsc_conv.index_P],vsc_conv.P_max)
-                    self.assertEqual(l[vsc_conv.index_P],vsc_conv.P_min)
-                    self.assertEqual(u[vsc_conv.index_Q],vsc_conv.Q_max)
-                    self.assertEqual(l[vsc_conv.index_Q],vsc_conv.Q_min)
+                    self.assertTrue(vsc_conv.has_flags('bounded','active power'))
+                    self.assertTrue(vsc_conv.has_flags('bounded','reactive power'))
+                    self.assertTrue(vsc_conv.has_flags('bounded','dc power'))
+                    self.assertEqual(u[vsc_conv.index_P[t]],vsc_conv.P_max)
+                    self.assertEqual(l[vsc_conv.index_P[t]],vsc_conv.P_min)
+                    self.assertEqual(u[vsc_conv.index_Q[t]],vsc_conv.Q_max)
+                    self.assertEqual(l[vsc_conv.index_Q[t]],vsc_conv.Q_min)
+                    self.assertEqual(u[vsc_conv.index_P_dc[t]],pf.CONVVSC_INF_PDC)
+                    self.assertEqual(l[vsc_conv.index_P_dc[t]],-pf.CONVVSC_INF_PDC)
+                    self.assertEqual(u[vsc_conv.index_i_dc[t]],pf.CONVVSC_INF_PDC)
+                    self.assertEqual(l[vsc_conv.index_i_dc[t]],-pf.CONVVSC_INF_PDC)
+                    
                 for facts in net.facts:
-                    self.assertEqual(u[facts.index_v_mag_s],facts.v_max_s)
-                    self.assertEqual(l[facts.index_v_mag_s],0.)
-                    self.assertEqual(u[facts.index_v_mag_s],pf.FACTS_INF_VANG_S)
-                    self.assertEqual(l[facts.index_v_mag_s],-pf.FACTS_INF_VANG_S)
-                    self.assertEqual(u[facts.index_P_k],facts.P_max_dc)
-                    self.assertEqual(l[facts.index_P_k],-facts.P_max_dc)
-                    self.assertEqual(u[facts.index_Q_sh],facts.Q_max_sh)
-                    self.assertEqual(l[facts.index_Q_sh],-facts.Q_max_sh)
+                    self.assertTrue(facts.has_flags('bounded','series voltage magnitude'))
+                    self.assertTrue(facts.has_flags('bounded','series voltage angle'))
+                    self.assertTrue(facts.has_flags('bounded','active power'))
+                    self.assertTrue(facts.has_flags('bounded','reactive power'))
+                    self.assertEqual(u[facts.index_v_mag_s[t]],facts.v_max_s)
+                    self.assertEqual(l[facts.index_v_mag_s[t]],0.)
+                    self.assertEqual(u[facts.index_v_ang_s[t]],pf.FACTS_INF_VANG_S)
+                    self.assertEqual(l[facts.index_v_ang_s[t]],-pf.FACTS_INF_VANG_S)
+                    self.assertEqual(u[facts.index_P_k[t]],pf.FACTS_INF_P)
+                    self.assertEqual(l[facts.index_P_k[t]],-pf.FACTS_INF_P)
+                    self.assertEqual(u[facts.index_P_m[t]],pf.FACTS_INF_P)
+                    self.assertEqual(l[facts.index_P_m[t]],-pf.FACTS_INF_P)
+                    self.assertEqual(u[facts.index_P_dc[t]],facts.P_max_dc)
+                    self.assertEqual(l[facts.index_P_dc[t]],-facts.P_max_dc)
+                    self.assertEqual(u[facts.index_Q_k[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_k[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_Q_m[t]],pf.FACTS_INF_Q)
+                    self.assertEqual(l[facts.index_Q_m[t]],-pf.FACTS_INF_Q)
+                    self.assertEqual(u[facts.index_Q_s[t]],facts.Q_max_s)
+                    self.assertEqual(l[facts.index_Q_s[t]],facts.Q_min_s)
+                    self.assertEqual(u[facts.index_Q_sh[t]],facts.Q_max_sh)
+                    self.assertEqual(l[facts.index_Q_sh[t]],facts.Q_min_sh)
             
             # Sensitivities
             mu = np.random.randn(net.num_vars)

@@ -3678,6 +3678,16 @@ class TestNetwork(unittest.TestCase):
                           ['variable','bounded'],
                           'any',
                           ['charging power','energy level'])
+            net.set_flags('vsc converter',
+                          ['variable', 'bounded'],
+                          'any',
+                          ['active power', 'reactive power', 'dc power'])
+            net.set_flags('facts',
+                          ['variable', 'bounded'],
+                          'any',
+                          ['active power', 'reactive power',
+                           'series voltage magnitude',
+                           'series voltage angle'])
             self.assertEqual(net.num_vars,
                              (2*net.num_buses +
                               2*net.num_generators +
@@ -3685,7 +3695,9 @@ class TestNetwork(unittest.TestCase):
                               2*net.num_branches +
                               1*net.num_shunts +
                               2*net.get_num_P_adjust_loads()+
-                              3*net.num_batteries))
+                              3*net.num_batteries +
+                              4*net.num_vsc_converters +
+                              9*net.num_facts))                            
             self.assertEqual(net.num_vars,net.num_bounded)
 
             # Add some interesting vargen values
@@ -3733,7 +3745,22 @@ class TestNetwork(unittest.TestCase):
                     self.assertEqual(x[bat.index_Pd],-bat.P)
                     self.assertEqual(x[bat.index_Pd],1.*(bat.index+1))
                 self.assertEqual(x[bat.index_E],bat.E)
-
+            for vsc in net.vsc_converters:
+                self.assertEqual(x[vsc.index_P], vsc.P)
+                self.assertEqual(x[vsc.index_Q], vsc.Q)
+                self.assertEqual(x[vsc.index_P_dc], vsc.P_dc)
+                self.assertEqual(x[vsc.index_i_dc], vsc.i_dc)
+            for facts in net.facts:
+                self.assertEqual(x[facts.index_v_mag_s], facts.v_mag_s)
+                self.assertEqual(x[facts.index_v_ang_s], facts.v_ang_s)
+                self.assertEqual(x[facts.index_P_k], facts.P_k)
+                self.assertEqual(x[facts.index_P_m], facts.P_m)
+                self.assertEqual(x[facts.index_P_dc], facts.P_dc)
+                self.assertEqual(x[facts.index_Q_k], facts.Q_k)
+                self.assertEqual(x[facts.index_Q_m], facts.Q_m)
+                self.assertEqual(x[facts.index_Q_s], facts.Q_s)
+                self.assertEqual(x[facts.index_Q_sh], facts.Q_sh)
+                
             # Upper limits
             x = net.get_var_values('upper limits')
             self.assertEqual(x.size,net.num_vars)
@@ -3761,6 +3788,21 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(x[bat.index_Pc],bat.P_max)
                 self.assertEqual(x[bat.index_Pd],-bat.P_min)
                 self.assertEqual(x[bat.index_E],bat.E_max)
+            for vsc in net.vsc_converters:
+                self.assertEqual(x[vsc.index_P], vsc.P_max)
+                self.assertEqual(x[vsc.index_Q], vsc.Q_max)
+                self.assertEqual(x[vsc.index_P_dc], pf.CONVVSC_INF_PDC)
+                self.assertEqual(x[vsc.index_i_dc], pf.CONVVSC_INF_PDC)
+            for facts in net.facts:
+                self.assertEqual(x[facts.index_v_mag_s], facts.v_max_s)
+                self.assertEqual(x[facts.index_v_ang_s], pf.FACTS_INF_VANG_S)
+                self.assertEqual(x[facts.index_P_k], pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_m], pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_dc], facts.P_max_dc)
+                self.assertEqual(x[facts.index_Q_k], pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_m], pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_s], facts.Q_max_s)
+                self.assertEqual(x[facts.index_Q_sh], facts.Q_max_sh)
 
             # Lower limits
             x = net.get_var_values('lower limits')
@@ -3789,6 +3831,21 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(x[bat.index_Pc],0.)
                 self.assertEqual(x[bat.index_Pd],0.)
                 self.assertEqual(x[bat.index_E],0.)
+            for vsc in net.vsc_converters:
+                self.assertEqual(x[vsc.index_P], vsc.P_min)
+                self.assertEqual(x[vsc.index_Q], vsc.Q_min)
+                self.assertEqual(x[vsc.index_P_dc], -pf.CONVVSC_INF_PDC)
+                self.assertEqual(x[vsc.index_i_dc], -pf.CONVVSC_INF_PDC)
+            for facts in net.facts:
+                self.assertEqual(x[facts.index_v_mag_s], 0.)
+                self.assertEqual(x[facts.index_v_ang_s], -pf.FACTS_INF_VANG_S)
+                self.assertEqual(x[facts.index_P_k], -pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_m], -pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_dc], -facts.P_max_dc)
+                self.assertEqual(x[facts.index_Q_k], -pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_m], -pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_s], facts.Q_min_s)
+                self.assertEqual(x[facts.index_Q_sh], facts.Q_min_sh)
 
             # Clear flags
             net.clear_flags()
@@ -3824,14 +3881,26 @@ class TestNetwork(unittest.TestCase):
                           ['variable'],
                           'any',
                           ['charging power','energy level'])
+            net.set_flags('vsc converter',
+                          ['variable'],
+                          'any',
+                          ['active power', 'reactive power', 'dc power'])
+            net.set_flags('facts',
+                          ['variable'],
+                          'any',
+                          ['active power', 'reactive power',
+                           'series voltage magnitude',
+                           'series voltage angle'])
             self.assertEqual(net.num_vars,
                              (2*net.num_buses +
                               2*net.num_generators +
                               2*net.num_var_generators +
                               2*net.num_branches +
                               1*net.num_shunts +
-                              2*net.get_num_P_adjust_loads()+
-                              3*net.num_batteries))
+                              2*net.get_num_P_adjust_loads() +
+                              3*net.num_batteries +
+                              4*net.num_vsc_converters +
+                              9*net.num_facts))
             self.assertEqual(net.num_bounded,0)
 
             # Upper limits (without bounded flag)
@@ -3858,6 +3927,21 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(x[bat.index_Pc],pf.BAT_INF_P)
                 self.assertEqual(x[bat.index_Pd],pf.BAT_INF_P)
                 self.assertEqual(x[bat.index_E],pf.BAT_INF_E)
+            for vsc in net.vsc_converters:
+                self.assertEqual(x[vsc.index_P], pf.CONVVSC_INF_P)
+                self.assertEqual(x[vsc.index_Q], pf.CONVVSC_INF_Q)
+                self.assertEqual(x[vsc.index_P_dc], pf.CONVVSC_INF_PDC)
+                self.assertEqual(x[vsc.index_i_dc], pf.CONVVSC_INF_PDC)
+            for facts in net.facts:
+                self.assertEqual(x[facts.index_v_mag_s], pf.FACTS_INF_VMAG_S)
+                self.assertEqual(x[facts.index_v_ang_s], pf.FACTS_INF_VANG_S)
+                self.assertEqual(x[facts.index_P_k], pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_m], pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_dc], pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_Q_k], pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_m], pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_s], pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_sh], pf.FACTS_INF_Q)
 
             # Lower limits (without bounded flag)
             x = net.get_var_values('lower limits')
@@ -3883,6 +3967,21 @@ class TestNetwork(unittest.TestCase):
                 self.assertEqual(x[bat.index_Pc],-pf.BAT_INF_P)
                 self.assertEqual(x[bat.index_Pd],-pf.BAT_INF_P)
                 self.assertEqual(x[bat.index_E],-pf.BAT_INF_E)
+            for vsc in net.vsc_converters:
+                self.assertEqual(x[vsc.index_P], -pf.CONVVSC_INF_P)
+                self.assertEqual(x[vsc.index_Q], -pf.CONVVSC_INF_Q)
+                self.assertEqual(x[vsc.index_P_dc], -pf.CONVVSC_INF_PDC)
+                self.assertEqual(x[vsc.index_i_dc], -pf.CONVVSC_INF_PDC)
+            for facts in net.facts:
+                self.assertEqual(x[facts.index_v_mag_s], -pf.FACTS_INF_VMAG_S)
+                self.assertEqual(x[facts.index_v_ang_s], -pf.FACTS_INF_VANG_S)
+                self.assertEqual(x[facts.index_P_k], -pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_m], -pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_P_dc], -pf.FACTS_INF_P)
+                self.assertEqual(x[facts.index_Q_k], -pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_m], -pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_s], -pf.FACTS_INF_Q)
+                self.assertEqual(x[facts.index_Q_sh], -pf.FACTS_INF_Q)
 
         # Multi period
         for case in test_cases.CASES:
@@ -3961,14 +4060,26 @@ class TestNetwork(unittest.TestCase):
                           ['variable','bounded'],
                           'any',
                           ['charging power','energy level'])
+            net.set_flags('vsc converter',
+                          ['variable', 'bounded'],
+                          'any',
+                          ['active power', 'reactive power', 'dc power'])
+            net.set_flags('facts',
+                          ['variable', 'bounded'],
+                          'any',
+                          ['active power', 'reactive power',
+                           'series voltage magnitude',
+                           'series voltage angle'])
             self.assertEqual(net.num_vars,
                              (2*net.num_buses +
                               2*net.num_generators +
                               2*net.num_var_generators +
                               2*net.num_branches +
                               1*net.num_shunts +
-                              2*net.get_num_P_adjust_loads()+
-                              3*net.num_batteries)*net.num_periods)
+                              2*net.get_num_P_adjust_loads() +
+                              3*net.num_batteries +
+                              4*net.num_vsc_converters +
+                              9*net.num_facts)*net.num_periods)
             self.assertEqual(net.num_vars,net.num_bounded)
 
             # Add some interesting vargen values
@@ -4013,6 +4124,21 @@ class TestNetwork(unittest.TestCase):
                         self.assertEqual(x[bat.index_Pc[t]],0.)
                         self.assertEqual(x[bat.index_Pd[t]],-bat.P[t])
                     self.assertEqual(x[bat.index_E[t]],bat.E[t])
+                for vsc in net.vsc_converters:
+                    self.assertEqual(x[vsc.index_P[t]], vsc.P[t])
+                    self.assertEqual(x[vsc.index_Q[t]], vsc.Q[t])
+                    self.assertEqual(x[vsc.index_P_dc[t]], vsc.P_dc[t])
+                    self.assertEqual(x[vsc.index_i_dc[t]], vsc.i_dc[t])
+                for facts in net.facts:
+                    self.assertEqual(x[facts.index_v_mag_s[t]], facts.v_mag_s[t])
+                    self.assertEqual(x[facts.index_v_ang_s[t]], facts.v_ang_s[t])
+                    self.assertEqual(x[facts.index_P_k[t]], facts.P_k[t])
+                    self.assertEqual(x[facts.index_P_m[t]], facts.P_m[t])
+                    self.assertEqual(x[facts.index_P_dc[t]], facts.P_dc[t])
+                    self.assertEqual(x[facts.index_Q_k[t]], facts.Q_k[t])
+                    self.assertEqual(x[facts.index_Q_m[t]], facts.Q_m[t])
+                    self.assertEqual(x[facts.index_Q_s[t]], facts.Q_s[t])
+                    self.assertEqual(x[facts.index_Q_sh[t]], facts.Q_sh[t])
 
             # Upper limits
             x = net.get_var_values('upper limits')
@@ -4042,6 +4168,21 @@ class TestNetwork(unittest.TestCase):
                     self.assertEqual(x[bat.index_Pc[t]],bat.P_max)
                     self.assertEqual(x[bat.index_Pd[t]],-bat.P_min)
                     self.assertEqual(x[bat.index_E[t]],bat.E_max)
+                for vsc in net.vsc_converters:
+                    self.assertEqual(x[vsc.index_P[t]], vsc.P_max)
+                    self.assertEqual(x[vsc.index_Q[t]], vsc.Q_max)
+                    self.assertEqual(x[vsc.index_P_dc[t]], pf.CONVVSC_INF_PDC)
+                    self.assertEqual(x[vsc.index_i_dc[t]], pf.CONVVSC_INF_PDC)
+                for facts in net.facts:
+                    self.assertEqual(x[facts.index_v_mag_s[t]], facts.v_max_s)
+                    self.assertEqual(x[facts.index_v_ang_s[t]], pf.FACTS_INF_VANG_S)
+                    self.assertEqual(x[facts.index_P_k[t]], pf.FACTS_INF_P)
+                    self.assertEqual(x[facts.index_P_m[t]], pf.FACTS_INF_P)
+                    self.assertEqual(x[facts.index_P_dc[t]], facts.P_max_dc)
+                    self.assertEqual(x[facts.index_Q_k[t]], pf.FACTS_INF_Q)
+                    self.assertEqual(x[facts.index_Q_m[t]], pf.FACTS_INF_Q)
+                    self.assertEqual(x[facts.index_Q_s[t]], facts.Q_max_s)
+                    self.assertEqual(x[facts.index_Q_sh[t]], facts.Q_max_sh)
 
             # Lower limits
             x = net.get_var_values('lower limits')
@@ -4071,6 +4212,21 @@ class TestNetwork(unittest.TestCase):
                     self.assertEqual(x[bat.index_Pc[t]],0.)
                     self.assertEqual(x[bat.index_Pd[t]],0.)
                     self.assertEqual(x[bat.index_E[t]],0.)
+                for vsc in net.vsc_converters:
+                    self.assertEqual(x[vsc.index_P[t]], vsc.P_min)
+                    self.assertEqual(x[vsc.index_Q[t]], vsc.Q_min)
+                    self.assertEqual(x[vsc.index_P_dc[t]], -pf.CONVVSC_INF_PDC)
+                    self.assertEqual(x[vsc.index_i_dc[t]], -pf.CONVVSC_INF_PDC)
+                for facts in net.facts:
+                    self.assertEqual(x[facts.index_v_mag_s[t]], 0.)
+                    self.assertEqual(x[facts.index_v_ang_s[t]], -pf.FACTS_INF_VANG_S)
+                    self.assertEqual(x[facts.index_P_k[t]], -pf.FACTS_INF_P)
+                    self.assertEqual(x[facts.index_P_m[t]], -pf.FACTS_INF_P)
+                    self.assertEqual(x[facts.index_P_dc[t]], -facts.P_max_dc)
+                    self.assertEqual(x[facts.index_Q_k[t]], -pf.FACTS_INF_Q)
+                    self.assertEqual(x[facts.index_Q_m[t]], -pf.FACTS_INF_Q)
+                    self.assertEqual(x[facts.index_Q_s[t]], facts.Q_min_s)
+                    self.assertEqual(x[facts.index_Q_sh[t]], facts.Q_min_sh)
                     
     def test_var_generators_P_sigma(self):
 
