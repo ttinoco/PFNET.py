@@ -2231,6 +2231,10 @@ class TestConstraints(unittest.TestCase):
                           'variable',
                           'any',
                           'voltage')
+            net.set_flags('csc converter',
+                          'variable',
+                          'any',
+                          'all')
 
             num_vars_saved = net.num_vars
             self.assertGreater(net.num_vars,0)
@@ -2246,8 +2250,9 @@ class TestConstraints(unittest.TestCase):
                               3*net.num_batteries+
                               4*net.num_vsc_converters+
                               9*net.num_facts +
-                              net.num_dc_buses))
-
+                              net.num_dc_buses +
+                              6*net.num_csc_converters))
+            
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
             self.assertTupleEqual(x0.shape,(net.num_vars,))
@@ -2453,6 +2458,20 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(u[bus.index_v], pf.BUSDC_INF_V)
                 self.assertEqual(l[bus.index_v], -pf.BUSDC_INF_V)
 
+            for csc in net.csc_converters:
+                self.assertEqual(u[csc.index_P], pf.CONVCSC_INF_P)
+                self.assertEqual(l[csc.index_P], -pf.CONVCSC_INF_P)
+                self.assertEqual(u[csc.index_Q], pf.CONVCSC_INF_Q)
+                self.assertEqual(l[csc.index_Q], -pf.CONVCSC_INF_Q)
+                self.assertEqual(u[csc.index_P_dc], pf.CONVCSC_INF_PDC)
+                self.assertEqual(l[csc.index_P_dc], -pf.CONVCSC_INF_PDC)
+                self.assertEqual(u[csc.index_i_dc], pf.CONVCSC_INF_PDC)
+                self.assertEqual(l[csc.index_i_dc], -pf.CONVCSC_INF_PDC)
+                self.assertEqual(u[csc.index_angle], pf.CONVCSC_INF_ANGLE)
+                self.assertEqual(l[csc.index_angle], -pf.CONVCSC_INF_ANGLE)
+                self.assertEqual(u[csc.index_ratio], pf.CONVCSC_INF_RATIO)
+                self.assertEqual(l[csc.index_ratio], -pf.CONVCSC_INF_RATIO)
+
             # Add bounded flags
             net.set_flags('bus',
                           'bounded',
@@ -2499,6 +2518,10 @@ class TestConstraints(unittest.TestCase):
                           'bounded',
                           'any',
                           'voltage')
+            net.set_flags('csc converter',
+                          'bounded',
+                          'any',
+                          'all')
             self.assertEqual(net.num_vars,num_vars_saved)
             self.assertEqual(net.num_fixed,0)
             self.assertEqual(net.num_bounded,net.num_vars)
@@ -2648,6 +2671,20 @@ class TestConstraints(unittest.TestCase):
             for bus in net.dc_buses:
                 self.assertEqual(u[bus.index_v], pf.BUSDC_INF_V)
                 self.assertEqual(l[bus.index_v], -pf.BUSDC_INF_V)
+
+            for csc in net.csc_converters:
+                self.assertEqual(u[csc.index_P], pf.CONVCSC_INF_P)
+                self.assertEqual(l[csc.index_P], -pf.CONVCSC_INF_P)
+                self.assertEqual(u[csc.index_Q], pf.CONVCSC_INF_Q)
+                self.assertEqual(l[csc.index_Q], -pf.CONVCSC_INF_Q)
+                self.assertEqual(u[csc.index_P_dc], pf.CONVCSC_INF_PDC)
+                self.assertEqual(l[csc.index_P_dc], -pf.CONVCSC_INF_PDC)
+                self.assertEqual(u[csc.index_i_dc], pf.CONVCSC_INF_PDC)
+                self.assertEqual(l[csc.index_i_dc], -pf.CONVCSC_INF_PDC)
+                self.assertEqual(u[csc.index_angle], pf.CONVCSC_INF_ANGLE)
+                self.assertEqual(l[csc.index_angle], -pf.CONVCSC_INF_ANGLE)
+                self.assertEqual(u[csc.index_ratio], pf.CONVCSC_INF_RATIO)
+                self.assertEqual(l[csc.index_ratio], -pf.CONVCSC_INF_RATIO)
                 
             # Sensitivities
             net.clear_sensitivities()
@@ -2828,6 +2865,10 @@ class TestConstraints(unittest.TestCase):
                           'variable',
                           'any',
                           'voltage')
+            net.set_flags('csc converter',
+                          'variable',
+                          'any',
+                          'all')
 
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_fixed,0)
@@ -2838,11 +2879,12 @@ class TestConstraints(unittest.TestCase):
                               net.get_num_tap_changers() +
                               net.get_num_phase_shifters() +
                               net.get_num_switched_v_shunts() +
-                              net.num_var_generators*2+
-                              3*net.num_batteries+
-                              4*net.num_vsc_converters+
-                              9*net.num_facts+
-                              net.num_dc_buses)*self.T)
+                              net.num_var_generators*2 +
+                              3*net.num_batteries +
+                              4*net.num_vsc_converters +
+                              9*net.num_facts +
+                              net.num_dc_buses +
+                              6*net.num_csc_converters)*self.T)
 
             x0 = net.get_var_values()
             constr = pf.Constraint('variable bounds',net)
@@ -2936,6 +2978,20 @@ class TestConstraints(unittest.TestCase):
                 for bus in net.dc_buses:
                     self.assertEqual(u[bus.index_v[t]], pf.BUSDC_INF_V)
                     self.assertEqual(l[bus.index_v[t]], -pf.BUSDC_INF_V)
+
+                for csc in net.csc_converters:
+                    self.assertEqual(u[csc.index_P[t]], pf.CONVCSC_INF_P)
+                    self.assertEqual(l[csc.index_P[t]], -pf.CONVCSC_INF_P)
+                    self.assertEqual(u[csc.index_Q[t]], pf.CONVCSC_INF_Q)
+                    self.assertEqual(l[csc.index_Q[t]], -pf.CONVCSC_INF_Q)
+                    self.assertEqual(u[csc.index_P_dc[t]], pf.CONVCSC_INF_PDC)
+                    self.assertEqual(l[csc.index_P_dc[t]], -pf.CONVCSC_INF_PDC)
+                    self.assertEqual(u[csc.index_i_dc[t]], pf.CONVCSC_INF_PDC)
+                    self.assertEqual(l[csc.index_i_dc[t]], -pf.CONVCSC_INF_PDC)
+                    self.assertEqual(u[csc.index_angle[t]], pf.CONVCSC_INF_ANGLE)
+                    self.assertEqual(l[csc.index_angle[t]], -pf.CONVCSC_INF_ANGLE)
+                    self.assertEqual(u[csc.index_ratio[t]], pf.CONVCSC_INF_RATIO)
+                    self.assertEqual(l[csc.index_ratio[t]], -pf.CONVCSC_INF_RATIO)
                     
             # Row info
             for t in range(self.T):
@@ -3096,6 +3152,38 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:dc bus:%d:voltage:%d' %(bus.index,t))
                     
+                for csc in net.csc_converters:
+                    i = csc.index_P[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:active power:%d' %(csc.index,t))
+                    i = csc.index_Q[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:reactive power:%d' %(csc.index,t))
+                    i = csc.index_P_dc[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:dc power:%d' %(csc.index,t))
+                    i = csc.index_i_dc[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:dc current:%d' %(csc.index,t))
+                    i = csc.index_angle[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:angle:%d' %(csc.index,t))
+                    i = csc.index_ratio[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:csc converter:%d:tap ratio:%d' %(csc.index,t))
+                    
             # Bounded
             net.set_flags('bus',
                           'bounded',
@@ -3142,6 +3230,10 @@ class TestConstraints(unittest.TestCase):
                           'bounded',
                           'any',
                           'voltage')
+            net.set_flags('csc converter',
+                          'bounded',
+                          'any',
+                          'all')
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_bounded,net.num_vars)
 
@@ -3229,6 +3321,20 @@ class TestConstraints(unittest.TestCase):
                 for bus in net.dc_buses:
                     self.assertEqual(u[bus.index_v[t]], pf.BUSDC_INF_V)
                     self.assertEqual(l[bus.index_v[t]], -pf.BUSDC_INF_V)
+
+                for csc in net.csc_converters:
+                    self.assertEqual(u[csc.index_P[t]], pf.CONVCSC_INF_P)
+                    self.assertEqual(l[csc.index_P[t]], -pf.CONVCSC_INF_P)
+                    self.assertEqual(u[csc.index_Q[t]], pf.CONVCSC_INF_Q)
+                    self.assertEqual(l[csc.index_Q[t]], -pf.CONVCSC_INF_Q)
+                    self.assertEqual(u[csc.index_P_dc[t]], pf.CONVCSC_INF_PDC)
+                    self.assertEqual(l[csc.index_P_dc[t]], -pf.CONVCSC_INF_PDC)
+                    self.assertEqual(u[csc.index_i_dc[t]], pf.CONVCSC_INF_PDC)
+                    self.assertEqual(l[csc.index_i_dc[t]], -pf.CONVCSC_INF_PDC)
+                    self.assertEqual(u[csc.index_angle[t]], pf.CONVCSC_INF_ANGLE)
+                    self.assertEqual(l[csc.index_angle[t]], -pf.CONVCSC_INF_ANGLE)
+                    self.assertEqual(u[csc.index_ratio[t]], pf.CONVCSC_INF_RATIO)
+                    self.assertEqual(l[csc.index_ratio[t]], -pf.CONVCSC_INF_RATIO)
             
             # Sensitivities
             mu = np.random.randn(net.num_vars)
