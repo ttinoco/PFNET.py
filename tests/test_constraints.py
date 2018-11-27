@@ -2227,6 +2227,10 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power', 'reactive power'])
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
 
             num_vars_saved = net.num_vars
             self.assertGreater(net.num_vars,0)
@@ -2241,7 +2245,8 @@ class TestConstraints(unittest.TestCase):
                               net.num_var_generators*2+
                               3*net.num_batteries+
                               4*net.num_vsc_converters+
-                              9*net.num_facts))
+                              9*net.num_facts +
+                              net.num_dc_buses))
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -2330,7 +2335,7 @@ class TestConstraints(unittest.TestCase):
             self.assertTrue(not np.any(np.isinf(u)))
             self.assertTrue(not np.any(np.isnan(u)))
             self.assertTrue(not np.any(np.isinf(b)))
-            self.assertTrue(not np.any(np.isnan(b)))
+            self.assertTrue(not np.any(np.isnan(b)))            
 
             # Bounds
             for bus in net.buses:
@@ -2444,6 +2449,10 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(u[facts.index_Q_sh],pf.FACTS_INF_Q)
                 self.assertEqual(l[facts.index_Q_sh],-pf.FACTS_INF_Q)
 
+            for bus in net.dc_buses:
+                self.assertEqual(u[bus.index_v], pf.BUSDC_INF_V)
+                self.assertEqual(l[bus.index_v], -pf.BUSDC_INF_V)
+
             # Add bounded flags
             net.set_flags('bus',
                           'bounded',
@@ -2486,6 +2495,10 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power','reactive power'])
+            net.set_flags('dc bus',
+                          'bounded',
+                          'any',
+                          'voltage')
             self.assertEqual(net.num_vars,num_vars_saved)
             self.assertEqual(net.num_fixed,0)
             self.assertEqual(net.num_bounded,net.num_vars)
@@ -2631,6 +2644,10 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(l[facts.index_Q_s],facts.Q_min_s)
                 self.assertEqual(u[facts.index_Q_sh],facts.Q_max_sh)
                 self.assertEqual(l[facts.index_Q_sh],facts.Q_min_sh)
+
+            for bus in net.dc_buses:
+                self.assertEqual(u[bus.index_v], pf.BUSDC_INF_V)
+                self.assertEqual(l[bus.index_v], -pf.BUSDC_INF_V)
                 
             # Sensitivities
             net.clear_sensitivities()
@@ -2807,6 +2824,10 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power', 'reactive power'])
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
 
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_fixed,0)
@@ -2820,7 +2841,8 @@ class TestConstraints(unittest.TestCase):
                               net.num_var_generators*2+
                               3*net.num_batteries+
                               4*net.num_vsc_converters+
-                              9*net.num_facts)*self.T)
+                              9*net.num_facts+
+                              net.num_dc_buses)*self.T)
 
             x0 = net.get_var_values()
             constr = pf.Constraint('variable bounds',net)
@@ -2910,7 +2932,11 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(l[facts.index_Q_s[t]],-pf.FACTS_INF_Q)
                     self.assertEqual(u[facts.index_Q_sh[t]],pf.FACTS_INF_Q)
                     self.assertEqual(l[facts.index_Q_sh[t]],-pf.FACTS_INF_Q)
-
+                    
+                for bus in net.dc_buses:
+                    self.assertEqual(u[bus.index_v[t]], pf.BUSDC_INF_V)
+                    self.assertEqual(l[bus.index_v[t]], -pf.BUSDC_INF_V)
+                    
             # Row info
             for t in range(self.T):
                 for bus in net.buses:
@@ -3062,6 +3088,13 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(constr.get_A_row_info_string(i),"")
                     self.assertEqual(constr.get_J_row_info_string(i),"")
                     self.assertEqual(s,'variable bounds:facts:%d:shunt reactive power:%d' %(facts.index,t))
+
+                for bus in net.dc_buses:
+                    i = bus.index_v[t]
+                    s = constr.get_G_row_info_string(i)
+                    self.assertEqual(constr.get_A_row_info_string(i),"")
+                    self.assertEqual(constr.get_J_row_info_string(i),"")
+                    self.assertEqual(s,'variable bounds:dc bus:%d:voltage:%d' %(bus.index,t))
                     
             # Bounded
             net.set_flags('bus',
@@ -3105,6 +3138,10 @@ class TestConstraints(unittest.TestCase):
                           'any',
                           ['series voltage magnitude','series voltage angle',
                            'active power','reactive power'])
+            net.set_flags('dc bus',
+                          'bounded',
+                          'any',
+                          'voltage')
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_bounded,net.num_vars)
 
@@ -3188,6 +3225,10 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(l[facts.index_Q_s[t]],facts.Q_min_s)
                     self.assertEqual(u[facts.index_Q_sh[t]],facts.Q_max_sh)
                     self.assertEqual(l[facts.index_Q_sh[t]],facts.Q_min_sh)
+
+                for bus in net.dc_buses:
+                    self.assertEqual(u[bus.index_v[t]], pf.BUSDC_INF_V)
+                    self.assertEqual(l[bus.index_v[t]], -pf.BUSDC_INF_V)
             
             # Sensitivities
             mu = np.random.randn(net.num_vars)
