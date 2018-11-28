@@ -13,6 +13,7 @@ cdef extern from "pfnet/branch.h":
 
     ctypedef struct Branch
     ctypedef struct Bus
+    ctypedef struct BrYCor
     ctypedef double REAL
     ctypedef char BOOL
 
@@ -100,7 +101,9 @@ cdef extern from "pfnet/branch.h":
     Branch* BRANCH_get_next_k(Branch* br)
     Branch* BRANCH_get_next_m(Branch* br)
     char* BRANCH_get_json_string(Branch* br, char* output)
-    char* BRANCH_get_var_info_string(Branch* br, int index)  
+    char* BRANCH_get_var_info_string(Branch* br, int index)
+    BrYCor* BRANCH_get_y_correction(Branch* br)
+    bint BRANCH_has_y_correction(Branch* br)
     bint BRANCH_has_pos_ratio_v_sens(Branch* br)
     bint BRANCH_is_equal(Branch* br, Branch* other)
     bint BRANCH_is_on_outage(Branch* br)

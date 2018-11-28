@@ -268,6 +268,17 @@ cdef class Branch:
 
         return cbranch.BRANCH_is_part_of_3_winding_transformer(self._c_ptr)
 
+    def has_y_correction(self):
+        """
+        Determines whether branch has y correction table.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cbranch.BRANCH_has_y_correction(self._c_ptr)
+
     def has_flags(self, flag_type, q):
         """
         Determines whether the branch has the flags associated with
@@ -1027,6 +1038,11 @@ cdef class Branch:
             s = json_string.decode('UTF-8')
             free(json_string)
             return s
+
+    property y_correction:
+        """ Y correction table (|BranchYCorrection|). """
+        def __get__(self):
+            return new_BranchYCorrection(cbranch.BRANCH_get_y_correction(self._c_ptr)) 
 
     property flags_vars:
         """ Flags associated with variable quantities (byte). """
