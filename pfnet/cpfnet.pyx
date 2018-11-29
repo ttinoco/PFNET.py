@@ -150,7 +150,7 @@ class AttributeInt(np.int32):
         if key == 0:
             return self
         else:
-            raise ValueError
+            raise IndexError
 
 # Attribute float
 #################
@@ -161,7 +161,7 @@ class AttributeFloat(float):
         if key == 0:
             return self
         else:
-            raise ValueError
+            raise IndexError
 
 # Others
 ########
