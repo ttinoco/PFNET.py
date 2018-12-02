@@ -1457,14 +1457,14 @@ class TestConstraints(unittest.TestCase):
 
             self.assertEqual(net.num_vars, (net.num_buses+net.num_generators)*net.num_periods)
 
-            x = net.get_var_values() + np.random.randn(net.num_vars)
+            x = net.get_var_values() + 1e-2*np.random.randn(net.num_vars)
             
             func = pf.Function('generation cost', 1., net)
 
             constr = pf.Constraint('constrained function', net)
             
             rhs = 100.
-
+            
             constr.set_parameter("rhs", rhs)
             constr.set_parameter("func", func)
 
