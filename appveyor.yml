@@ -19,8 +19,8 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
     - "pip install toolz"
-    - "pip install cython numpy scipy nose"
     - "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
+    - "pip install -r requirements.txt"
 
 build: false
 
