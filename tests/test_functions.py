@@ -428,6 +428,22 @@ class TestFunctions(unittest.TestCase):
                           'variable',
                           'switching - v',
                           'susceptance')
+            net.set_flags('dc bus',
+                          'variable',
+                          'any',
+                          'voltage')
+            net.set_flags('csc converter',
+                          'variable',
+                          'any',
+                          'all')
+            net.set_flags('vsc converter',
+                          'variable',
+                          'any',
+                          'all')
+            net.set_flags('facts',
+                          'variable',
+                          'any',
+                          'all')
             
             self.assertEqual(net.num_vars,
                              (net.num_buses*2+
@@ -437,7 +453,11 @@ class TestFunctions(unittest.TestCase):
                               net.num_loads*2+
                               net.get_num_phase_shifters()+
                               net.get_num_tap_changers()+
-                              net.get_num_switched_v_shunts())*self.T)
+                              net.get_num_switched_v_shunts()+
+                              net.get_num_dc_buses()+
+                              net.get_num_csc_converters()*6+
+                              net.get_num_vsc_converters()*4+
+                              net.get_num_facts()*9)*self.T)
 
             x0 = net.get_var_values()
             self.assertTrue(type(x0) is np.ndarray)
@@ -470,7 +490,7 @@ class TestFunctions(unittest.TestCase):
 
             self.assertEqual(func.Hphi_nnz,0)
 
-            func.analyze()
+            func.analyze()            
             self.assertEqual(func.Hphi_nnz,net.num_vars)
             func.eval(x0)
             self.assertEqual(func.Hphi_nnz,net.num_vars)
@@ -554,7 +574,7 @@ class TestFunctions(unittest.TestCase):
         for case in test_cases.CASES:
 
             net = pf.Parser(case).parse(case,self.T)
-
+            
             net.add_var_generators_from_parameters(net.get_load_buses(),80.,50.,30.,5,0.05)
             net.add_batteries_from_parameters(net.get_generator_buses(),20.,40.,0.8,0.9)
             
@@ -627,24 +647,6 @@ class TestFunctions(unittest.TestCase):
 
             # Value
             func.eval(x0)
-            phi = np.dot(np.multiply(x0-xc, w), x0-xc)
-            self.assertGreater(np.abs(func.phi-phi),1e-10*(np.abs(func.phi)+1))
-
-            for branch in net.branches:
-                if branch.has_flags('variable', 'tap ratio') and branch.is_on_outage():
-                    for t in range(self.T):
-                        w[branch.index_ratio[t]] = 0.
-                if branch.has_flags('variable', 'phase shift') and branch.is_on_outage():
-                    for t in range(self.T):
-                        w[branch.index_phase[t]] = 0.
-            for gen in net.generators:
-                if gen.has_flags('variable', 'active power') and gen.is_on_outage():
-                    for t in range(self.T):
-                        w[gen.index_P[t]] = 0.
-                if gen.has_flags('variable', 'reactive power') and gen.is_on_outage():
-                    for t in range(self.T):
-                        w[gen.index_Q[t]] = 0.
-
             phi = np.dot(np.multiply(x0-xc, w), x0-xc)
             self.assertLess(np.abs(func.phi-phi),1e-10*(np.abs(func.phi)+1))
 
