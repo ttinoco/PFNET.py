@@ -1,8 +1,8 @@
-Unreleased
-----------
+Version 1.3.4
+-------------
 * Linked with appveyor.
 * Added fully functional heuristic class and unittest.
-* Added "constrained function" unittest.
+* Added constrained function unittest.
 * Added fix that makes constraints keep functions alive after set_parameter.    
 * Exposed contingency name and added unittests.
 * Direct memory mapping for array attributes.
@@ -16,7 +16,7 @@ Unreleased
 * Load voltage dependence constraint.
 * Unittest for raw write.
 * DC buses, DC branches, and HVDC VSC converters.
-* Bus "v set regulated" property and query.
+* Bus v_set_regulated" property and query.
 * HVDC CSC converters.
 * FACTS devices.
 * Updated count/analyze/eval to also loop through dc buses, and updated python-based dummy func/constr.    
