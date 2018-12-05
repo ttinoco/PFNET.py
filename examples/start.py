@@ -14,6 +14,6 @@ sys.path.append('.')
 import pfnet
 import numpy as np
 
-net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1])
+net = pfnet.PyParserMAT().parse(sys.argv[1])
 
 print(np.average([bus.degree for bus in net.buses]))

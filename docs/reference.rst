@@ -346,14 +346,6 @@ Contingency
 .. autoclass:: pfnet.Contingency
    :members:
 
-.. _ref_graph:
-
-Graph
-=====
-
-.. autoclass:: pfnet.Graph
-   :members:
-
 .. _ref_func:
 
 Function

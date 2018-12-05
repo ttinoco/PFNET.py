@@ -26,17 +26,10 @@ PFNET is released under the BSD 2-clause license.
    Getting Started<start>
    Data Parsers<parsers>
    Power Networks<networks>
-   Visualization<graph>
    Optimization Problems<problems>
    Extensions<extensions>
    API Reference<reference>
    Related Papers<papers>
-
-**Contributors (alphabetical)**
-
-* Martin Baltzinger
-* `Tomas Tinoco De Rubira <https://ttinoco.github.io/>`_
-* Adam Wigington
 
 Indices and tables
 ==================

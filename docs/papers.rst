@@ -6,7 +6,7 @@ Related Papers
 
 .. [MB2018] M\. Baltzinger, T\. Tinoco De Rubira, A\. Wigington, *A Modular and Efficient Modeling Library for Power Flow Network Steady-State Analysis and Optimization*, IEEE General Meeting, August 2018 (`link <https://ttinoco.github.io/papers/ieee_gm_2018.pdf>`_)
 
-.. [MB2017] M\. Baltzinger, *Performance Analysis and Validation of Optimal Power Flow Solvers of New Open-Source Software Stack*. Semester thesis, Swiss Federal Institute of Technology, June 2017 (`link <https://ttinoco.github.io/papers/thesis_martin2_2017.pdf>`_).
+.. [MB2017] M\. Baltzinger, *Performance Analysis and Validation of Optimal Power Flow Solvers of New Open-Source Software Stack*. Semester thesis, Swiss Federal Institute of Technology, June 2017 (`link <https://www.ethz.ch/content/dam/ethz/special-interest/itet/institute-eeh/power-systems-dam/documents/SAMA/2017/Baltzinger-SA-2017.pdf>`_).
 
 .. [DS2017] D\. Shchetinin, T\. Tinoco De Rubira, G\. Hug, *Conservative Linear Line Flow Constraints for AC Optimal Power Flow*, IEEE PES Powertech Conference, June 2017 (`link <http://ieeexplore.ieee.org/document/7981156/>`_).
 
