@@ -65,4 +65,4 @@ As a simple example of how to use the PFNET Python module, consider the task of 
   >>> print(np.average([bus.degree for bus in net.buses])) 
   2.86
 
-In this example, is it assumed that the Python interpreter was started in a directory where the sample case |ieee14| is located.
+In this example, is it assumed that the Python interpreter is started in a directory where the sample case |ieee14| is located.

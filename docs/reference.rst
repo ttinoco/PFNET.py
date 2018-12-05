@@ -17,8 +17,7 @@ Parser
 .. autoclass:: pfnet.Parser
 .. autoclass:: pfnet.ParserJSON
 .. autoclass:: pfnet.ParserMAT
-.. autoclass:: pfnet.ParserART
-.. autoclass:: pfnet.ParserRAW
+.. autoclass:: pfnet.PyParserMAT
 
 .. _ref_bus:
 
