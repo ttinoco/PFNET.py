@@ -19,7 +19,7 @@ Before installing the PFNET Python module, the following tools are needed:
 
   * C compiler
   * |make|
-  * |python|
+  * |python| (2 or 3)
   * |pip|
   
 * Windows:

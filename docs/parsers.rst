@@ -44,10 +44,10 @@ In the top-level object of the JSON data, *i.e.*, the network, the field ``versi
 MATPOWER
 ========
 
-|MATPOWER| is a popular |MATLAB| package for solving power flow and optimal power flow problems. It contains several power flow and optimal power flow cases defined in |MATLAB| files. These files, which have extension ``.m``, can be used to create power networks in PFNET using parsers of type |PyParserMAT|::
+|MATPOWER| is a popular |MATLAB| package for solving power flow and optimal power flow problems. It contains several power flow and optimal power flow cases defined in |MATLAB| files. These files, which have extension ``.m``, can be used to create power networks in PFNET using parsers of type |PyParserMAT|, which leverage the package `grg-mpdata <https://github.com/lanl-ansi/grg-mpdata>`_::
 
   >>> parser_mat = pfnet.PyParserMAT()
   >>> parser_mat.write(network, 'new_network.m')
-  >>> parser_mat.parse('new_network.m')
+  >>> network = parser_mat.parse('new_network.m')
 
 A similar parser of type |ParserMAT| is also available for parsing CSV files of extension ``.mat`` created from |MATPOWER| ``.m`` data files using the tool `mpc2mat.m <https://github.com/ttinoco/PFNET/blob/master/tools/mpc2mat.m>`_.

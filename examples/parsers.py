@@ -24,5 +24,5 @@ os.remove('new_network.json')
 
 parser_mat = pfnet.PyParserMAT()
 parser_mat.write(network, 'new_network.m')
-parser_mat.parse('new_network.m')
+network = parser_mat.parse('new_network.m')
 os.remove('new_network.m')

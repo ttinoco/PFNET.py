@@ -22,40 +22,29 @@ An important attribute of the |Network| class is :data:`base_power <pfnet.Networ
 Components
 ==========
 
-Power networks have several components. These are :ref:`buses <net_bus>`, :ref:`branches <net_branch>`, :ref:`generators <net_gen>`, :ref:`shunt devices <net_shunt>`, :ref:`loads <net_load>`, :ref:`variable generators <net_vargen>`, *e.g.*, renewable energy sources, and :ref:`batteries <net_bat>`. For obtaining an overview of the components that form a network, the class method :func:`show_components() <pfnet.Network.show_components>` can be used, as illustrated in the following example::
+Power networks have several components. These are :ref:`buses <net_bus>`, :ref:`branches <net_branch>`, :ref:`generators <net_gen>`, :ref:`shunt devices <net_shunt>`, :ref:`loads <net_load>`, :ref:`variable generators <net_vargen>`, *e.g.*, renewable energy sources, :ref:`batteries <net_bat>`, :ref:`facts devices <net_facts>`, :ref:`HVDC voltage-source converters <net_vsc>`, :ref:`HVDC current-source converters <net_csc>`, :ref:`HVDC buses <net_busdc>`, and :ref:`HVDC branches <net_branchdc>`. For obtaining an overview of the components that form a network, the class method :func:`show_components() <pfnet.Network.show_components>` can be used, as illustrated in the following example::
 
   >>> import pfnet
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net = pfnet.PyParserMAT().parse('ieee14.m')
   >>> net.show_components()
 
   Network Components
   ------------------
   buses            : 14
-    slack          : 1
-    reg by gen     : 5
-    reg by tran    : 0
-    reg by shunt   : 0
-    star           : 0
   shunts           : 1
-    fixed          : 1
-    switched v     : 0
   branches         : 20
-    lines          : 17
-    fixed trans    : 3
-    phase shifters : 0
-    tap changers v : 0
-    tap changers Q : 0
   generators       : 5
-    slack          : 1
-    reg            : 5
-    P adjust       : 5
   loads            : 11
-    P adjust       : 0
   vargens          : 0
   batteries        : 0
+  facts            : 0
+  csc converters   : 0
+  vsc converters   : 0
+  dc buses         : 0
+  dc branches      : 0
 
-Again, this and subsequent examples assume that the Python interpreter was started from a directory that contains the sample case |ieee14|.
+Again, this and subsequent examples assume that the Python interpreter is started from a directory that contains the sample case |ieee14|.
 
 .. _net_bus:
 
@@ -192,6 +181,31 @@ Batteries
 Batteries are objects of type |Battery| and have an :data:`index <pfnet.Battery.index>` and :data:`name <pfnet.Battery.name>` attribute like all the other network components. Other important attributes of these objects are energy level :data:`E <pfnet.Battery.E>` and charging power :data:`P <pfnet.Battery.P>`.  Since power network input files do not have variable generator information, these devices can be conveniently added to a network using the :func:`add_batteries_from_parameters() <pfnet.Network.add_batteries_from_parameters>` method of the :class:`Network <pfnet.Network>` class.
 
 More information about network batteries can be found in the :ref:`API reference <ref_bat>`.
+
+.. _net_facts:
+
+FACTS Devices
+-------------
+
+.. _net_vsc:
+
+HVDC Voltage-Source Converters
+------------------------------
+
+.. _net_csc:
+
+HVDC Current-Source Converters
+------------------------------
+
+.. _net_busdc:
+
+HVDC Buses
+----------
+
+.. _net_branchdc:
+
+HVDC Branches
+-------------
 
 .. _net_properties:
 
