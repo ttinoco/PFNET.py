@@ -282,6 +282,171 @@ Battery Class
 .. autoclass:: pfnet.Battery
    :members:
 
+.. _ref_facts:
+
+FACTS
+=====
+
+.. _ref_facts_prop:
+
+FACTS Properties
+----------------
+
+========= =======
+========= =======
+``"any"``
+========= =======
+
+.. _ref_facts_q:
+
+FACTS Quantities
+----------------
+
+==================== =======
+==================== =======
+``"all"``
+==================== =======
+
+.. _ref_facts_class:
+
+FACTS Class
+-----------
+
+.. autoclass:: pfnet.Facts
+   :members:
+
+.. _ref_vsc:
+
+HVDC VSC
+========
+
+.. _ref_vsc_prop:
+
+HVDC VSC Properties
+-------------------
+
+========= =======
+========= =======
+``"any"``
+========= =======
+
+.. _ref_vsc_q:
+
+HVDC VSC Quantities
+-------------------
+
+==================== =======
+==================== =======
+``"all"``
+==================== =======
+
+.. _ref_vsc_class:
+
+HVDC VSC Class
+--------------
+
+.. autoclass:: pfnet.ConverterVSC
+   :members:
+
+.. _ref_csc:
+
+HVDC CSC
+========
+
+.. _ref_csc_prop:
+
+HVDC CSC Properties
+-------------------
+
+========= =======
+========= =======
+``"any"``
+========= =======
+
+.. _ref_csc_q:
+
+HVDC CSC Quantities
+-------------------
+
+==================== =======
+==================== =======
+``"all"``
+==================== =======
+
+.. _ref_csc_class:
+
+HVDC CSC Class
+--------------
+
+.. autoclass:: pfnet.ConverterCSC
+   :members:
+
+.. _ref_busdc:
+
+HVDC Bus
+========
+
+.. _ref_busdc_prop:
+
+HVDC Bus Properties
+-------------------
+
+========= =======
+========= =======
+``"any"``
+========= =======
+
+.. _ref_busdc_q:
+
+HVDC Bus Quantities
+-------------------
+
+==================== =======
+==================== =======
+``"all"``
+==================== =======
+
+.. _ref_busdc_class:
+
+HVDC Bus Class
+--------------
+
+.. autoclass:: pfnet.BusDC
+   :members:
+
+.. _ref_branchdc:
+
+HVDC Branch
+===========
+
+.. _ref_branchdc_prop:
+
+HVDC Branch Properties
+----------------------
+
+========= =======
+========= =======
+``"any"``
+========= =======
+
+.. _ref_branchdc_q:
+
+HVDC Branch Quantities
+----------------------
+
+==================== =======
+==================== =======
+``"all"``
+==================== =======
+
+.. _ref_branchdc_class:
+
+HVDC Branch Class
+-----------------
+
+.. autoclass:: pfnet.BranchDC
+   :members:
+      
 .. _ref_net:
 
 Network
