@@ -224,26 +224,26 @@ Properties
 
 A |Network| object has several quantities or ``properties`` that provide information about the state of the network. The following table provides a description of each of these properties.
 
-================== ================================================================= ==========
-Names              Description                                                       Units
-================== ================================================================= ==========
-``bus_v_max``      Maximum bus voltage magnitude                                     per unit
-``bus_v_min``      Minimum bus voltage magnitude                                     per unit
-``bus_v_vio``      Maximum bus voltage magnitude limit violation                     per unit
-``bus_P_mis``      Maximum absolute bus active power mismatch                        MW
-``bus_Q_mis``      Maximum absolute bus reactive power mismatch                      MVAr
-``gen_P_cost``     Total active power generation cost                                $/hour
-``gen_v_dev``      Maximum set point deviation of generator-regulated voltage        per unit
-``gen_Q_vio``      Maximum generator reactive power limit violation                  MVAr
-``gen_P_vio``      Maximum generator active power limit violation                    MW
-``tran_v_vio``     Maximum band violation of transformer-regulated voltage           per unit
-``tran_r_vio``     Maximum tap ratio limit violation of tap-changing transformer     unitless
-``tran_p_vio``     Maximum phase shift limit violation of phase-shifting transformer radians
-``shunt_v_vio``    Maximum band violation of shunt-regulated voltage                 per unit
-``shunt_b_vio``    Maximum susceptance limit violation of switched shunt device      per unit
-``load_P_util``    Total active power consumption utility                            $/hour
-``load_P_vio``     Maximum load active power limit violation                         MW
-================== ================================================================= ==========
+================== =================================================================== ==========
+Names              Description                                                         Units
+================== =================================================================== ==========
+``bus_v_max``      Maximum bus voltage magnitude                                       per unit
+``bus_v_min``      Minimum bus voltage magnitude                                       per unit
+``bus_v_vio``      Maximum bus voltage magnitude limit violation                       per unit
+``bus_P_mis``      Maximum absolute bus active power mismatch                          MW
+``bus_Q_mis``      Maximum absolute bus reactive power mismatch                        MVAr
+``gen_P_cost``     Total active power generation cost                                  $/hour
+``gen_v_dev``      Maximum set point deviation of generator-regulated voltage          per unit
+``gen_Q_vio``      Maximum generator reactive power limit violation                    MVAr
+``gen_P_vio``      Maximum generator active power limit violation                      MW
+``tran_v_vio``     Maximum band violation of transformer-regulated voltage             per unit
+``tran_r_vio``     Maximum tap ratio limit violation of tap-changing transformer       unitless
+``tran_p_vio``     Maximum phase shift limit violation of phase-shifting transformer   radians
+``shunt_v_vio``    Maximum band violation of shunt-regulated voltage                   per unit
+``shunt_b_vio``    Maximum susceptance limit violation of switched shunt device        per unit
+``load_P_util``    Total active power consumption utility                              $/hour
+``load_P_vio``     Maximum load active power limit violation                           MW
+================== =================================================================== ==========
 
 All of these properties are attributes of the |Network| class. If there is a change in the network, *e.g.*, the voltage magnitude :data:`v_mag <pfnet.Bus.v_mag>` of a bus is changed, the class method :func:`update_properties() <pfnet.Network.update_properties>` needs to be called in order for the network properties to reflect the change. The following example shows how to update and extract properties::
 
@@ -286,8 +286,13 @@ To set network quantities as variables, the |Network| class method :func:`set_fl
 * :ref:`ref_load_prop`
 * :ref:`ref_shunt_prop`
 * :ref:`ref_vargen_prop`
-* :ref:`ref_bat_prop`    
-
+* :ref:`ref_bat_prop`
+* :ref:`ref_facts_prop`
+* :ref:`ref_vsc_prop`
+* :ref:`ref_csc_prop`        
+* :ref:`ref_busdc_prop`        
+* :ref:`ref_branchdc_prop`        
+  
 **Component quantities** are also component-specific. They can be combined into a list to specify all quantities that should be affected by the method :func:`set_flags() <pfnet.Network.set_flags>`. More information can be found in the following sections:
 
 * :ref:`ref_bus_q`
@@ -297,12 +302,17 @@ To set network quantities as variables, the |Network| class method :func:`set_fl
 * :ref:`ref_shunt_q`
 * :ref:`ref_vargen_q`
 * :ref:`ref_bat_q`
+* :ref:`ref_facts_q`
+* :ref:`ref_vsc_q`
+* :ref:`ref_csc_q`
+* :ref:`ref_busdc_q`
+* :ref:`ref_branchdc_q`
   
 The following example shows how to set as variables all the voltage magnitudes and angles of buses regulated by generators::
 
   >>> import pfnet
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net = pfnet.PyParserMAT().parse('ieee14.mat')
 
   >>> print net.num_vars
   0
@@ -361,9 +371,7 @@ A vector of variable values can be used to update the corresponding network quan
 
 As will be seen later, variables are also useful for constructing network optimization problems.
 
-The class method :func:`get_var_values() <pfnet.Network.get_var_values>` can also be used to get upper or lower limits of the variables. To do this, a valid :ref:`variable value option <ref_var_values>` must be passed to this method.
-
-In addition to the class method :func:`set_flags() <pfnet.Network.set_flags>`, which allows specifying variables of components having certain properties, one can also use the |Network| class method :func:`set_flags_of_component() <pfnet.Network.set_flags_of_component>` to specify variables of individual components. This is useful when the desired components cannot be targeted using the available ``component properties``. For example, the following code illustrates how to set as variables the voltage magnitudes of buses whose indices are multiples of three::
+In addition to the class method :func:`set_flags() <pfnet.Network.set_flags>`, which allows specifying variables of components having certain common properties, one can also use the |Network| class method :func:`set_flags_of_component() <pfnet.Network.set_flags_of_component>` to specify variables of individual components. This is useful when the desired components cannot be targeted using the available ``component properties``. For example, the following code illustrates how to set as variables the voltage magnitudes of buses whose indices are multiples of three::
 
   >>> net.clear_flags()
 

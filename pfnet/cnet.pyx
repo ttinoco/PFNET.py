@@ -2054,7 +2054,7 @@ cdef class Network:
 
         Parameters
         ----------
-        obj : |Bus|, |Branch|, |Generator|, |Load|, |Shunt|, |VarGenerator|, |Battery|
+        obj : |RefComponents|
         flags : string or list of strings (|RefFlags|)
         q : string or list of strings (|RefQuantities|)
         """

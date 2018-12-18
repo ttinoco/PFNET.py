@@ -6,10 +6,11 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
-# Power Networks - Variables
-
 import sys
 sys.path.append('.')
+
+# Power Networks - Variables
+
 import pfnet
 
 net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1])

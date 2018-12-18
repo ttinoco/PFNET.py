@@ -62,14 +62,29 @@
 .. |ConverterVSC| replace:: :class:`ConverterVSC <pfnet.ConverterVSC>`
 .. |ConverterCSC| replace:: :class:`ConverterCSC <pfnet.ConverterCSC>`
 .. |Facts| replace:: :class:`Facts <pfnet.Facts>`
+.. |BranchYCorrection| replace:: :class:`BranchYCorrection <pfnet.BranchYCorrection>`
 .. |Contingency| replace:: :class:`Contingency <pfnet.Contingency>`
 .. |FunctionBase| replace:: :class:`FunctionBase <pfnet.FunctionBase>`
 .. |CustomFunction| replace:: :class:`CustomFunction <pfnet.CustomFunction>`
 .. |ConstraintBase| replace:: :class:`ConstraintBase <pfnet.ConstraintBase>`
 .. |CustomConstraint| replace:: :class:`CustomConstraint <pfnet.CustomConstraint>`
+.. |HeuristicBase| replace:: :class:`HeuristicBase <pfnet.HeuristicBase>`
 .. |Problem| replace:: :class:`Problem <pfnet.Problem>`
 
 .. |RefObjects| replace:: :ref:`ref_net_obj`
+
+.. |RefComponents| replace:: |Bus|,
+   		   	     |Branch|,
+			     |Generator|,
+			     |Load|,
+			     |Shunt|,
+			     |VarGenerator|,
+			     |Battery|,
+			     |Facts|,
+			     |ConverterVSC|,
+			     |ConverterCSC|,
+			     |BusDC|,
+			     |BranchDC|
 
 .. |RefFlags| replace:: :ref:`ref_net_flag`
 
@@ -80,8 +95,24 @@
 .. |RefLoadQuantities| replace:: :ref:`ref_load_q`
 .. |RefShuntQuantities| replace:: :ref:`ref_shunt_q`
 .. |RefVarGeneratorQuantities| replace:: :ref:`ref_vargen_q`
-.. |RefQuantities| replace:: |RefBusQuantities|, |RefBranchQuantities|, |RefGeneratorQuantities|, |RefShuntQuantities|, |RefLoadQuantities|, |RefVarGeneratorQuantities|, |RefBatteryQuantities|
-
+.. |RefFactsQuantities| replace:: :ref:`ref_facts_q`
+.. |RefConverterVSCQuantities| replace:: :ref:`ref_vsc_q`
+.. |RefConverterCSCQuantities| replace:: :ref:`ref_csc_q`
+.. |RefBusDCQuantities| replace:: :ref:`ref_busdc_q`
+.. |RefBranchDCQuantities| replace:: :ref:`ref_branchdc_q`
+.. |RefQuantities| replace:: |RefBusQuantities|,
+                             |RefBranchQuantities|,
+			     |RefGeneratorQuantities|,
+			     |RefShuntQuantities|,
+			     |RefLoadQuantities|,
+			     |RefVarGeneratorQuantities|,
+			     |RefBatteryQuantities|,
+			     |RefFactsQuantities|,
+			     |RefConverterVSCQuantities|,
+			     |RefConverterCSCQuantities|,
+			     |RefBusDCQuantities|,
+			     |RefBranchDCQuantities|
+			     
 .. |RefBatteryProperties| replace:: :ref:`ref_bat_prop`
 .. |RefBranchProperties| replace:: :ref:`ref_branch_prop`
 .. |RefBusProperties| replace:: :ref:`ref_bus_prop`
@@ -89,7 +120,23 @@
 .. |RefLoadProperties| replace:: :ref:`ref_load_prop`
 .. |RefShuntProperties| replace:: :ref:`ref_shunt_prop`
 .. |RefVarGeneratorProperties| replace:: :ref:`ref_vargen_prop`
-.. |RefProperties| replace:: |RefBusProperties|, |RefBranchProperties|, |RefGeneratorProperties|,  |RefShuntProperties|, |RefLoadProperties|, |RefVarGeneratorProperties|, |RefBatteryProperties| 
+.. |RefFactsProperties| replace:: :ref:`ref_facts_prop`
+.. |RefConverterVSCProperties| replace:: :ref:`ref_vsc_prop`
+.. |RefConverterCSCProperties| replace:: :ref:`ref_csc_prop`
+.. |RefBusDCProperties| replace:: :ref:`ref_busdc_prop`
+.. |RefBranchDCProperties| replace:: :ref:`ref_branchdc_prop`
+.. |RefProperties| replace:: |RefBusProperties|,
+   		   	     |RefBranchProperties|,
+			     |RefGeneratorProperties|,
+			     |RefShuntProperties|,
+			     |RefLoadProperties|,
+			     |RefVarGeneratorProperties|,
+			     |RefBatteryProperties|,
+			     |RefFactsProperties|,
+			     |RefConverterVSCProperties|,
+			     |RefConverterCSCProperties|,
+			     |RefBusDCProperties|,
+			     |RefBranchDCProperties|
 
 .. |RefVarValueOptions| replace:: :ref:`ref_var_values`
 

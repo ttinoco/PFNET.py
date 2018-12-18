@@ -41,7 +41,7 @@ A template for creating a custom function is provided below:
 
 .. literalinclude:: ../examples/custom_function_template.py
 
-An example of a custom function that computes the quadratic active power generation cost can be found `here <https://github.com/ttinoco/PFNET/blob/master/python/pfnet/functions/dummy_function.py>`_. 
+An example of a custom function that computes the quadratic active power generation cost can be found `here <https://github.com/ttinoco/PFNET/blob/master/python/pfnet/functions/dummy_function.py>`__. 
 
 .. _ext_constr:
 

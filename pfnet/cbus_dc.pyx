@@ -64,7 +64,7 @@ cdef class BusDC:
 
         Parameters
         ----------
-        other : |DCBus|
+        other : |BusDC|
 
         Returns
         -------

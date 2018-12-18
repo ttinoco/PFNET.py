@@ -100,6 +100,14 @@ Branch Class
 .. autoclass:: pfnet.Branch
    :members:
 
+.. _ref_branch_y_corr_class:
+
+Branch Y Correction Class
+-------------------------
+
+.. autoclass:: pfnet.BranchYCorrection
+   :members:
+
 .. _ref_gen:
 
 Generator
