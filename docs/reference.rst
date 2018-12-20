@@ -475,6 +475,11 @@ Component Types
 ``"load"``
 ``"shunt"``
 ``"variable generator"``
+``"csc converter"``
+``"vsc converter"``
+``"dc bus"``
+``"dc branch"``
+``"facts"``
 ======================== =======
 
 .. _ref_net_flag:
@@ -611,7 +616,6 @@ Heuristic Names
 ======================================= =======
 ======================================= =======
 ``"PVPQ switching"``
-``"switching power factor regulation"`` 
 ======================================= =======
  
 .. _ref_heur_class:
@@ -652,5 +656,10 @@ Test Utilities
 .. autofunction:: pfnet.tests.utils.compare_loads
 .. autofunction:: pfnet.tests.utils.compare_shunts
 .. autofunction:: pfnet.tests.utils.compare_branches
+.. autofunction:: pfnet.tests.utils.compare_dc_buses
+.. autofunction:: pfnet.tests.utils.compare_dc_branches				    
+.. autofunction:: pfnet.tests.utils.compare_csc_converters
+.. autofunction:: pfnet.tests.utils.compare_vsc_converters
+.. autofunction:: pfnet.tests.utils.compare_facts
 .. autofunction:: pfnet.tests.utils.compare_networks
 .. autofunction:: pfnet.tests.utils.check_network
