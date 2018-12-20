@@ -26,7 +26,7 @@ Before installing the PFNET Python module, the following tools are needed:
 
   * |anaconda| (for Python 2.7)
   * |cmake| (choose "Add CMake to the system PATH for all users" during installation)
-  * |7-zip| (update system path to include the 7z executable, *e.g.*, typically in ``C:\Program Files\7-Zip``)
+  * |7-zip| (update system path to include the 7z executable, typically in ``C:\Program Files\7-Zip``)
   * |mingwpy| (use ``pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy``)
 
 .. _start_installation:

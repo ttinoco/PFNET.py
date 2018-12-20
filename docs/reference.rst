@@ -598,6 +598,32 @@ Constraint Classes
 .. autoclass:: pfnet.CustomConstraint
    :members:
 
+.. _ref_heur:
+
+Heuristic
+=========
+
+.. _ref_heur_names:
+
+Heuristic Names
+---------------
+
+======================================= =======
+======================================= =======
+``"PVPQ switching"``
+``"switching power factor regulation"`` 
+======================================= =======
+ 
+.. _ref_heur_class:
+
+Heuristic Classes
+-----------------
+
+.. autoclass:: pfnet.HeuristicBase
+   :members:
+
+.. autoclass:: pfnet.Heuristic
+      
 .. _ref_problem:
 
 Optimization Problem
@@ -609,9 +635,7 @@ Problem Class
 -------------
 
 .. autoclass:: pfnet.Problem
-   :members:
-   :exclude-members: add_heuristic, apply_heuristics
-   
+   :members:   
    
 Test Utilities
 ==============

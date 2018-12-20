@@ -64,7 +64,7 @@ cdef class HeuristicBase:
         
         Parameters
         ----------
-        constraints : List of |Constraint| objects
+        constraints : List of |ConstraintBase| objects
         values : |Array|
         """
 
