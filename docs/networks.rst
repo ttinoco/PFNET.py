@@ -394,7 +394,7 @@ As explained above, once the network variables have been set, a vector with the 
   >>> import pfnet
   >>> import numpy as np
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net = pfnet.PyParserMAT().parse('ieee14.m')
 
   >>> net.set_flags('bus',
   ...               'variable',
@@ -433,7 +433,7 @@ Outages and Contingencies
 
 PFNET provides a way to specify outages of certain components and analyze network contingencies. In particular, branches and generators can be set to be on outage. This can be done by setting their :data:`outage <pfnet.Generator.outage>` attribute to ``True``, as the next example shows::
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net = pfnet.PyParserMAT().parse('ieee14.m')
 
   >>> net.clear_outages()
 
@@ -448,6 +448,8 @@ PFNET provides a way to specify outages of certain components and analyze networ
 
 A contingency is represented by an object of type :class:`Contingency <pfnet.Contingency>`, and is characterized by one or more :class:`generator <pfnet.Generator>` or :class:`branch <pfnet.Branch>` outages. The lists of generator and branch outages of a contingency can be specified at construction, or by using the class methods :func:`add_generator_outage() <pfnet.Contingency.add_generator_outage>` and :func:`add_branch_outage() <pfnet.Contingency.add_branch_outage>`, respectively. The following example shows how to construct a contingency::
 
+  >>> net.clear_outages()
+  
   >>> gen = net.get_generator(3)
   >>> branch = net.get_branch(2)
 
@@ -460,9 +462,6 @@ A contingency is represented by an object of type :class:`Contingency <pfnet.Con
   [('branch', 2), ('generator', 3)]
 
 Once a contingency has been constructed, it can be applied and later cleared. This is done using the class methods :func:`apply() <pfnet.Contingency.apply>` and :func:`clear() <pfnet.Contingency.clear>`. The :func:`apply() <pfnet.Contingency.apply>` method sets the specified generator and branches on outage. The :func:`clear() <pfnet.Contingency.clear>` method undoes the changes made by the :func:`apply() <pfnet.Contingency.apply>` method. The following example shows how to apply and clear contingencies, and illustrates some of the side effects::
-
-  >>> print c1.has_generator_outage(gen), c1.has_branch_outage(branch)
-  True True
 
   >>> print gen.is_on_outage(), branch.is_on_outage()
   False False
@@ -486,7 +485,7 @@ Multiple Time Periods
 
 PFNET can also be used to represent and analyze power networks over multiple time periods. By default, the networks created using most :ref:`parsers <parsers>`, as in all the examples above, have data corresponding to a single time period. To consider multiple time periods, an argument needs to be passed to the :func:`parse <pfnet.Parser>` method of a :class:`Parser <pfnet.ParserBase>`::
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat', num_periods=5)
+  >>> net = pfnet.PyParserMAT().parse('ieee14.m', num_periods=5)
 
   >>> print net.num_periods
   5
@@ -499,18 +498,18 @@ In "multi-period" networks, certain quantities can vary over time and hence are 
   ...     load.P = np.random.rand(5)
 
   >>> print net.loads[0].P
-  [ 0.84  0.47  0.62  0.65  0.36]
+  [0.54  0.71 0.60 0.54 0.42]
 
   >>> net.update_properties()
 
   >>> print [net.bus_P_mis[t] for t in range(5)]
-  [81.92, 87.35, 86.71, 93.61, 89.90]
+  [88.77, 73.23, 81.38, 86.64, 83.56]
 
 Lastly, for component quantities that can potentially vary over time, setting these quantities to be variables results in one variable for each time. For example, selecting the bus voltage magnitude of a bus to be variable leads to having one variable for each time period::
 
   >>> bus = net.buses[3]
 
-  >>> net.set_flags_of_component(bus,'variable','voltage magnitude')
+  >>> net.set_flags_of_component(bus, 'variable', 'voltage magnitude')
 
   >>> print(net.num_vars)
   5
@@ -532,7 +531,7 @@ Network Modifications
 
 Bus connections can be modified either from the |Bus| object or the components connected to it. The following example removes a generator and a load from a bus, and then adds them back using the two different ways::
 
-  >>> net = pfnet.ParserMAT().parse('ieee14.mat')
+  >>> net = pfnet.PyParserMAT().parse('ieee14.m')
 
   >>> bus = net.buses[8]
 
@@ -576,4 +575,4 @@ It is also possible to add and remove components to a network. This can be done 
   >>> print len(bus.generators), len(bus.loads)
   1 1
   
-.. warning:: Making |Network| modifications programmatically is not yet guaranteed to be safe. One can easily leave out components with no bus connections, which could lead to errors in the underlying PFNET C library. Also, when adding or removing components from the network, the PFNET C library copies existing data to new memory locations and hence any existing components in the Python domain can point to invalid C memory locations. It is therefore recommended to not use existing Python components after adding or removing components of the same type from the network but instead re-extract them from the updated network using :func:`get_bus() <pfnet.Network.get_bus>`, :func:`get_generator() <pfnet.Network.get_generator>`, etc.
+.. warning:: Making |Network| modifications programmatically is not yet guaranteed to be safe. One can easily leave out components with no bus connections, which could lead to errors in the underlying PFNET C library. Also, when adding or removing components from the network, the underlying PFNET C library copies existing data to new memory locations and hence any existing PFNET Python network components can point to invalid C memory locations. It is therefore recommended not to use existing PFNET Python network components adding or removing components of the same type from the network, but instead re-extract them from the updated network using :func:`get_bus() <pfnet.Network.get_bus>`, :func:`get_generator() <pfnet.Network.get_generator>`, etc.

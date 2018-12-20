@@ -33,11 +33,9 @@ c1 = pfnet.Contingency(generators=[gen],branches=[branch])
 
 print(c1.num_generator_outages, c1.num_branch_outages)
 
-print(c1.has_generator_outage(gen), c1.has_branch_outage(branch))
+print(c1.outages)
 
 print(gen.is_on_outage(), branch.is_on_outage())
-
-print(c1.outages)
 
 c1.apply(net)
 

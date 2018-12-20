@@ -11,7 +11,10 @@
 import sys
 sys.path.append('.')
 import pfnet
+
 import numpy as np
+
+np.random.seed(0)
 
 net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1], num_periods=5)
 
@@ -30,7 +33,7 @@ print([net.bus_P_mis[t] for t in range(5)])
 
 bus = net.buses[3]
 
-net.set_flags_of_component(bus,'variable','voltage magnitude')
+net.set_flags_of_component(bus, 'variable', 'voltage magnitude')
 
 print(net.num_vars)
 
