@@ -4,44 +4,36 @@
 Extensions
 **********
 
-This section describes how to add custom functions and constraints to PFNET.
+This section describes how to add custom functions and constraints to PFNET. The general principle is that PFNET asks functions and constraints to ``count`` the number of matrix rows and non-zero entries, then to ``analyze`` the structural and constant parts, and finally to ``evaluate`` parts that depend on variable values. For each of these operations (``count``, ``analyze``, and ``evaluate``), PFNET loops through buses, HVDC buses, and time periods once, and asks constraints to perform these operations in steps.  
 
 .. _ext_func:
 
 Adding a Function
 =================
 
-To add a new function to PFNET, one should create a subclass of the :class:`CustomFunction <pfnet.CustomFunction>` class and provide six methods:
+To add a new function to PFNET, one should create a subclass of the :class:`CustomFunction <pfnet.CustomFunction>` class and provide four methods:
 
-* :func:`init(self) <pfnet.CustomFunction.init>`
+* :func:`init <pfnet.CustomFunction.init>`
 
   * This method initializes any custom function data. 
 
-* :func:`count_step(self, branch, t) <pfnet.CustomFunction.count_step>`
+* :func:`count_step <pfnet.CustomFunction.count_step>`
 
-  * This method is called for every :class:`branch <pfnet.Branch>` and time period, and is responsible for updating the counter :data:`Hphi_nnz <pfnet.FunctionBase.Hphi_nnz>` of nonzero entries of the Hessian matrix of the function (only lower triangular part). 
+  * This method is called for every :class:`bus <pfnet.Bus>`, :class:`HVDC bus <pfnet.BusDC>`, and time period, and is responsible for updating the counter :data:`Hphi_nnz <pfnet.FunctionBase.Hphi_nnz>` of nonzero entries of the Hessian matrix of the function (only lower triangular part). 
 
-* :func:`clear(self) <pfnet.CustomFunction.clear>`
+* :func:`analyze_step <pfnet.CustomFunction.analyze_step>`
 
-  * This method resets the value of any attribute that is updated by the other methods, such as the value of the function :data:`phi <pfnet.FunctionBase.phi>`, the counter :data:`Hphi_nnz <pfnet.FunctionBase.Hphi_nnz>`, etc. If used, the array of flags :class:`bus_counted <pfnet.FunctionBase.bus_counted>`, which has size equal to the number of buses times the number of time periods and can be used to keep track of which buses have already been processed, should also be reset here. 
+  * This method is called for every :class:`bus <pfnet.Bus>`, :class:`HVDC bus <pfnet.BusDC>`, and time period, and is responsible for storing the structural or constant information of the Hessian matrix :data:`Hphi <pfnet.FunctionBase.Hphi>` (lower triangular part). 
 
-* :func:`allocate(self) <pfnet.CustomFunction.allocate>`
+* :func:`eval_step <pfnet.CustomFunction.eval_step>`
 
-  * This method allocates the gradient vector :data:`gphi <pfnet.FunctionBase.gphi>` and Hessian matrix :data:`Hphi <pfnet.FunctionBase.Hphi>` (lower triangular part) using the methods :func:`set_gphi() <pfnet.FunctionBase.set_gphi>` and :func:`set_Hphi() <pfnet.FunctionBase.set_Hphi>`, respectively.
-
-* :func:`analyze_step(self, branch, t) <pfnet.CustomFunction.analyze_step>`
-
-  * This method is called for every :class:`branch <pfnet.Branch>` and time period, and is responsible for storing the structural or constant information of the Hessian matrix :data:`Hphi <pfnet.FunctionBase.Hphi>` (lower triangular part). 
-
-* :func:`eval_step(self, branch, t, x) <pfnet.CustomFunction.eval_step>`
-
-  * This method is called for every :class:`branch <pfnet.Branch>` and time period, and is responsible for updating the values of :data:`phi <pfnet.FunctionBase.phi>`, :data:`gphi <pfnet.FunctionBase.gphi>`, and :data:`Hphi <pfnet.FunctionBase.Hphi>` using the given vector of variable values. 
+  * This method is called for every :class:`bus <pfnet.Bus>`, :class:`HVDC bus <pfnet.BusDC>`, and time period, and is responsible for updating the values of :data:`phi <pfnet.FunctionBase.phi>`, :data:`gphi <pfnet.FunctionBase.gphi>`, and :data:`Hphi <pfnet.FunctionBase.Hphi>` using a given vector of variable values. 
 
 A template for creating a custom function is provided below:
 
 .. literalinclude:: ../examples/custom_function_template.py
 
-An example of a custom function that computes the quadratic active power generation cost can be found `here <https://github.com/ttinoco/PFNET/blob/master/python/pfnet/functions/dummy_function.py>`__. 
+An example of a custom function that computes the quadratic active power generation cost can be found `here <https://github.com/ttinoco/PFNET.py/blob/dev/pfnet/functions/dummy_function.py>`__. 
 
 .. _ext_constr:
 
@@ -82,6 +74,6 @@ A template for creating a custom constraint is provided below:
 
 .. literalinclude:: ../examples/custom_constraint_template.py
 
-An example of a custom constraint that constructs the DC power balance equations can be found `here <https://github.com/ttinoco/PFNET/blob/master/python/pfnet/constraints/dummy_constraint.py>`_.
+An example of a custom constraint that constructs the DC power balance equations can be found `here <https://github.com/ttinoco/PFNET/blob/master/python/pfnet/constraints/dummy_constraint.py>`__.
 
 .. note:: Nonlinear constraints implemented in Python will likely be very slow. Therefore, it is recommended to write such constraints directly in C. The procedure of adding constraints in C is similar to the one outlined above. In particular, the same seven methods need to be provided. Examples of constraints written in C can be found `in this folder <https://github.com/ttinoco/PFNET/tree/master/src/problem/constr>`_.
