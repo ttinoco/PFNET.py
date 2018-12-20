@@ -79,6 +79,7 @@ cdef extern from "pfnet/constr.h":
     void CONSTR_set_f(Constr* c, Vec* f)
     void CONSTR_set_J(Constr* c, Mat* J)
     void CONSTR_set_H_single(Constr* c, int i, Mat* m)
+    void CONSTR_set_num_extra_vars(Constr* c, int num)
 
     void CONSTR_set_func_init(Constr* c, void (*func)(Constr* c))
     void CONSTR_set_func_count_step(Constr* c, void (*func)(Constr* c, Bus* bus, BusDC* busdc, int t))

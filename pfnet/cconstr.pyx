@@ -569,6 +569,7 @@ cdef class ConstraintBase:
     property num_extra_vars:
             """ Number of extra variables (set during count) (int). """
             def __get__(self): return cconstr.CONSTR_get_num_extra_vars(self._c_constr)
+            def __set__(self, n): cconstr.CONSTR_set_num_extra_vars(self._c_constr, n)
 
     property network:
         """ |Network| associated with constraint. """
