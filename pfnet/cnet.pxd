@@ -198,6 +198,7 @@ cdef extern from "pfnet/net.h":
     char* NET_get_show_properties_str(Net* net, int t)
     void NET_update_properties(Net* net, cvec.Vec* values)
     void NET_propagate_data_in_time(Net* net, int start, int end)
+    void NET_update_reg_Q_participations(Net* net, int t)
     void NET_update_set_points(Net* net)
     void NET_update_hash_tables(Net* net)
 

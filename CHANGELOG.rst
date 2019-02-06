@@ -1,6 +1,7 @@
 Unreleased
 ----------
 * Constant current constraint for CSC HVDC.
+* Net update reg Q participations.
 
 Version 1.3.4
 -------------

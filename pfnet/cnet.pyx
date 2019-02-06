@@ -2280,6 +2280,13 @@ cdef class Network:
         """
         cnet.NET_propagate_data_in_time(self._c_net, start, end)
 
+    def update_reg_Q_participations(self, t=0):
+        """
+        Updates reg Q participation factors.
+        """
+
+        cnet.NET_update_reg_Q_participations(self._c_net, t)        
+
     def update_set_points(self):
         """
         Updates voltage magnitude set points of gen-regulated buses
