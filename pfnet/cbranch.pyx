@@ -759,6 +759,11 @@ cdef class Branch:
         def __get__(self): return cbranch.BRANCH_get_ratio_max(self._c_ptr)
         def __set__(self,value): cbranch.BRANCH_set_ratio_max(self._c_ptr,value)
 
+    property num_ratios:
+        """ Number of transformer tap ratio positions (int). """
+        def __get__(self): return cbranch.BRANCH_get_num_ratios(self._c_ptr)
+        def __set__(self,value): cbranch.BRANCH_set_num_ratios(self._c_ptr,value)
+
     property ratio_min:
         """ Transformer tap ratio lower limit (float). """
         def __get__(self): return cbranch.BRANCH_get_ratio_min(self._c_ptr)

@@ -489,6 +489,7 @@ def compare_branches(test, branch1, branch2, check_internals=False, eps=1e-10):
     test.assertLess(norminf(branch1.ratio-branch2.ratio), eps)
     test.assertLess(norminf(branch1.ratio_max-branch2.ratio_max), eps)
     test.assertLess(norminf(branch1.ratio_min-branch2.ratio_min), eps)
+    test.assertEqual(branch1.num_ratios, branch2.num_ratios)
     test.assertLess(norminf(branch1.phase-branch2.phase), eps)
     test.assertLess(norminf(branch1.phase_max-branch2.phase_max), eps)
     test.assertLess(norminf(branch1.phase_min-branch2.phase_min), eps)
@@ -599,7 +600,7 @@ def compare_csc_converters(test, conv1, conv2, check_internals=False, eps=1e-10)
         test.assertTrue(conv2.is_in_P_dc_mode())
         test.assertLess(norminf(conv1.P_dc_set-conv2.P_dc_set), eps)
     if conv1.is_in_i_dc_mode():
-        test.assertTrue(conv2.is_in_P_dc_mode())
+        test.assertTrue(conv2.is_in_i_dc_mode())
         test.assertLess(norminf(conv1.i_dc_set-conv2.i_dc_set), eps)
     if conv1.is_in_v_dc_mode():
         test.assertTrue(conv2.is_in_v_dc_mode())

@@ -4680,6 +4680,7 @@ class TestNetwork(unittest.TestCase):
                 copy_branch.ratio = orig_branch.ratio
                 copy_branch.ratio_max = orig_branch.ratio_max
                 copy_branch.ratio_min = orig_branch.ratio_min
+                copy_branch.num_ratios = orig_branch.num_ratios
                 copy_branch.b = orig_branch.b
                 copy_branch.b_k = orig_branch.b_k
                 copy_branch.b_m = orig_branch.b_m
