@@ -569,11 +569,11 @@ class TestParser(unittest.TestCase):
 
     def test_ieee14_gen_cost(self):
 
-        case = os.path.join('data', 'ieee14.mat')
+        case = os.path.join('data', 'ieee14.m')
         if not os.path.isfile(case):
             raise unittest.SkipTest('file not available')
 
-        net = pf.ParserMAT().parse(case)
+        net = pf.PyParserMAT().parse(case)
 
         self.assertEqual(net.base_power,100.)
         self.assertEqual(net.num_buses,14)
