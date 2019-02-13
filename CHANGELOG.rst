@@ -2,7 +2,8 @@ Unreleased
 ----------
 * Constant current constraint for CSC HVDC.
 * Net update reg Q participations.
-* Branch num ratios.    
+* Branch num ratios.
+* Branch method to check whether it has zero impedance.    
 
 Version 1.3.4
 -------------
