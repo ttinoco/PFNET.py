@@ -672,7 +672,7 @@ cdef class Network:
         
         cdef Network n = net
         if net is not None:
-            cnet.NET_copy_from_net(self._c_net, n._c_net)
+            cnet.NET_copy_from_net(self._c_net, n._c_net, NULL, NULL, False)
 
     def create_var_generators_P_sigma(self, spread, corr):
         """
@@ -698,16 +698,17 @@ cdef class Network:
         else:
             return sigma
 
-    def get_copy(self):
+    def get_copy(self, merge_buses=False):
         """ 
         Gets deep copy of network.
 
         Returns
         -------
         net : |Network|
+        merge_buses : |TrueFalse|
         """
 
-        cdef Network net = new_Network(cnet.NET_get_copy(self._c_net))
+        cdef Network net = new_Network(cnet.NET_get_copy(self._c_net, merge_buses))
         net.alloc = True
         return net
 
@@ -2251,6 +2252,13 @@ cdef class Network:
         """
 
         print(cnet.NET_get_show_properties_str(self._c_net,t).decode('UTF-8'))
+
+    def show_equivalent_buses(self):
+        """
+        Shows equivalent buses (buses connected by zero impedance lines).
+        """
+
+        cnet.NET_show_equiv_buses(self._c_net)
 
     def update_properties(self, values=None):
         """

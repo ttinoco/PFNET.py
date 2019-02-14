@@ -4,7 +4,8 @@ Unreleased
 * Net update reg Q participations.
 * Branch num ratios.
 * Branch method to check whether it has zero impedance.    
-
+* Can create copy of network that has equivalent buses merged.
+  
 Version 1.3.4
 -------------
 * Linked with appveyor.
