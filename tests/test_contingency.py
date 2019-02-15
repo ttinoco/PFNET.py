@@ -731,7 +731,7 @@ class TestContingency(unittest.TestCase):
 
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
             # variables

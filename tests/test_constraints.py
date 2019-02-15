@@ -3937,7 +3937,7 @@ class TestConstraints(unittest.TestCase):
         # Multiperiods
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case,self.T)
+            net = pf.Parser(case).parse(case,self.T).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,self.T)
             
             # Add vargens
@@ -5357,7 +5357,7 @@ class TestConstraints(unittest.TestCase):
         # Single period
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
             self.assertEqual(net.num_vars,0)
@@ -6478,9 +6478,9 @@ class TestConstraints(unittest.TestCase):
         # Multiperiod
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case,self.T)
+            net = pf.Parser(case).parse(case,self.T).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,self.T)
-
+            
             # Vars
             net.set_flags('bus',
                           'variable',
@@ -6763,7 +6763,7 @@ class TestConstraints(unittest.TestCase):
         # Single period
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case,1)
+            net = pf.Parser(case).parse(case,1).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             net.set_flags('bus',['variable','bounded'],'any','voltage magnitude')

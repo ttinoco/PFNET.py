@@ -2212,10 +2212,10 @@ class TestNetwork(unittest.TestCase):
             self.assertTrue(np.all(netMP.load_P_util == 0))
             self.assertTrue(np.all(netMP.load_P_vio == 0))
 
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
-            netMP = pf.Parser(case).parse(case,self.T)
+            netMP = pf.Parser(case).parse(case,self.T).get_copy(merge_buses=True)
             self.assertEqual(netMP.num_periods,self.T)
 
             # Add vargens

@@ -18,6 +18,58 @@ class TestZILines(unittest.TestCase):
         
         pass
 
+    def test_sample_case(self):
+
+        case = os.path.join('data', 'psse_sample_case.raw')
+
+        if os.path.isfile(case):
+
+            # Parsed net
+            net1 = pf.ParserRAW().parse(case).get_copy(merge_buses=True)
+
+            # Copied
+            net2 = net1.get_copy()
+            
+            # Extracted net (including)
+            net3 = net1.extract_subnetwork([net1.get_bus_from_number(153),
+                                            net1.get_bus_from_number(154),
+                                            net1.get_bus_from_number(3005)])
+            self.assertEqual(net3.num_buses, 3)
+
+            # Extracted net (not including)
+            net4 = net1.extract_subnetwork([net1.get_bus_from_number(101),
+                                            net1.get_bus_from_number(102),
+                                            net1.get_bus_from_number(151)])
+            self.assertEqual(net4.num_buses, 3)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 153)
+            self.assertRaises(pf.NetworkError, net4.get_bus_from_number, 3006)
+
+            # Serialized net
+            try:
+                pf.ParserJSON().write(net1, 'foo.json')
+                net5 = pf.ParserJSON().parse('foo.json')
+            finally:
+                if os.path.isfile('foo.json'):
+                    os.remove('foo.json')
+
+            # Test
+            for net in [net1, net2, net3, net5]:
+                self.assertEqual(net.get_num_redundant_buses(), 1)
+                bus1 = net.get_bus_from_number(3006)
+                bus2 = net.get_bus_from_number(153)
+                self.assertTrue(bus1.is_equal(bus2))
+                load1 = net.get_load_from_name_and_bus_number('1', 3006)
+                load2 = net.get_load_from_name_and_bus_number('1', 153)
+                self.assertTrue(load1.is_equal(load2))
+                br1 = net.get_branch_from_name_and_bus_numbers('2', 3006, 154)
+                br2 = net.get_branch_from_name_and_bus_numbers('2', 153, 154)
+                self.assertTrue(br1.is_equal(br2))
+                br3 = net.get_branch_from_name_and_bus_numbers('1', 3006, 3005)
+                br4 = net.get_branch_from_name_and_bus_numbers('1', 153, 3005)
+                self.assertTrue(br3.is_equal(br4))
+        else:
+            raise unittest.SkipTest('no .raw file')
+
     def test_aeso(self):
 
         case = os.path.join('data', 'aesoSL2014.raw')
@@ -26,7 +78,6 @@ class TestZILines(unittest.TestCase):
             raise unittest.SkipTest('no .raw file')
 
         parser = pf.ParserRAW()
-        parser.set('merge_buses', False)
 
         net1 = parser.parse(case)
         net1_copy = net1.get_copy(merge_buses=False)
@@ -62,6 +113,24 @@ class TestZILines(unittest.TestCase):
         net1.copy_from_network(net2, merged=False)
         self.assertRaises(AssertionError, pf.tests.utils.compare_networks, self, net1, net1_copy)
 
+        # Red buses in net2
+        for bus in net1.buses:
+            self.assertGreaterEqual(net2.get_bus_from_number(bus.number).index, 0)
+        for gen in net1.generators:
+            self.assertGreaterEqual(net2.get_generator_from_name_and_bus_number(gen.name, gen.bus.number).index, 0)
+        for load in net1.loads:
+            self.assertGreaterEqual(net2.get_load_from_name_and_bus_number(load.name, load.bus.number).index, 0)
+        self.assertEqual(net2.get_num_redundant_buses(), 2495-2454)
+
+        # Red buses in net3
+        net3 = net2.get_copy(merge_buses=False)
+        for bus in net1.buses:
+            self.assertGreaterEqual(net3.get_bus_from_number(bus.number).index, 0)
+        for gen in net1.generators:
+            self.assertGreaterEqual(net3.get_generator_from_name_and_bus_number(gen.name, gen.bus.number).index, 0)
+        for load in net1.loads:
+            self.assertGreaterEqual(net3.get_load_from_name_and_bus_number(load.name, load.bus.number).index, 0)
+        self.assertEqual(net3.get_num_redundant_buses(), 2495-2454)
         
         
-        
+            

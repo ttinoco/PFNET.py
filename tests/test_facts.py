@@ -27,7 +27,7 @@ class TestFACTS(unittest.TestCase):
         net = p.parse(case, T)
 
         # Network
-        self.assertEqual(net.num_buses-net.get_num_star_buses(), 41)
+        self.assertEqual(net.num_buses-net.get_num_star_buses(), 42)
 
         self.assertEqual(net.num_facts,3)
         
@@ -44,10 +44,10 @@ class TestFACTS(unittest.TestCase):
         self.assertTrue(net.facts[1].is_equal(f2))
         self.assertTrue(net.facts[2].is_equal(f3))
 
-        self.assertEqual(f2.bus_k.number, 3006) # zi with 153
+        self.assertEqual(f2.bus_k.number, 153) # 3006 zi with 153
 
         f = net.get_facts_from_name_and_bus_numbers('FACTS_DVCE_1',
-                                                    3006,
+                                                    153,
                                                     0)
 
         self.assertTrue(f.is_equal(f2))
@@ -55,7 +55,7 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f.name, 'FACTS_DVCE_1')
 
         f = net.get_facts_from_name_and_bus_numbers('FACTS_DVCE_2',
-                                                    3006,
+                                                    153,
                                                     155)
 
         self.assertTrue(f.is_equal(f1))
@@ -63,7 +63,7 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f.name, 'FACTS_DVCE_2')
 
         f = net.get_facts_from_name_and_bus_numbers('FACTS_DVCE_3',
-                                                    3006,
+                                                    153,
                                                     155)
 
         self.assertTrue(f.is_equal(f3))
@@ -87,7 +87,7 @@ class TestFACTS(unittest.TestCase):
         self.assertFalse(f3.is_regulator())
 
         # Bus
-        bus1 = net.get_bus_from_number(3006)
+        bus1 = net.get_bus_from_number(153)
         bus2 = net.get_bus_from_number(155)
 
         self.assertTrue(bus1.is_regulated_by_facts())
@@ -152,7 +152,7 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f1.P_max_dc, 99.99)
         self.assertEqual(f1.v_min_m, 0.9)
         self.assertEqual(f1.v_max_m, 1.1)
-        self.assertEqual(f1.bus_k.number, 3006)
+        self.assertEqual(f1.bus_k.number, 153)
         self.assertEqual(f1.bus_m.number, 155)
 
         # Facts 153/3006 - 0 (STATCOM)
@@ -186,7 +186,7 @@ class TestFACTS(unittest.TestCase):
         self.assertEqual(f2.P_max_dc, 1.)
         self.assertEqual(f2.v_min_m, 0.9263)
         self.assertEqual(f2.v_max_m, 1.134)
-        self.assertEqual(f2.bus_k.number, 3006)
+        self.assertEqual(f2.bus_k.number, 153)
         self.assertTrue(f2.bus_m is None)
 
         # Facts 153/3006 - 155 (SSSC)

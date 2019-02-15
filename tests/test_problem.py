@@ -28,7 +28,7 @@ class TestProblem(unittest.TestCase):
 
         for case in test_cases.CASES:
 
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
             p = pf.Problem(net)
@@ -178,7 +178,7 @@ class TestProblem(unittest.TestCase):
 
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
              
             p = pf.Problem(net)
@@ -196,7 +196,7 @@ class TestProblem(unittest.TestCase):
         
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
              
             p = pf.Problem(net)
@@ -445,7 +445,7 @@ class TestProblem(unittest.TestCase):
 
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             p = pf.Problem(net)
@@ -710,7 +710,7 @@ class TestProblem(unittest.TestCase):
 
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             p = pf.Problem(net)
@@ -938,7 +938,7 @@ class TestProblem(unittest.TestCase):
         # Single period
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             p = pf.Problem(net)
@@ -1188,7 +1188,7 @@ class TestProblem(unittest.TestCase):
         # Single period
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             net.set_flags('bus',['variable','bounded'],'any','voltage magnitude')
@@ -1245,7 +1245,7 @@ class TestProblem(unittest.TestCase):
         
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
             p1 = pf.Problem(net)
@@ -1300,7 +1300,7 @@ class TestProblem(unittest.TestCase):
         
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
 
             if net.num_buses > 1000:
@@ -1378,7 +1378,7 @@ class TestProblem(unittest.TestCase):
 
         for case in test_cases.CASES:
             
-            net = pf.Parser(case).parse(case)
+            net = pf.Parser(case).parse(case).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,1)
             
             p = pf.Problem(net)
