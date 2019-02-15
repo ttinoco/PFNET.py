@@ -268,16 +268,16 @@ cdef class Branch:
 
         return cbranch.BRANCH_is_part_of_3_winding_transformer(self._c_ptr)
 
-    def is_zero_impedance(self):
+    def is_zero_impedance_line(self):
         """"
-        Determines whether branch is a zero-impedance branch.
+        Determines whether branch is a zero-impedance line.
         
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbranch.BRANCH_is_zero_impedance(self._c_ptr)
+        return cbranch.BRANCH_is_zero_impedance_line(self._c_ptr)
 
     def has_y_correction(self):
         """

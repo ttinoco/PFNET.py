@@ -661,18 +661,19 @@ cdef class Network:
 
         cnet.NET_clear_sensitivities(self._c_net)
 
-    def copy_from_network(self, net):
+    def copy_from_network(self, net, merged=False):
         """
         Copies data from another network.
 
         Parameters
         ----------
         net : |Network|
+        merged : |TrueFalse|
         """
         
         cdef Network n = net
         if net is not None:
-            cnet.NET_copy_from_net(self._c_net, n._c_net, NULL, NULL, False)
+            cnet.NET_copy_from_net(self._c_net, n._c_net, NULL, NULL, 1 if merged else 0)
 
     def create_var_generators_P_sigma(self, spread, corr):
         """
@@ -1628,6 +1629,17 @@ cdef class Network:
         """
 
         return cnet.NET_get_num_lines(self._c_net)
+
+    def get_num_zero_impedance_lines(self):
+        """
+        Gets number of zero impedance lines in the network.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_zero_impedance_lines(self._c_net)
 
     def get_num_phase_shifters(self):
         """

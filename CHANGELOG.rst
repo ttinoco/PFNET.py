@@ -5,6 +5,8 @@ Unreleased
 * Branch num ratios.
 * Branch method to check whether it has zero impedance.    
 * Can create copy of network that has equivalent buses merged.
+* Can update original network from merged network.
+* Net can give num of ZI lines.   
   
 Version 1.3.4
 -------------
