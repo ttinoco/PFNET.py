@@ -874,6 +874,10 @@ cdef class Bus:
         """ Bus index (int). """
         def __get__(self): return cbus.BUS_get_index(self._c_ptr)
 
+    property oindex:
+        """ Index of bus in original network (before merging equivalent buses) (int). """
+        def __get__(self): return cbus.BUS_get_oindex(self._c_ptr)
+
     property index_t:
         """ Unique indices for bus and time (int). """
         def __get__(self):

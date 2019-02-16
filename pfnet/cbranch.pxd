@@ -54,6 +54,7 @@ cdef extern from "pfnet/branch.h":
 
     char BRANCH_get_obj_type(void* br)
     int BRANCH_get_num_periods(Branch* br)
+    int BRANCH_get_oindex(Branch* br)
     int BRANCH_get_index(Branch* br)
     int* BRANCH_get_index_ratio_array(Branch* br)
     int* BRANCH_get_index_phase_array(Branch* br)

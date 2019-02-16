@@ -62,6 +62,7 @@ cdef extern from "pfnet/bus.h":
     int BUS_get_zone(Bus* bus)
     char BUS_get_obj_type(void* bus)
     int BUS_get_num_periods(Bus* bus)
+    int BUS_get_oindex(Bus* bus)
     int BUS_get_index(Bus* bus)
     int BUS_get_index_t(Bus* bus, int t)
     int* BUS_get_index_v_mag_array(Bus* bus)

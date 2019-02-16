@@ -748,6 +748,10 @@ cdef class Branch:
         """ Branch index (int). """
         def __get__(self): return cbranch.BRANCH_get_index(self._c_ptr)
 
+    property oindex:
+        """ Index of branch in original network (before removing zero impedance lines) (int). """
+        def __get__(self): return cbranch.BRANCH_get_oindex(self._c_ptr)
+
     property index_ratio:
         """ Index of transformer tap ratio variable (int or |Array|). """
         def __get__(self):

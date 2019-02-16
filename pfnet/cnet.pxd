@@ -197,6 +197,7 @@ cdef extern from "pfnet/net.h":
     char* NET_get_show_components_str(Net* net, int output_level)
     void NET_show_properties(Net* net, int t)
     void NET_show_equiv_buses(Net* net)
+    void NET_show_red_buses(Net* net)
     char* NET_get_show_properties_str(Net* net, int t)
     void NET_update_properties(Net* net, cvec.Vec* values)
     void NET_propagate_data_in_time(Net* net, int start, int end)

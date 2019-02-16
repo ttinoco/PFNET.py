@@ -228,6 +228,7 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
 
     test.assertTrue(bus1 is not bus2)
     test.assertEqual(bus1.number, bus2.number)
+    test.assertEqual(bus1.oindex, bus2.oindex)
     test.assertEqual(bus1.area, bus2.area)
     test.assertEqual(bus1.zone, bus2.zone)
     test.assertEqual(bus1.num_periods, bus2.num_periods)
@@ -467,6 +468,7 @@ def compare_branches(test, branch1, branch2, check_internals=False, eps=1e-10):
 
     test.assertTrue(branch1 is not branch2)
     test.assertEqual(branch1.name, branch2.name)
+    test.assertEqual(branch1.oindex, branch2.oindex)
     test.assertEqual(branch1.num_periods, branch2.num_periods)
     test.assertEqual(branch1.bus_k.index, branch2.bus_k.index)
     test.assertEqual(branch1.bus_m.index, branch2.bus_m.index)

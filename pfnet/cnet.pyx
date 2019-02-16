@@ -2272,6 +2272,13 @@ cdef class Network:
 
         cnet.NET_show_equiv_buses(self._c_net)
 
+    def show_redundant_buses(self):
+        """
+        Shows redundant buses.
+        """
+
+        cnet.NET_show_red_buses(self._c_net)
+
     def update_properties(self, values=None):
         """
         Re-computes the network properties using the given values
