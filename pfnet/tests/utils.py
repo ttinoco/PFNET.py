@@ -348,8 +348,9 @@ def compare_generators(test, gen1, gen2, check_internals=False, eps=1e-10):
     test.assertLess(norminf(gen1.dP_max-gen2.dP_max), eps)
     test.assertLess(norminf(gen1.P_prev-gen2.P_prev), eps)
     test.assertLess(norminf(gen1.Q-gen2.Q), eps)
-    test.assertLess(norminf(gen1.Q_max-gen2.Q_max), eps)
-    test.assertLess(norminf(gen1.Q_min-gen2.Q_min), eps)
+    if gen1.is_regulator():
+        test.assertLess(norminf(gen1.Q_max-gen2.Q_max), eps)
+        test.assertLess(norminf(gen1.Q_min-gen2.Q_min), eps)
     test.assertLess(norminf(gen1.Q_par-gen2.Q_par), eps)
     test.assertLess(norminf(gen1.cost_coeff_Q0-gen2.cost_coeff_Q0), eps)
     test.assertLess(norminf(gen1.cost_coeff_Q1-gen2.cost_coeff_Q1), eps)
@@ -764,7 +765,7 @@ def compare_facts(test, facts1, facts2, check_internals=False, eps=1e-10):
         test.assertLess(norminf(facts1.index_Q_s-facts2.index_Q_s),eps)
         test.assertLess(norminf(facts1.index_P_dc-facts2.index_P_dc),eps)
     
-def compare_networks(test, net1, net2, check_internals=False, eps=1e-10):
+def compare_networks(test, net1, net2, check_internals=False, eps=1e-10, ignore_facts=False):
     """
     Method for checking if two |Network| objects are held in different
     memory locations but are otherwise identical.
@@ -776,6 +777,7 @@ def compare_networks(test, net1, net2, check_internals=False, eps=1e-10):
     net2 : |Network|
     check_internals : |TrueFalse|
     eps : float
+    ignore_facts : |TrueFalse|
     """
 
     # Network
@@ -908,10 +910,11 @@ def compare_networks(test, net1, net2, check_internals=False, eps=1e-10):
         
     # FACTS
     test.assertEqual(net1.num_facts, net2.num_facts)
-    for i in range(net1.num_facts):
-        facts1 = net1.get_facts(i)
-        facts2 = net2.get_facts(i)
-        compare_facts(test, facts1, facts2, check_internals=check_internals, eps=eps)
+    if (not ignore_facts):
+        for i in range(net1.num_facts):
+            facts1 = net1.get_facts(i)
+            facts2 = net2.get_facts(i)
+            compare_facts(test, facts1, facts2, check_internals=check_internals, eps=eps)
         
     # Hashes (AC)                
     for bus in net1.buses:
