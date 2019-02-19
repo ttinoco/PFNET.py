@@ -7,7 +7,8 @@ Unreleased
 * Can create copy of network that has equivalent buses merged.
 * Can update original network from merged network.
 * Net can give num of ZI lines.   
-  
+* Localize gen regulation.
+
 Version 1.3.4
 -------------
 * Linked with appveyor.

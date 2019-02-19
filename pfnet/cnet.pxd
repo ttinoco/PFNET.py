@@ -204,6 +204,7 @@ cdef extern from "pfnet/net.h":
     void NET_update_reg_Q_participations(Net* net, int t)
     void NET_update_set_points(Net* net)
     void NET_update_hash_tables(Net* net)
+    void NET_localize_gen_regulation(Net* net, int max_dist)
 
     void NET_set_bus_array(Net* net, cbus.Bus* bus_list, int num_buses)
     void NET_set_branch_array(Net* net, cbranch.Branch* branch_list, int num_branches)

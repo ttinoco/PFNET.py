@@ -2322,6 +2322,14 @@ cdef class Network:
 
         cnet.NET_update_set_points(self._c_net)
 
+    def localize_gen_regulation(self, max_dist):
+        """
+        Makes generators whose regualted bus is a distance greater than max_dist away
+        from their buses regulate their own buses.
+        """
+
+        cnet.NET_localize_gen_regulation(self._c_net, max_dist)
+
     def update_hash_tables(self):
         """
         Updates internal hash tables for looking up AC and DC buses.
