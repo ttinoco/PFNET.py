@@ -8,6 +8,8 @@ Unreleased
 * Can update original network from merged network.
 * Net can give num of ZI lines.   
 * Localize gen regulation.
+* CSC DC current control function.
+* Gen redispatch penalty function.    
 
 Version 1.3.4
 -------------

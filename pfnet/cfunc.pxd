@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -51,6 +51,7 @@ cdef extern from "pfnet/pfnet.h":
     void FUNC_set_func_eval_step(Func* f, void (*func)(Func* f, Bus* bus, BusDC* busdc, int t, Vec* v))
 
     Func* FUNC_GEN_COST_new(REAL w, Net* net)
+    Func* FUNC_GEN_RED_new(REAL w, Net* net)
     Func* FUNC_LOAD_UTIL_new(REAL w, Net* net)
     Func* FUNC_NETCON_COST_new(REAL w, Net* net)
     Func* FUNC_REG_PHASE_new(REAL w, Net* net)
@@ -64,6 +65,7 @@ cdef extern from "pfnet/pfnet.h":
     Func* FUNC_REG_VAR_new(REAL w, Net* net)
     Func* FUNC_VSC_DC_PSET_new(REAL w, Net* net)
     Func* FUNC_CSC_DC_PSET_new(REAL w, Net* net)
+    Func* FUNC_CSC_DC_ISET_new(REAL w, Net* net)
     Func* FUNC_FACTS_PSET_new(REAL w, Net* net)
     Func* FUNC_FACTS_QSET_new(REAL w, Net* net) 
 

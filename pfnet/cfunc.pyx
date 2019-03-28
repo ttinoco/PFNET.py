@@ -3,7 +3,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -236,6 +236,8 @@ cdef class Function(FunctionBase):
                 
         if name == "generation cost":
             self._c_func = cfunc.FUNC_GEN_COST_new(weight, net._c_net)
+        elif name == "generation redispatch penalty":
+            self._c_func = cfunc.FUNC_GEN_RED_new(weight, net._c_net)
         elif name == "consumption utility":
             self._c_func = cfunc.FUNC_LOAD_UTIL_new(weight, net._c_net)
         elif name == "net consumption cost":
@@ -262,12 +264,14 @@ cdef class Function(FunctionBase):
             self._c_func = cfunc.FUNC_VSC_DC_PSET_new(weight, net._c_net)
         elif name == "CSC DC power control":
             self._c_func = cfunc.FUNC_CSC_DC_PSET_new(weight, net._c_net)
+        elif name == "CSC DC current control":
+            self._c_func = cfunc.FUNC_CSC_DC_ISET_new(weight, net._c_net)
         elif name == "FACTS active power control":
             self._c_func = cfunc.FUNC_FACTS_PSET_new(weight, net._c_net)
         elif name == "FACTS reactive power control":
             self._c_func = cfunc.FUNC_FACTS_QSET_new(weight, net._c_net)
         else:
-            raise FunctionError('invalid function name')
+            raise FunctionError('invalid function name %s' %name)
             
         self._alloc = True
         self._net = net
