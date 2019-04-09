@@ -9,7 +9,8 @@ Unreleased
 * Net can give num of ZI lines.   
 * Localize gen regulation.
 * CSC DC current control function.
-* Gen redispatch penalty function.    
+* Gen redispatch penalty function.
+* Branch __str__.    
 
 Version 1.3.4
 -------------

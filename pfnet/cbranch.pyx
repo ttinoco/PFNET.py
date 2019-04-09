@@ -59,6 +59,12 @@ cdef class Branch:
 
         return new_CPtr(self._c_ptr)
 
+    def __str__(self):
+
+        return "%d %d '%s'" %(self.bus_k.number,
+                              self.bus_m.number,
+                              self.name)
+
     def has_pos_ratio_v_sens(self):
         """
         Determines whether tap-changing transformer has positive

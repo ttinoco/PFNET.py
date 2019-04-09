@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -952,6 +952,11 @@ class TestNetwork(unittest.TestCase):
 
                 branch = net.get_branch(i)
                 same_branch = net.get_branch(i)
+
+                # user-friendly str
+                self.assertEqual(str(branch), "%d %d '%s'" %(branch.bus_k.number,
+                                                             branch.bus_m.number,
+                                                             branch.name))
 
                 # Comparisons
                 self.assertFalse(branch == net.get_bus(0))
