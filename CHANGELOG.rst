@@ -10,7 +10,7 @@ Unreleased
 * Localize gen regulation.
 * CSC DC current control function.
 * Gen redispatch penalty function.
-* Branch __str__.    
+* Branch __str__ and __repr__.    
 
 Version 1.3.4
 -------------

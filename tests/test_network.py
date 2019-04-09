@@ -954,9 +954,10 @@ class TestNetwork(unittest.TestCase):
                 same_branch = net.get_branch(i)
 
                 # user-friendly str
-                self.assertEqual(str(branch), "%d %d '%s'" %(branch.bus_k.number,
-                                                             branch.bus_m.number,
-                                                             branch.name))
+                self.assertEqual(str(branch), "Branch %d %d '%s'" %(branch.bus_k.number,
+                                                                    branch.bus_m.number,
+                                                                    branch.name))
+                self.assertEqual(str(branch), repr(branch))
 
                 # Comparisons
                 self.assertFalse(branch == net.get_bus(0))

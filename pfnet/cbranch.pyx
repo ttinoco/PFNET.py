@@ -61,9 +61,13 @@ cdef class Branch:
 
     def __str__(self):
 
-        return "%d %d '%s'" %(self.bus_k.number,
-                              self.bus_m.number,
-                              self.name)
+        return "Branch %d %d '%s'" %(self.bus_k.number,
+                                     self.bus_m.number,
+                                     self.name)
+
+    def __repr__(self):
+
+        return str(self)
 
     def has_pos_ratio_v_sens(self):
         """
