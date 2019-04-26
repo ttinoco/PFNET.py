@@ -3,7 +3,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -2035,6 +2035,22 @@ cdef class Network:
             for t in range(self.num_periods):
                 num += cnet.NET_round_discrete_switched_shunts_b(self._c_net, t)
             return num
+
+    def clip_switched_shunts_b(self, t=None):
+        """
+        Clips susceptances of all switched shunt devices
+        to be within limits.
+
+        Parameters
+        ----------
+        t : int (None for all)
+        """
+
+        if t is not None:
+            return cnet.NET_clip_switched_shunts_b(self._c_net, t)
+        else:
+            for t in range(self.num_periods):
+                cnet.NET_clip_switched_shunts_b(self._c_net, t)
 
     def set_flags(self, obj_type, flags, props, q):
         """

@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -13,6 +13,39 @@ import pfnet as pf
 from . import test_cases
 
 class TestShunts(unittest.TestCase):
+
+    def test_clipping(self):
+
+        case = os.path.join('data', 'aesoSL2014.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
+
+        net = pf.Parser(case).parse(case)
+
+        self.assertGreater(net.get_num_switched_shunts(), 1)
+
+        eps = 1e-2
+        counter = 0
+        tested = False
+        for shunt in net.shunts:
+            if shunt.is_switched():
+                tested = True
+                shunt.b = shunt.b_max + eps
+                self.assertEqual(shunt.b, shunt.b_max + eps)
+                net.clip_switched_shunts_b()
+                self.assertEqual(shunt.b, shunt.b_max)
+                shunt.b = shunt.b_min - eps
+                self.assertEqual(shunt.b, shunt.b_min - eps)
+                net.clip_switched_shunts_b()
+                self.assertEqual(shunt.b, shunt.b_min)
+                shunt.b = 0.5*(shunt.b_min + shunt.b_max)
+                self.assertEqual(shunt.b, 0.5*(shunt.b_min+shunt.b_max))
+                net.clip_switched_shunts_b()
+                self.assertEqual(shunt.b, 0.5*(shunt.b_min+shunt.b_max))
+                counter += 1
+                if counter >= 10:
+                    break
+        self.assertTrue(tested)
 
     def test_ieee25_raw_case(self):
 

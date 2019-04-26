@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -189,6 +189,7 @@ cdef extern from "pfnet/net.h":
     bint NET_has_error(Net* net)
     Net* NET_new(int num_periods)
     int NET_round_discrete_switched_shunts_b(Net* net, int t)
+    void NET_clip_switched_shunts_b(Net* net, int t)
     void NET_set_base_power(Net* net, REAL base_power)
     void NET_set_flags(Net* net, char obj_type, char flag_mask, char prop_mask, char val_mask)
     void NET_set_flags_of_component(Net* net, void* obj, char obj_type, char flag_mask, char val_mask)

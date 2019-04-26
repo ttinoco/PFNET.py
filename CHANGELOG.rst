@@ -10,7 +10,8 @@ Unreleased
 * Localize gen regulation.
 * CSC DC current control function.
 * Gen redispatch penalty function.
-* Branch __str__ and __repr__.    
+* Branch __str__ and __repr__.
+* Network method for clipping switched shunt b.    
 
 Version 1.3.4
 -------------
