@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -9,6 +9,7 @@
 import unittest
 import numpy as np
 import pickle
+import json
 import tempfile
 
 import pfnet as pf
@@ -20,6 +21,30 @@ class TestSerialization(unittest.TestCase):
     def setUp(self):
 
         pass
+
+    def test_network_json(self):
+
+        for case in test_cases.CASES:
+
+            # Load network
+            net1 = pf.Parser(case).parse(case)
+            
+            # Some modifications
+            for gen in net1.generators:
+                gen.Q_par = np.random.rand()
+
+            # Testing json string
+            json_net_string = json.dumps(net1, cls=pf.NetworkJSONEncoder)
+            net2 = json.loads(json_net_string, cls=pf.NetworkJSONDecoder)            
+            pf.tests.utils.compare_networks(self, net1, net2)
+
+            # Testing pickle with file
+            with tempfile.TemporaryFile(mode='r+') as json_net_file:
+                json.dump(net1, json_net_file, cls=pf.NetworkJSONEncoder)
+                json_net_file.seek(0)
+                net3 = json.load(json_net_file, cls=pf.NetworkJSONDecoder)
+                json_net_file.close()
+                pf.tests.utils.compare_networks(self, net1, net3)
 
     def test_network_pickle(self):
 

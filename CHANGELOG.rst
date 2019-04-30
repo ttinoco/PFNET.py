@@ -11,7 +11,8 @@ Unreleased
 * CSC DC current control function.
 * Gen redispatch penalty function.
 * Branch __str__ and __repr__.
-* Network method for clipping switched shunt b.    
+* Network method for clipping switched shunt b.
+* Network JSON encoder and decoder.  
 
 Version 1.3.4
 -------------
