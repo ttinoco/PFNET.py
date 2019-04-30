@@ -2047,7 +2047,7 @@ cdef class Network:
         """
 
         if t is not None:
-            return cnet.NET_clip_switched_shunts_b(self._c_net, t)
+            cnet.NET_clip_switched_shunts_b(self._c_net, t)
         else:
             for t in range(self.num_periods):
                 cnet.NET_clip_switched_shunts_b(self._c_net, t)

@@ -12,9 +12,9 @@ cdef extern from "pfnet/brycor.h":
     ctypedef double REAL
 
     char* BRYCOR_get_name(BrYCor* b)
-    int BRYCOR_get_num_values(BrYCor* b);
-    int BRYCOR_get_max_num_values(BrYCor* b);
-    REAL* BRYCOR_get_values(BrYCor* b);
-    REAL* BRYCOR_get_corrections(BrYCor* b);
-    bint BRYCOR_is_based_on_tap_ratio(BrYCor* b);
-    bint BRYCOR_is_based_on_phase_shift(BrYCor* b);
+    int BRYCOR_get_num_values(BrYCor* b)
+    int BRYCOR_get_max_num_values(BrYCor* b)
+    REAL* BRYCOR_get_values(BrYCor* b)
+    REAL* BRYCOR_get_corrections(BrYCor* b)
+    bint BRYCOR_is_based_on_tap_ratio(BrYCor* b)
+    bint BRYCOR_is_based_on_phase_shift(BrYCor* b)

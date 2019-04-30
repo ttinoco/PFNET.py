@@ -139,15 +139,15 @@ cdef extern from "pfnet/bus.h":
     bint BUS_is_regulated_by_tran(Bus* bus)
     bint BUS_is_regulated_by_shunt(Bus* bus)
     bint BUS_is_regulated_by_vsc_conv(Bus* bus)
-    bint BUS_is_regulated_by_facts(Bus* bus);
+    bint BUS_is_regulated_by_facts(Bus* bus)
     bint BUS_has_flags(Bus* bus, char flag_type, char mask)
     Bus* BUS_new(int num_periods)
     Bus* BUS_array_new(int size, int num_periods)
     void BUS_array_del(Bus* bus_array, int size)
     void BUS_set_area(Bus* bus, int area)
     void BUS_set_zone(Bus* bus, int zone)
-    void BUS_set_slack_flag(Bus* bus, bint slack);
-    void BUS_set_star_flag(Bus* bus, bint star);
+    void BUS_set_slack_flag(Bus* bus, bint slack)
+    void BUS_set_star_flag(Bus* bus, bint star)
     void BUS_set_next(Bus* bus, Bus* next_bus)
     void BUS_set_number(Bus* bus, REAL num)
     void BUS_set_name(Bus* bus, char* name)
