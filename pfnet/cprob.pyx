@@ -3,7 +3,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -370,6 +370,17 @@ cdef class Problem:
         
         return self.num_linear_equality_constraints
 
+    def get_num_linear_inequality_constraints(self):    
+        """ 
+        Gets number of linear inequality constraints.
+
+        Returns
+        -------
+        num : int
+        """
+        
+        return self.num_linear_inequality_constraints
+
     def get_num_nonlinear_equality_constraints(self):
         """ 
         Number of nonlinear equality constraints.
@@ -478,6 +489,10 @@ cdef class Problem:
     property num_linear_equality_constraints:    
         """ Number of linear equality constraints (int). """
         def __get__(self): return cprob.PROB_get_num_linear_equality_constraints(self._c_prob)
+
+    property num_linear_inequality_constraints:    
+        """ Number of linear inequality constraints (int). """
+        def __get__(self): return cprob.PROB_get_num_linear_inequality_constraints(self._c_prob)
 
     property num_nonlinear_equality_constraints:
         """ Number of nonlinear equality constraints (int). """
