@@ -19,6 +19,9 @@ class TestInOutService(unittest.TestCase):
         for case in test_cases.CASES:
             
             net = pf.Parser(case).parse(case)
+            
+            net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)
+            net.add_batteries_from_parameters(net.get_generator_buses(),20.,50.)
 
             self.assertEqual(net.state_tag, 0)
 
@@ -26,9 +29,155 @@ class TestInOutService(unittest.TestCase):
                 gen.in_service = False
             for branch in net.branches:
                 branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
 
-            self.assertEqual(net.state_tag, net.num_generators+net.num_branches)
+            self.assertEqual(net.state_tag,
+                             (net.num_generators+
+                              net.num_branches+
+                              net.num_buses+
+                              net.num_loads+
+                              net.num_facts+
+                              net.num_dc_buses+
+                              net.num_dc_branches+
+                              net.num_vsc_converters+
+                              net.num_csc_converters+
+                              net.num_shunts+
+                              net.num_batteries+
+                              net.num_var_generators))
 
+    def test_other_components(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+
+            net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)
+            net.add_batteries_from_parameters(net.get_generator_buses(),20.,50.)
+
+            # loads
+            for load in net.loads:
+                pass
+
+            net_copy = net.get_copy()
+
+            # facts
+            for facts in net.facts:
+                reg = facts.is_regulator()
+                facts.in_service = False
+                old_facts = net_copy.get_facts(facts.index)
+                self.assertTrue(old_facts.in_service)
+                self.assertEqual(facts.is_STATCOM(), old_facts.is_STATCOM())
+                self.assertEqual(facts.is_SSSC(), old_facts.is_SSSC())
+                self.assertEqual(facts.is_UPFC(), old_facts.is_UPFC())
+                self.assertEqual(facts.is_series_link_disabled(), old_facts.is_series_link_disabled())
+                self.assertEqual(facts.is_series_link_bypassed(), old_facts.is_series_link_bypassed())
+                self.assertEqual(facts.is_in_normal_series_mode(), old_facts.is_in_normal_series_mode())
+                self.assertEqual(facts.is_in_constant_series_z_mode(), old_facts.is_in_constant_series_z_mode())
+                self.assertEqual(facts.is_in_constant_series_v_mode(), old_facts.is_in_constant_series_v_mode())
+                if reg:
+                    self.assertTrue(facts.is_regulator())
+                    self.assertTrue(facts.reg_bus is not None)
+                    self.assertTrue(facts.index in [f.index for f in facts.reg_bus.reg_facts])
+                    if all([not f.is_in_service() for f in facts.reg_bus.reg_facts]):
+                        self.assertFalse(facts.reg_bus.is_regulated_by_facts())
+                    else:
+                        self.assertTrue(facts.reg_bus.is_regulated_by_facts())
+
+            # csc
+            for conv in net.csc_converters:
+                conv.in_service = False
+                old_conv = net_copy.get_csc_converter(conv.index)
+                self.assertFalse(conv.is_in_service())
+                self.assertTrue(old_conv.in_service)
+                self.assertEqual(conv.is_in_v_dc_mode(), old_conv.is_in_v_dc_mode())
+
+            # vsc
+            for conv in net.vsc_converters:
+                reg = conv.is_in_v_ac_mode()
+                conv.in_service = False
+                old_conv = net_copy.get_vsc_converter(conv.index)
+                self.assertTrue(old_conv.in_service)
+                self.assertEqual(conv.is_in_v_ac_mode(), old_conv.is_in_v_ac_mode())
+                if reg:
+                    self.assertTrue(conv.is_in_v_ac_mode())
+                    self.assertTrue(conv.reg_bus is not None)
+                    self.assertTrue(conv.index in [c.index for c in conv.reg_bus.reg_vsc_converters])
+                    if all([not c.is_in_service() for c in conv.reg_bus.reg_vsc_converters]):
+                        self.assertFalse(conv.reg_bus.is_regulated_by_vsc_converter())
+                    else:
+                        self.assertTrue(conv.reg_bus.is_regulated_by_vsc_converter())
+
+            # shunts
+            for shunt in net.shunts:
+                reg = shunt.is_switched_v()
+                shunt.in_service = False
+                old_shunt = net_copy.get_shunt(shunt.index)
+                self.assertFalse(shunt.is_in_service())
+                self.assertTrue(old_shunt.in_service)
+                self.assertEqual(shunt.is_fixed(), old_shunt.is_fixed())
+                self.assertEqual(shunt.is_switched(), old_shunt.is_switched())
+                self.assertEqual(shunt.is_switched_locked(), old_shunt.is_switched_locked())
+                self.assertEqual(shunt.is_switched_v(), old_shunt.is_switched_v())
+                self.assertEqual(shunt.is_continuous(), old_shunt.is_continuous())
+                self.assertEqual(shunt.is_discrete(), old_shunt.is_discrete())
+                if reg:
+                    self.assertTrue(shunt.is_switched_v())
+                    self.assertTrue(shunt.reg_bus is not None)
+                    self.assertTrue(shunt.index in [s.index for s in shunt.reg_bus.reg_shunts])
+                    if all([not s.is_in_service() for s in shunt.reg_bus.reg_shunts]):
+                        self.assertFalse(shunt.reg_bus.is_regulated_by_shunt())
+                    else:
+                        self.assertTrue(shunt.reg_bus.is_regulated_by_shunt())
+
+            # vargens
+            for gen in net.var_generators:
+                gen.in_service = False
+                self.assertFalse(gen.is_in_service())
+
+            # bats
+            for bat in net.batteries:
+                bat.in_service = False
+                self.assertFalse(bat.is_in_service())
+
+            # dc branches
+            for br in net.dc_branches:
+                br.in_service = False
+                self.assertFalse(br.is_in_service())
+
+            net.make_all_in_service()
+            
+            # dc buses
+            for bus in net.dc_buses:
+                bus.in_service = False
+                self.assertFalse(bus.is_in_service())
+                for conv in bus.csc_converters:
+                    self.assertFalse(conv.is_in_service())
+                for conv in bus.vsc_converters:
+                    self.assertFalse(conv.is_in_service())
+                for br in bus.branches_k:
+                    self.assertFalse(br.is_in_service())
+                for br in bus.branches_m:
+                    self.assertFalse(br.is_in_service())
+        
     def test_generators(self):
 
         for case in test_cases.CASES:
@@ -60,7 +209,6 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(gen.is_regulator())
                     self.assertTrue(gen.reg_bus is not None)
                     self.assertTrue(gen.index in [g.index for g in gen.reg_bus.reg_generators])
-
                     if all([not g.is_in_service() for g in gen.reg_bus.reg_generators]):
                         self.assertFalse(gen.reg_bus.is_regulated_by_gen())
                     else:
@@ -101,7 +249,7 @@ class TestInOutService(unittest.TestCase):
 
                 self.assertTrue(branch.is_in_service())
                 self.assertTrue(branch.in_service)
-
+                
                 reg = branch.is_tap_changer_v()
                 
                 # out of service
@@ -146,119 +294,68 @@ class TestInOutService(unittest.TestCase):
                 self.assertFalse(new_branch.is_in_service())
                 
     def test_buses(self):
-
+        
         for case in test_cases.CASES:
             
             net = pf.Parser(case).parse(case)
 
+            net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)
+            net.add_batteries_from_parameters(net.get_generator_buses(),20.,50.)
+
             for bus in net.buses:
 
-                net.make_all_in_service()
+                slack = bus.is_slack()
+                star = bus.is_star()
+                
+                bus.in_service = False
+                
+                self.assertEqual(bus.get_total_gen_P(), 0.)
+                self.assertEqual(bus.get_total_gen_Q(), 0.)
+                self.assertEqual(bus.get_total_gen_Q_min(), 0.)
+                self.assertEqual(bus.get_total_gen_Q_max(), 0.)
+                self.assertEqual(bus.get_total_reg_gen_Q(), 0.)
+                self.assertEqual(bus.get_total_reg_gen_Q_min(), 0.)
+                self.assertEqual(bus.get_total_reg_gen_Q_max(), 0.)
+                self.assertEqual(bus.get_total_load_P(), 0.)
+                self.assertEqual(bus.get_total_load_Q(), 0.)
+                self.assertEqual(bus.get_total_shunt_g(), 0.)
+                self.assertEqual(bus.get_total_shunt_b(), 0.)
 
-                # total gen P
-                total = bus.get_total_gen_P()
+                self.assertEqual(bus.is_slack(), slack)
+                self.assertEqual(bus.is_star(), star)
+                
+                # reg 
+                self.assertFalse(bus.is_regulated_by_gen())
+                self.assertFalse(bus.is_regulated_by_tran())
+                self.assertFalse(bus.is_regulated_by_shunt())
+                self.assertFalse(bus.is_v_set_regulated())
+                self.assertFalse(bus.is_regulated_by_vsc_converter())
+                self.assertFalse(bus.is_regulated_by_facts())            
+
                 for gen in bus.generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_gen_P()
-                    self.assertLess(np.abs(new_total-(total-gen.P)),1e-8)
-                    total = new_total
-                    
-                net.make_all_in_service()
-                
-                # total gen Q
-                total = bus.get_total_gen_Q()
-                for gen in bus.generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_gen_Q()
-                    self.assertLess(np.abs(new_total-(total-gen.Q)),1e-8)
-                    total = new_total
+                    self.assertFalse(gen.in_service)
+                for br in bus.branches_k:
+                    self.assertFalse(br.in_service)
+                for br in bus.branches_m:
+                    self.assertFalse(br.in_service)
+                for s in bus.shunts:
+                    self.assertFalse(s.in_service)
+                for load in bus.loads:
+                    self.assertFalse(load.in_service)
+                for conv in bus.csc_converters:
+                    self.assertFalse(conv.in_service)
+                for conv in bus.vsc_converters:
+                    self.assertFalse(conv.in_service)
+                for bat in bus.batteries:
+                    self.assertFalse(bat.in_service)
+                for gen in bus.var_generators:
+                    self.assertFalse(gen.in_service)
 
-                net.make_all_in_service()
-                
-                # total gen Qmin
-                total = bus.get_total_gen_Q_min()
-                for gen in bus.generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_gen_Q_min()
-                    self.assertLess(np.abs(new_total-(total-gen.Q_min)),1e-8)
-                    total = new_total
-
-                net.make_all_in_service()
-                
-                # total gen Qmax
-                total = bus.get_total_gen_Q_max()
-                for gen in bus.generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_gen_Q_max()
-                    self.assertLess(np.abs(new_total-(total-gen.Q_max)),1e-8)
-                    total = new_total
-
-                net.make_all_in_service()
-
-                # toatl reg gen Q
-                total = bus.get_total_reg_gen_Q()
-                self.assertLess(np.abs(total-sum([g.Q for g in bus.reg_generators])), 1e-8)
-                for gen in bus.reg_generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_reg_gen_Q()
-                    self.assertLess(np.abs(new_total-(total-gen.Q)),1e-8)
-                    total = new_total
-
-                net.make_all_in_service()
-                
-                # total reg gen Qmin
-                total = bus.get_total_reg_gen_Q_min()
-                self.assertLess(np.abs(total-sum([g.Q_min for g in bus.reg_generators])), 1e-8)
-                for gen in bus.reg_generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_reg_gen_Q_min()
-                    self.assertLess(np.abs(new_total-(total-gen.Q_min)),1e-8)
-                    total = new_total
-
-                net.make_all_in_service()
-                
-                # total reg gen Qmax
-                total = bus.get_total_reg_gen_Q_max()
-                self.assertLess(np.abs(total-sum([g.Q_max for g in bus.reg_generators])), 1e-8)
-                for gen in bus.reg_generators:
-                    gen.in_service = False
-                    new_total = bus.get_total_reg_gen_Q_max()
-                    self.assertLess(np.abs(new_total-(total-gen.Q_max)),1e-8)
-                    total = new_total
-
-                net.make_all_in_service()
-                
-                # reg by gen
-                if bus.is_regulated_by_gen():
-                    for i in range(len(bus.reg_generators)):
-                        gen = bus.reg_generators[i]
-                        gen.in_service = False
-                        if i < len(bus.reg_generators)-1:
-                            self.assertTrue(bus.is_regulated_by_gen())
-                        else:
-                            self.assertFalse(bus.is_regulated_by_gen())
-
-                net.make_all_in_service()
-                            
-                # reg by tran
-                if bus.is_regulated_by_tran():
-                    for i in range(len(bus.reg_trans)):
-                        br = bus.reg_trans[i]
-                        br.in_service = False
-                        if i < len(bus.reg_trans)-1:
-                            self.assertTrue(bus.is_regulated_by_tran())
-                        else:
-                            self.assertFalse(bus.is_regulated_by_tran())
-
-                net.make_all_in_service()
-                            
-                # slack
-                if bus.is_slack():
-                    for gen in bus.generators:
-                        gen.in_service = False
-                        self.assertFalse(gen.is_in_service())
-                        self.assertTrue(gen.is_slack())
-                        self.assertTrue(bus.is_slack())
+                # json
+                json_string = bus.json_string
+                d = json.loads(json_string)
+                self.assertTrue('in_service' in d)
+                self.assertFalse(d['in_service'])
     
     def test_network(self):
 

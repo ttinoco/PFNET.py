@@ -574,9 +574,16 @@ class TestNetwork(unittest.TestCase):
                     self.assertTrue(isinstance(b,pf.Branch))
                     self.assertTrue(bus == b.bus_k or bus == b.bus_m)
 
-                # total injections
+                # totals
                 self.assertEqual(bus.get_total_gen_P(),sum([g.P for g in bus.generators],0))
                 self.assertEqual(bus.get_total_gen_Q(),sum([g.Q for g in bus.generators],0))
+                self.assertEqual(bus.get_total_gen_Q_max(),sum([g.Q_max for g in bus.generators],0))
+                self.assertEqual(bus.get_total_gen_Q_min(),sum([g.Q_min for g in bus.generators],0))
+                self.assertEqual(bus.get_total_reg_gen_Q(),sum([g.Q for g in bus.reg_generators],0))
+                self.assertEqual(bus.get_total_reg_gen_Q_max(),sum([g.Q_max for g in bus.reg_generators],0))
+                self.assertEqual(bus.get_total_reg_gen_Q_min(),sum([g.Q_min for g in bus.reg_generators],0))
+                self.assertEqual(bus.get_total_shunt_g(),sum([s.g for s in bus.shunts]))
+                self.assertEqual(bus.get_total_shunt_b(),sum([s.b for s in bus.shunts]))
                 self.assertEqual(bus.get_total_load_P(),sum([l.P for l in bus.loads],0))
                 self.assertEqual(bus.get_total_load_Q(),sum([l.Q for l in bus.loads],0))
 
