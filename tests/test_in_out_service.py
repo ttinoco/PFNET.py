@@ -363,25 +363,212 @@ class TestInOutService(unittest.TestCase):
             
             net = pf.Parser(case).parse(case)
 
-            # clear outages
             net.make_all_in_service()
-
+            
             self.assertEqual(net.get_num_branches(only_in_service=True), net.num_branches)
+            self.assertEqual(net.get_num_branches(only_in_service=False), net.num_branches)
             self.assertEqual(net.get_num_branches_out_of_service(), 0)
-            self.assertEqual(net.get_num_generators(True), net.num_generators)
+
+            self.assertEqual(net.get_num_generators(only_in_service=True), net.num_generators)
+            self.assertEqual(net.get_num_generators(only_in_service=False), net.num_generators)
             self.assertEqual(net.get_num_generators_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_buses(only_in_service=True), net.num_buses)
+            self.assertEqual(net.get_num_buses(only_in_service=False), net.num_buses)
+            self.assertEqual(net.get_num_buses_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_loads(only_in_service=True), net.num_loads)
+            self.assertEqual(net.get_num_loads(only_in_service=False), net.num_loads)
+            self.assertEqual(net.get_num_loads_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_shunts(only_in_service=True), net.num_shunts)
+            self.assertEqual(net.get_num_shunts(only_in_service=False), net.num_shunts)
+            self.assertEqual(net.get_num_shunts_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_batteries(only_in_service=True), net.num_batteries)
+            self.assertEqual(net.get_num_batteries(only_in_service=False), net.num_batteries)
+            self.assertEqual(net.get_num_batteries_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_var_generators(only_in_service=True), net.num_var_generators)
+            self.assertEqual(net.get_num_var_generators(only_in_service=False), net.num_var_generators)
+            self.assertEqual(net.get_num_var_generators_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_facts(only_in_service=True), net.num_facts)
+            self.assertEqual(net.get_num_facts(only_in_service=False), net.num_facts)
+            self.assertEqual(net.get_num_facts_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_dc_buses(only_in_service=True), net.num_dc_buses)
+            self.assertEqual(net.get_num_dc_buses(only_in_service=False), net.num_dc_buses)
+            self.assertEqual(net.get_num_dc_buses_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_dc_branches(only_in_service=True), net.num_dc_branches)
+            self.assertEqual(net.get_num_dc_branches(only_in_service=False), net.num_dc_branches)
+            self.assertEqual(net.get_num_dc_branches_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_csc_converters(only_in_service=True), net.num_csc_converters)
+            self.assertEqual(net.get_num_csc_converters(only_in_service=False), net.num_csc_converters)
+            self.assertEqual(net.get_num_csc_converters_out_of_service(), 0)
+
+            self.assertEqual(net.get_num_vsc_converters(only_in_service=True), net.num_vsc_converters)
+            self.assertEqual(net.get_num_vsc_converters(only_in_service=False), net.num_vsc_converters)
+            self.assertEqual(net.get_num_vsc_converters_out_of_service(), 0)
             
-            # num branches on outage
-            for branch in net.branches:
-                branch.in_service = False
-            self.assertEqual(net.get_num_branches(True), 0)
-            self.assertEqual(net.get_num_branches_out_of_service(), net.num_branches)
-            
-            # num gens on outage
+            # out of service
+            for bus in net.buses:
+                bus.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
             for gen in net.generators:
                 gen.in_service = False
-            self.assertEqual(net.get_num_generators(True), 0)
+            for branch in net.branches:
+                branch.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+                
+            self.assertEqual(net.get_num_branches(True), 0)
+            self.assertEqual(net.get_num_branches(False), net.num_branches)
+            self.assertEqual(net.get_num_branches_out_of_service(), net.num_branches)
+            self.assertEqual(net.get_num_fixed_trans(only_in_service=True), 0)
+            self.assertEqual(net.get_num_fixed_trans(only_in_service=False), len([br for br in net.branches if br.is_fixed_tran()]))
+            self.assertEqual(net.get_num_lines(only_in_service=True), 0)
+            self.assertEqual(net.get_num_lines(only_in_service=False), len([br for br in net.branches if br.is_line()]))
+            self.assertEqual(net.get_num_zero_impedance_lines(only_in_service=True), 0)
+            self.assertEqual(net.get_num_zero_impedance_lines(only_in_service=False), len([br for br in net.branches if br.is_zero_impedance_line()]))
+            self.assertEqual(net.get_num_phase_shifters(only_in_service=True), 0)
+            self.assertEqual(net.get_num_phase_shifters(only_in_service=False), len([br for br in net.branches if br.is_phase_shifter()]))
+            self.assertEqual(net.get_num_tap_changers(only_in_service=True), 0)
+            self.assertEqual(net.get_num_tap_changers(only_in_service=False), len([br for br in net.branches if br.is_tap_changer()]))
+            self.assertEqual(net.get_num_tap_changers_v(only_in_service=True), 0)
+            self.assertEqual(net.get_num_tap_changers_v(only_in_service=False), len([br for br in net.branches if br.is_tap_changer_v()]))
+            self.assertEqual(net.get_num_tap_changers_Q(only_in_service=True), 0)
+            self.assertEqual(net.get_num_tap_changers_Q(only_in_service=False), len([br for br in net.branches if br.is_tap_changer_Q()]))
+
+            self.assertEqual(net.get_num_generators(only_in_service=True), 0)
+            self.assertEqual(net.get_num_generators(only_in_service=False), net.num_generators)
             self.assertEqual(net.get_num_generators_out_of_service(), net.num_generators)
+            self.assertEqual(net.get_num_reg_gens(only_in_service=True), 0)
+            self.assertEqual(net.get_num_reg_gens(only_in_service=False), len([g for g in net.generators if g.is_regulator()]))
+            self.assertEqual(net.get_num_slack_gens(only_in_service=True), 0)
+            self.assertEqual(net.get_num_slack_gens(only_in_service=False), len([g for g in net.generators if g.is_slack()]))
+            
+            self.assertEqual(net.get_num_buses(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses(only_in_service=False), net.num_buses)
+            self.assertEqual(net.get_num_buses_out_of_service(), net.num_buses)
+            self.assertEqual(net.get_num_slack_buses(only_in_service=True), 0)
+            self.assertEqual(net.get_num_star_buses(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses_reg_by_gen(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses_reg_by_tran(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses_reg_by_shunt(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses_reg_by_facts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_buses_reg_by_vsc_converter(only_in_service=True), 0)
+            self.assertEqual(net.get_num_slack_buses(only_in_service=False), len([b for b in net.buses if b.is_slack()]))
+            self.assertEqual(net.get_num_star_buses(only_in_service=False), len([b for b in net.buses if b.is_star()]))
+            self.assertEqual(net.get_num_buses_reg_by_gen(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_gen()]))
+            self.assertEqual(net.get_num_buses_reg_by_tran(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_tran()]))
+            self.assertEqual(net.get_num_buses_reg_by_shunt(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_shunt()]))
+            self.assertEqual(net.get_num_buses_reg_by_facts(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_facts()]))
+            self.assertEqual(net.get_num_buses_reg_by_vsc_converter(only_in_service=False),
+                             len([b for b in net.buses if b.is_regulated_by_vsc_converter()]))
+            
+            self.assertEqual(net.get_num_loads(only_in_service=True), 0)
+            self.assertEqual(net.get_num_loads(only_in_service=False), net.num_loads)
+            self.assertEqual(net.get_num_loads_out_of_service(), net.num_loads)
+            self.assertEqual(net.get_num_vdep_loads(only_in_service=True), 0)
+            self.assertEqual(net.get_num_vdep_loads(only_in_service=False), len([l for l in net.loads if l.is_voltage_dependent()]))
+            
+            self.assertEqual(net.get_num_shunts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_shunts(only_in_service=False), net.num_shunts)
+            self.assertEqual(net.get_num_shunts_out_of_service(), net.num_shunts)
+            self.assertEqual(net.get_num_fixed_shunts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_fixed_shunts(only_in_service=False), len([s for s in net.shunts if s.is_fixed()]))
+            self.assertEqual(net.get_num_switched_shunts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_switched_shunts(only_in_service=False), len([s for s in net.shunts if s.is_switched()]))
+            self.assertEqual(net.get_num_switched_v_shunts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_switched_v_shunts(only_in_service=False), len([s for s in net.shunts if s.is_switched_v()]))            
+
+            self.assertEqual(net.get_num_batteries(only_in_service=True), 0)
+            self.assertEqual(net.get_num_batteries(only_in_service=False), net.num_batteries)
+            self.assertEqual(net.get_num_batteries_out_of_service(), net.num_batteries)
+
+            self.assertEqual(net.get_num_var_generators(only_in_service=True), 0)
+            self.assertEqual(net.get_num_var_generators(only_in_service=False), net.num_var_generators)
+            self.assertEqual(net.get_num_var_generators_out_of_service(), net.num_var_generators)
+
+            self.assertEqual(net.get_num_facts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_facts(only_in_service=False), net.num_facts)
+            self.assertEqual(net.get_num_facts_out_of_service(), net.num_facts)
+            self.assertEqual(net.get_num_facts_in_normal_series_mode(only_in_service=True), 0)
+            self.assertEqual(net.get_num_facts_in_normal_series_mode(only_in_service=False),
+                             len([f for f in net.facts if f.is_in_normal_series_mode()]))
+            self.assertEqual(net.get_num_reg_facts(only_in_service=True), 0)
+            self.assertEqual(net.get_num_reg_facts(only_in_service=False), len([f for f in net.facts if f.is_regulator()]))
+
+            self.assertEqual(net.get_num_dc_buses(only_in_service=True), 0)
+            self.assertEqual(net.get_num_dc_buses(only_in_service=False), net.num_dc_buses)
+            self.assertEqual(net.get_num_dc_buses_out_of_service(), net.num_dc_buses)
+
+            self.assertEqual(net.get_num_dc_branches(only_in_service=True), 0)
+            self.assertEqual(net.get_num_dc_branches(only_in_service=False), net.num_dc_branches)
+            self.assertEqual(net.get_num_dc_branches_out_of_service(), net.num_dc_branches)
+
+            self.assertEqual(net.get_num_csc_converters(only_in_service=True), 0)
+            self.assertEqual(net.get_num_csc_converters(only_in_service=False), net.num_csc_converters)
+            self.assertEqual(net.get_num_csc_converters_out_of_service(), net.num_csc_converters)
+            
+            self.assertEqual(net.get_num_vsc_converters(only_in_service=True), 0)
+            self.assertEqual(net.get_num_vsc_converters(only_in_service=False), net.num_vsc_converters)
+            self.assertEqual(net.get_num_vsc_converters_out_of_service(), net.num_vsc_converters)
+            self.assertEqual(net.get_num_vsc_converters_in_P_dc_mode(only_in_service=True), 0)
+            self.assertEqual(net.get_num_vsc_converters_in_P_dc_mode(only_in_service=False),
+                             len([c for c in net.vsc_converters if c.is_in_P_dc_mode()]))
+            self.assertEqual(net.get_num_vsc_converters_in_v_dc_mode(only_in_service=False),
+                             len([c for c in net.vsc_converters if c.is_in_v_dc_mode()]))
+            self.assertEqual(net.get_num_vsc_converters_in_v_ac_mode(only_in_service=False),
+                             len([c for c in net.vsc_converters if c.is_in_v_ac_mode()]))
+            self.assertEqual(net.get_num_vsc_converters_in_f_ac_mode(only_in_service=False),
+                             len([c for c in net.vsc_converters if c.is_in_f_ac_mode()]))
+
+            net.make_all_in_service()
+
+            # in of service
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertTrue(gen.in_service)
+            for branch in net.branches:
+                self.assertTrue(branch.in_service)
+            for facts in net.facts:
+                self.assertTrue(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertTrue(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertTrue(conv.in_service)
+            for load in net.loads:
+                self.assertTrue(load.in_service)
+            for branch in net.dc_branches:
+                self.assertTrue(branch.in_service)
+            for shunt in net.shunts:
+                self.assertTrue(shunt.in_service)
+            for bat in net.batteries:
+                self.assertTrue(bat.in_service)
+            for gen in net.var_generators:
+                self.assertTrue(gen.in_service)
 
     def test_network_properties(self):
 

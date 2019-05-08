@@ -2046,7 +2046,7 @@ cdef class Network:
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs_in_P_dc_mode(self._c_net, only_in_service=False)
+        return cnet.NET_get_num_vsc_convs_in_P_dc_mode(self._c_net, only_in_service)
 
     def get_num_vsc_converters_in_v_dc_mode(self, only_in_service=False):
         """
