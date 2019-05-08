@@ -32,6 +32,7 @@ cdef extern from "pfnet/bus_dc.h":
     int BUSDC_get_num_periods(BusDC* bus)
     int BUSDC_get_index(BusDC* bus)
     int BUSDC_get_index_v(BusDC* bus, int t)
+    int BUSDC_get_di_index(BusDC* bus, int t)
     int BUSDC_get_number(BusDC* bus)
     char* BUSDC_get_name(BusDC* bus)
     int BUSDC_get_num_vars(void* bus, char var, int t_start, int t_end)

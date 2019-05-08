@@ -3,7 +3,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -2253,6 +2253,13 @@ cdef class Network:
         """
 
         return cnet.NET_has_error(self._c_net)
+
+    def make_all_in_service(self):
+        """
+        Changes all components to be in service.
+        """
+
+        cnet.NET_make_all_in_service(self._c_net)
 
     def round_discrete_switched_shunts_b(self, t=None):
         """

@@ -195,6 +195,7 @@ cdef extern from "pfnet/net.h":
     cmat.Mat* NET_get_var_projection(Net* net, char obj_type, char prop_mask, char var, int t_start, int t_end)
     char* NET_get_json_string(Net* net)
     bint NET_has_error(Net* net)
+    void NET_make_all_in_service(Net* net)
     Net* NET_new(int num_periods)
     int NET_round_discrete_switched_shunts_b(Net* net, int t)
     void NET_clip_switched_shunts_b(Net* net, int t)

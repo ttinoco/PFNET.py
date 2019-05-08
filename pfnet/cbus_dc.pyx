@@ -463,6 +463,15 @@ cdef class BusDC:
         """ Flags associated with sparse quantities (byte). """
         def __get__(self): return cbus_dc.BUSDC_get_flags_sparse(self._c_ptr)
 
+    property di_index:
+        """ Helper index for current mismatches (int or |Array|). """
+        def __get__(self):
+            r = [cbus_dc.BUSDC_get_di_index(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
 cdef new_BusDC(cbus_dc.BusDC* b):
     if b is not NULL:
         bus = BusDC(alloc=False)

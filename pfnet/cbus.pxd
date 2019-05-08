@@ -64,6 +64,8 @@ cdef extern from "pfnet/bus.h":
     int BUS_get_num_periods(Bus* bus)
     int BUS_get_oindex(Bus* bus)
     int BUS_get_index(Bus* bus)
+    int BUS_get_dP_index(Bus* bus, int t)
+    int BUS_get_dQ_index(Bus* bus, int t)
     int* BUS_get_index_v_mag_array(Bus* bus)
     int* BUS_get_index_v_ang_array(Bus* bus)
     int BUS_get_number(Bus* bus)

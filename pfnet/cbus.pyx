@@ -1315,6 +1315,24 @@ cdef class Bus:
         """ Flags associated with sparse quantities (byte). """
         def __get__(self): return cbus.BUS_get_flags_sparse(self._c_ptr)
 
+    property dP_index:
+        """ Helper index for active power mismatches (int or |Array|). """
+        def __get__(self):
+            r = [cbus.BUS_get_dP_index(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
+    property dQ_index:
+        """ Helper index for reactive power mismatches (int or |Array|). """
+        def __get__(self):
+            r = [cbus.BUS_get_dQ_index(self._c_ptr,t) for t in range(self.num_periods)]
+            if self.num_periods == 1:
+                return AttributeInt(r[0])
+            else:
+                return np.array(r)
+
 cdef new_Bus(cbus.Bus* b):
     if b is not NULL:
         bus = Bus(alloc=False)
