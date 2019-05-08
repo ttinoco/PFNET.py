@@ -817,13 +817,14 @@ class TestConstraints(unittest.TestCase):
             self.assertTrue(type(x0) is np.ndarray)
             self.assertTupleEqual(x0.shape,(net.num_vars,))
 
+            constr.analyze()
+
             flags = np.zeros(net.num_dc_buses*self.T, dtype=int)
             for t in range(self.T):
                 for bus in net.dc_buses:
-                    flags[bus.index_t[t]] = 1
+                    flags[bus.di_index[t]] = 1
             self.assertEqual(np.sum(flags), flags.size)
 
-            constr.analyze()
 
             A = constr.A
             b = constr.b
@@ -856,15 +857,15 @@ class TestConstraints(unittest.TestCase):
                             i_out = ikm
                         else:
                             i_out = -ikm
-                        i_mis_manual[bus.index_t[t]] -= i_out
+                        i_mis_manual[bus.di_index[t]] -= i_out
                 for conv in net.vsc_converters:
                     self.assertTrue(conv.has_flags('variable', 'dc power'))
                     i_in = x0[conv.index_i_dc[t]]
-                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                    i_mis_manual[conv.dc_bus.di_index[t]] += i_in
                 for conv in net.csc_converters:
                     self.assertTrue(conv.has_flags('variable', 'dc power'))
                     i_in = x0[conv.index_i_dc[t]]
-                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                    i_mis_manual[conv.dc_bus.di_index[t]] += i_in
             if not i_mis.size:
                 self.assertTrue(np.all(i_mis_manual == i_mis))
             else:
@@ -917,15 +918,15 @@ class TestConstraints(unittest.TestCase):
                             i_out = ikm
                         else:
                             i_out = -ikm
-                        i_mis_manual[bus.index_t[t]] -= i_out
+                        i_mis_manual[bus.di_index[t]] -= i_out
                 for conv in net.vsc_converters:
                     self.assertFalse(conv.has_flags('variable', 'dc power'))
                     i_in = conv.i_dc[t]
-                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                    i_mis_manual[conv.dc_bus.di_index[t]] += i_in
                 for conv in net.csc_converters:
                     self.assertFalse(conv.has_flags('variable', 'dc power'))
                     i_in = conv.i_dc[t]
-                    i_mis_manual[conv.dc_bus.index_t[t]] += i_in
+                    i_mis_manual[conv.dc_bus.di_index[t]] += i_in
             if not i_mis.size:
                 self.assertTrue(np.all(i_mis_manual == i_mis))
             else:
@@ -953,8 +954,6 @@ class TestConstraints(unittest.TestCase):
                           'voltage')
 
             # Check if dc bus indexes are setting to unique values
-            busindicest = [bus.index_t for bus in net.dc_buses]
-            self.assertEqual(len(np.unique(busindicest)), net.num_dc_buses*self.T)
             busindicesv = [bus.index_v for bus in net.dc_buses]
             self.assertEqual(len(np.unique(busindicesv)), net.num_dc_buses*self.T)
 
@@ -1109,10 +1108,6 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
-            # Check if bus indexes are setting to unique values
-            busindices = [bus.index_t for bus in net.dc_buses]
-            self.assertEqual(len(np.unique(busindices)), net.num_dc_buses*self.T)
-
             # Vars
             net.set_flags('vsc converter',
                           'variable',
@@ -1200,10 +1195,6 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
             
-            # Check if bus indexes are setting to unique values
-            busindices = [bus.index_t for bus in net.dc_buses]
-            self.assertEqual(len(np.unique(busindices)), net.num_dc_buses*self.T)
-
             # Vars
             net.set_flags('dc bus',
                           'variable',
@@ -2046,16 +2037,16 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             gen = net.get_generator(0)
             branch = net.get_branch(0)
 
-            gen.outage = True
-            branch.outage = True
+            gen.in_service = False
+            branch.in_service = False
 
-            self.assertTrue(gen.is_on_outage())
-            self.assertTrue(branch.is_on_outage())
+            self.assertFalse(gen.is_in_service())
+            self.assertFalse(branch.is_in_service())
 
             gen.P = np.random.rand(self.T)
             gen.Q = np.random.rand(self.T)
@@ -2070,6 +2061,8 @@ class TestConstraints(unittest.TestCase):
                           ['variable','fixed'],
                           'any',
                           ['tap ratio', 'phase shift'])
+            net.set_flags_of_component(gen, ['variable', 'fixed'], ['active power', 'reactive power'])
+            net.set_flags_of_component(branch, ['variable', 'fixed'], ['tap ratio', 'phase shift'])
             self.assertEqual(net.num_vars,
                              self.T*(2*net.num_generators + 2*net.num_branches))
             self.assertEqual(net.num_vars, net.num_fixed)
@@ -2115,14 +2108,14 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(b[i], branch.phase[t])
 
             # Disconnect
-            net.clear_outages()
+            net.make_all_in_service()
             net.clear_flags()
             self.assertEqual(net.num_vars, 0)
             for bus in net.buses:
                 if bus.degree == 1:
                     self.assertEqual(len(bus.branches), 1)
-                    bus.branches[0].outage = True
-                    self.assertTrue(bus.branches[0].is_on_outage())
+                    bus.branches[0].in_service = False
+                    self.assertFalse(bus.branches[0].is_in_service())
                     net.set_flags_of_component(bus,
                                                ['variable', 'fixed'],
                                                ['voltage magnitude', 'voltage angle'])
@@ -3396,16 +3389,16 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             gen = net.get_generator(0)
             branch = net.get_branch(0)
 
-            gen.outage = True
-            branch.outage = True
+            gen.in_service = False
+            branch.in_service = False
 
-            self.assertTrue(gen.is_on_outage())
-            self.assertTrue(branch.is_on_outage())
+            self.assertFalse(gen.is_in_service())
+            self.assertFalse(branch.is_in_service())
 
             gen.P_min = np.random.rand()
             gen.Q_min = np.random.rand()
@@ -3424,6 +3417,8 @@ class TestConstraints(unittest.TestCase):
                           ['variable','bounded'],
                           'any',
                           ['tap ratio', 'phase shift'])
+            net.set_flags_of_component(gen, ['variable', 'bounded'], ['active power', 'reactive power'])
+            net.set_flags_of_component(branch, ['variable', 'bounded'], ['tap ratio', 'phase shift'])
             self.assertEqual(net.num_vars,
                              self.T*(2*net.num_generators + 2*net.num_branches))
             self.assertEqual(net.num_vars, net.num_bounded)
@@ -3478,14 +3473,14 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(u[i], l[i] + 2.)
 
             # Disconnect
-            net.clear_outages()
+            net.make_all_in_service()
             net.clear_flags()
             self.assertEqual(net.num_vars, 0)
             for bus in net.buses:
                 if bus.degree == 1:
                     self.assertEqual(len(bus.branches), 1)
-                    bus.branches[0].outage = True
-                    self.assertTrue(bus.branches[0].is_on_outage())
+                    bus.branches[0].in_service = False
+                    self.assertFalse(bus.branches[0].is_in_service())
                     net.set_flags_of_component(bus,
                                                ['variable', 'bounded'],
                                                ['voltage magnitude', 'voltage angle'])
@@ -3647,21 +3642,21 @@ class TestConstraints(unittest.TestCase):
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
 
-            net.clear_outages()
+            net.make_all_in_service()
             net.clear_flags()
 
             for bus in net.buses:
                 if bus.is_slack():
                     for branch in net.branches:
-                        branch.outage = True
+                        branch.in_service = False
                     for gen in net.generators:
-                        gen.outage = True
+                        gen.in_service = False
 
             net.set_flags('generator',
                           'variable',
                           'any',
                           'active power')
-            self.assertEqual(net.num_vars, self.T*net.num_generators)
+            self.assertEqual(net.num_vars, self.T*net.get_num_generators(True))
 
             constr = pf.Constraint('generator active power participation', net)
             constr.analyze()
@@ -3671,7 +3666,13 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(A.shape[0], 0)
             self.assertEqual(b.shape[0], 0)
 
-            net.clear_outages()
+            net.make_all_in_service()
+
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          'active power')
+            self.assertEqual(net.num_vars, self.T*net.num_generators)
 
             constr.analyze()
             A = constr.A
@@ -3894,16 +3895,16 @@ class TestConstraints(unittest.TestCase):
             A0 = constr.A.copy()
             b0 = constr.b.copy()
 
-            self.assertEqual(net.get_num_branches_on_outage(), 0)
-            self.assertEqual(net.get_num_generators_on_outage(), 0)
+            self.assertEqual(net.get_num_branches_out_of_service(), 0)
+            self.assertEqual(net.get_num_generators_out_of_service(), 0)
 
             for bus in net.buses:
                 if bus.is_regulated_by_gen():
                     for branch in net.branches:
-                        branch.outage = True
+                        branch.in_service = False
 
-            self.assertNotEqual(net.get_num_branches_on_outage(), 0)
-            self.assertEqual(net.get_num_generators_on_outage(), 0)
+            self.assertNotEqual(net.get_num_branches_out_of_service(), 0)
+            self.assertEqual(net.get_num_generators_out_of_service(), 0)
 
             constr = pf.Constraint('PVPQ switching', net)
             constr.analyze()
@@ -3916,10 +3917,10 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_gen():
                     for gen in bus.reg_generators:
-                        gen.outage = True
+                        gen.in_service = False
                     self.assertFalse(bus.is_regulated_by_gen())
 
-            self.assertNotEqual(net.get_num_generators_on_outage(), 0)
+            self.assertNotEqual(net.get_num_generators_out_of_service(), 0)
 
             constr = pf.Constraint('PVPQ switching', net)
             constr.analyze()
@@ -4009,8 +4010,8 @@ class TestConstraints(unittest.TestCase):
                     for facts in bus.facts_m:
                         P_mis += facts.P_m[t]
                         Q_mis += facts.Q_m[t]
-                    self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
-                    self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
+                    self.assertAlmostEqual(P_mis,f[bus.dP_index[t]])
+                    self.assertAlmostEqual(Q_mis,f[bus.dQ_index[t]])
 
             # Cross check mismatches with net properties (no vars)
             net.update_properties()
@@ -4019,8 +4020,8 @@ class TestConstraints(unittest.TestCase):
             for t in range(self.T):
                 for i in range(net.num_buses):
                     bus = net.get_bus(i)
-                    dP = f[bus.index_P[t]]
-                    dQ = f[bus.index_Q[t]]
+                    dP = f[bus.dP_index[t]]
+                    dQ = f[bus.dQ_index[t]]
                     dP_list[t].append(dP)
                     dQ_list[t].append(dQ)
                     self.assertAlmostEqual(dP,bus.P_mismatch[t])
@@ -4227,8 +4228,8 @@ class TestConstraints(unittest.TestCase):
                         P_mis += x1[facts.index_P_m[t]]
                         self.assertTrue(facts.has_flags('variable', 'reactive power'))
                         Q_mis += x1[facts.index_Q_m[t]]
-                    self.assertAlmostEqual(P_mis,f[bus.index_P[t]])
-                    self.assertAlmostEqual(Q_mis,f[bus.index_Q[t]])
+                    self.assertAlmostEqual(P_mis,f[bus.dP_index[t]])
+                    self.assertAlmostEqual(Q_mis,f[bus.dQ_index[t]])
 
             # Cross check mismatches with net properties
             constr.eval(x1)
@@ -4238,8 +4239,8 @@ class TestConstraints(unittest.TestCase):
             for t in range(self.T):
                 for i in range(net.num_buses):
                     bus = net.get_bus(i)
-                    dP = f[bus.index_P[t]]
-                    dQ = f[bus.index_Q[t]]
+                    dP = f[bus.dP_index[t]]
+                    dQ = f[bus.dQ_index[t]]
                     dP_list[t].append(dP)
                     dQ_list[t].append(dQ)
                     self.assertAlmostEqual(dP,bus.P_mismatch[t])
@@ -4260,14 +4261,14 @@ class TestConstraints(unittest.TestCase):
             P_list = []
             for t in range(self.T):
                 P_list.append(net.get_var_projection('all','any','all',t_start=t,t_end=t))
-            fp_list = [f[t*net.num_buses:(t+1)*net.num_buses] for t in range(self.T)]
-            fq_list = [f[(t+self.T)*net.num_buses:(t+1+self.T)*net.num_buses] for t in range(self.T)]
+            fp_list = [f[[bus.dP_index[t] for bus in net.buses]] for t in range(self.T)] # t*net.num_buses:(t+1)*net.num_buses
+            fq_list = [f[[bus.dQ_index[t] for bus in net.buses]] for t in range(self.T)] # (t+self.T)*net.num_buses:(t+1+self.T)*net.num_buses
             for t in range(self.T-1):
                 self.assertLess(norm(fp_list[t]-fp_list[t+1]),1e-12*norm(fp_list[t]))
                 self.assertLess(norm(fq_list[t]-fq_list[t+1]),1e-12*norm(fq_list[t]))
             Jx = J*x0
-            Jxp_list = [Jx[t*net.num_buses:(t+1)*net.num_buses] for t in range(self.T)]
-            Jxq_list = [Jx[(t+self.T)*net.num_buses:(t+1+self.T)*net.num_buses] for t in range(self.T)]
+            Jxp_list = [Jx[[bus.dP_index[t] for bus in net.buses]] for t in range(self.T)] # t*net.num_buses:(t+1)*net.num_buses
+            Jxq_list = [Jx[[bus.dQ_index[t] for bus in net.buses]] for t in range(self.T)] # (t+self.T)*net.num_buses:(t+1+self.T)*net.num_buses
             for t in range(self.T-1):
                 self.assertLess(norm(Jxp_list[t]-Jxp_list[t+1]),1e-12*norm(Jxp_list[t]))
                 self.assertLess(norm(Jxq_list[t]-Jxq_list[t+1]),1e-12*norm(Jxq_list[t]))
@@ -4276,8 +4277,8 @@ class TestConstraints(unittest.TestCase):
                 Hq_list = []
                 j = np.random.randint(0,net.num_buses)
                 for t in range(self.T):
-                    Hp_list.append(coo_matrix(P_list[t]*constr.get_H_single(t*net.num_buses+j)*P_list[t].T))
-                    Hq_list.append(coo_matrix(P_list[t]*constr.get_H_single((t+self.T)*net.num_buses+j)*P_list[t].T))
+                    Hp_list.append(coo_matrix(P_list[t]*constr.get_H_single(net.get_bus(j).dP_index[t])*P_list[t].T))
+                    Hq_list.append(coo_matrix(P_list[t]*constr.get_H_single(net.get_bus(j).dQ_index[t])*P_list[t].T))
                 for t in range(self.T-1):
                     self.assertTrue(np.all(Hp_list[t].row == Hp_list[t+1].row))
                     self.assertTrue(np.all(Hp_list[t].col == Hp_list[t+1].col))
@@ -4328,14 +4329,14 @@ class TestConstraints(unittest.TestCase):
             for t in range(self.T):
                 for i in range(net.num_buses):
                     bus = net.get_bus(i)
-                    sens[bus.index_P[t]] = 3.5*bus.index_P[t]+0.33+t*2*net.num_buses
-                    sens[bus.index_Q[t]] = 3.4*bus.index_Q[t]+0.32+t*2*net.num_buses
+                    sens[bus.dP_index[t]] = 3.5*bus.dP_index[t]+0.33+t*2*net.num_buses
+                    sens[bus.dQ_index[t]] = 3.4*bus.dQ_index[t]+0.32+t*2*net.num_buses
             constr.store_sensitivities(None,sens,None,None)
             for t in range(self.T):
                 for i in range(net.num_buses):
                     bus = net.get_bus(i)
-                    self.assertEqual(bus.sens_P_balance[t],3.5*bus.index_P[t]+0.33+t*2*net.num_buses)
-                    self.assertEqual(bus.sens_Q_balance[t],3.4*bus.index_Q[t]+0.32+t*2*net.num_buses)
+                    self.assertEqual(bus.sens_P_balance[t],3.5*bus.dP_index[t]+0.33+t*2*net.num_buses)
+                    self.assertEqual(bus.sens_Q_balance[t],3.4*bus.dQ_index[t]+0.32+t*2*net.num_buses)
 
     def test_constr_ACPF_with_outages(self):
 
@@ -4401,14 +4402,14 @@ class TestConstraints(unittest.TestCase):
             side = []
             for bus in buses:
                 for gen in bus.generators:
-                    gen.outage = True
+                    gen.in_service = False
                 for br in bus.branches_k:
                     self.assertTrue(bus.is_equal(br.bus_k))
-                    br.outage = True
+                    br.in_service = False
                     side.append(br.bus_m)
                 for br in bus.branches_m:
                     self.assertTrue(bus.is_equal(br.bus_m))
-                    br.outage = True
+                    br.in_service = False
                     side.append(br.bus_k)
 
             constr1 = pf.Constraint('AC power balance', net)
@@ -4421,19 +4422,19 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus not in buses+side:
                     for t in range(self.T):
-                        i = bus.index_P[t]
-                        j = bus.index_Q[t]
+                        i = bus.dP_index[t]
+                        j = bus.dQ_index[t]
                         self.assertLess(np.abs(f0[i]-f1[i]), 1e-8)
                         self.assertLess(np.abs(f0[j]-f1[j]), 1e-8)
 
             for bus in buses:
                 for t in range(self.T):
-                    i = bus.index_P[t]
-                    j = bus.index_Q[t]
+                    i = bus.dP_index[t]
+                    j = bus.dQ_index[t]
                     dp = 0.
                     dq = 0.
                     for gen in bus.generators:
-                        self.assertTrue(gen.is_on_outage())
+                        self.assertFalse(gen.is_in_service())
                         dp += gen.P[t]
                         dq += gen.Q[t]
                     for br in bus.branches_k:
@@ -4728,7 +4729,7 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_gen():
                     for branch in bus.branches:
-                        branch.outage = True
+                        branch.in_service = False
 
             constr1 = pf.Constraint('voltage set point regulation', net)
             constr1.analyze()
@@ -4742,7 +4743,7 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_gen():
                     for gen in bus.reg_generators:
-                        gen.outage = True
+                        gen.in_service = False
                     self.assertFalse(bus.is_regulated_by_gen())
 
             constr2 = pf.Constraint('voltage set point regulation', net)
@@ -4969,7 +4970,7 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_tran():
                     for gen in bus.generators:
-                        gen.outage = True
+                        gen.in_service = False
             
             constr1 = pf.Constraint('voltage regulation by transformers', net)
             constr1.analyze()
@@ -4983,7 +4984,7 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_tran():
                     for branch in bus.reg_trans:
-                        branch.outage = True
+                        branch.in_service = False
                     self.assertFalse(bus.is_regulated_by_tran())
 
             constr2 = pf.Constraint('voltage regulation by transformers', net)
@@ -5210,9 +5211,9 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus.is_regulated_by_shunt():
                     for gen in bus.generators:
-                        gen.outage = True
+                        gen.in_service = False
                     for branch in bus.branches:
-                        branch.outage = True
+                        branch.in_service = False
             
             constr1 = pf.Constraint('voltage regulation by shunts', net)
             constr1.analyze()
@@ -5568,7 +5569,7 @@ class TestConstraints(unittest.TestCase):
                     mis -= br.P_km_DC
                 for br in bus.branches_m:
                     mis -= br.P_mk_DC
-                self.assertLess(np.abs(mismatches1[bus.index_P]-mis),1e-8)
+                self.assertLess(np.abs(mismatches1[bus.dP_index]-mis),1e-8)
 
         # Multi period
         for case in test_cases.CASES:
@@ -5676,7 +5677,7 @@ class TestConstraints(unittest.TestCase):
                         mis -= br.P_km_DC[t]
                     for br in bus.branches_m:
                         mis -= br.P_mk_DC[t]
-                    self.assertLess(np.abs(mismatches[bus.index_t[t]]-mis),1e-8)
+                    self.assertLess(np.abs(mismatches[bus.dP_index[t]]-mis),1e-8)
 
             # No variables
             net.clear_flags()
@@ -5704,7 +5705,7 @@ class TestConstraints(unittest.TestCase):
                         mis -= br.P_km_DC[t]
                     for br in bus.branches_m:
                         mis -= br.P_mk_DC[t]
-                    self.assertLess(np.abs(mismatches1[bus.index_P[t]]-mis),1e-8)
+                    self.assertLess(np.abs(mismatches1[bus.dP_index[t]]-mis),1e-8)
 
             # Sensitivities
             net.clear_sensitivities()
@@ -5721,7 +5722,7 @@ class TestConstraints(unittest.TestCase):
 
             for t in range(net.num_periods):
                 for bus in net.buses:
-                    self.assertEqual(bus.sens_P_balance[t], lam[bus.index_P[t]])
+                    self.assertEqual(bus.sens_P_balance[t], lam[bus.dP_index[t]])
                     self.assertNotEqual(bus.sens_P_balance[t], 0.)
                     self.assertEqual(bus.sens_Q_balance[t], 0.)
 
@@ -5766,14 +5767,14 @@ class TestConstraints(unittest.TestCase):
             side = []
             for bus in buses:
                 for gen in bus.generators:
-                    gen.outage = True
+                    gen.in_service = False
                 for br in bus.branches_k:
                     self.assertTrue(bus.is_equal(br.bus_k))
-                    br.outage = True
+                    br.in_service = False
                     side.append(br.bus_m)
                 for br in bus.branches_m:
                     self.assertTrue(bus.is_equal(br.bus_m))
-                    br.outage = True
+                    br.in_service = False
                     side.append(br.bus_k)
 
             constr1 = pf.Constraint('DC power balance', net)
@@ -5786,15 +5787,15 @@ class TestConstraints(unittest.TestCase):
             for bus in net.buses:
                 if bus not in buses+side:
                     for t in range(self.T):
-                        i = bus.index_P[t]
+                        i = bus.dP_index[t]
                         self.assertLess(np.abs(f0[i]-f1[i]), 1e-8)
 
             for bus in buses:
                 for t in range(self.T):
-                    i = bus.index_P[t]
+                    i = bus.dP_index[t]
                     dp = 0.
                     for gen in bus.generators:
-                        self.assertTrue(gen.is_on_outage())
+                        self.assertFalse(gen.is_in_service())
                         dp += gen.P[t]
                     for br in bus.branches_k:
                         dp -= br.P_km_DC[t]
@@ -6046,7 +6047,7 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(constr.G.shape[0], num_constr)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             constr.analyze()
 
@@ -6220,9 +6221,9 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(net.num_periods,self.T)
 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             # Vars
             net.set_flags('bus',
@@ -6255,10 +6256,10 @@ class TestConstraints(unittest.TestCase):
                           ['active power','reactive power'])
             self.assertEqual(net.num_vars,
                              (2*net.get_num_buses() +
-                              net.get_num_slack_gens() +
-                              net.get_num_reg_gens() +
-                              net.get_num_tap_changers() +
-                              net.get_num_phase_shifters() +
+                              net.get_num_slack_gens(True) +
+                              net.get_num_reg_gens(True) +
+                              net.get_num_tap_changers(True) +
+                              net.get_num_phase_shifters(True) +
                               net.get_num_switched_v_shunts() +
                               net.num_var_generators*2)*self.T)
 
@@ -6460,7 +6461,7 @@ class TestConstraints(unittest.TestCase):
             self.assertGreater(constr.G.shape[0], 0)
 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             constr.analyze()
 
@@ -6880,7 +6881,7 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(x0.shape,(net.num_vars,))
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             # Constr
             constr = pf.Constraint('AC branch flow limits',net)
@@ -7231,9 +7232,9 @@ class TestConstraints(unittest.TestCase):
             constr0.analyze()
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             constr1 = pf.Constraint('battery dynamics',net)
             constr1.analyze()
@@ -7394,9 +7395,9 @@ class TestConstraints(unittest.TestCase):
             constr0.analyze()
             
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             constr1 = pf.Constraint('load constant power factor',net)
             constr1.analyze()
@@ -7672,7 +7673,7 @@ class TestConstraints(unittest.TestCase):
 
             x0 = net.get_var_values()
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             # Analyze without outages
             for c in constraints:
@@ -7684,9 +7685,9 @@ class TestConstraints(unittest.TestCase):
                 c.eval(x0)
 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             # Eval with outages
             for c in constraints:
@@ -7704,7 +7705,7 @@ class TestConstraints(unittest.TestCase):
                 self.assertEqual(c.state_tag, net.state_tag)
                 c.eval(x0)
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             # Eval without outages
             for c in constraints:
