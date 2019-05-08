@@ -6,6 +6,7 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
+import os
 import json
 import unittest
 import numpy as np
@@ -13,6 +14,123 @@ import pfnet as pf
 from . import test_cases
 
 class TestInOutService(unittest.TestCase):
+
+    def test_json(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+
+            new_net = json.loads(json.dumps(net, cls=pf.NetworkJSONEncoder),
+                                 cls=pf.NetworkJSONDecoder)
+
+            for bus in new_net.buses:
+                self.assertFalse(bus.in_service)
+            for bus in new_net.dc_buses:
+                self.assertFalse(bus.in_service)
+            for gen in new_net.generators:
+                self.assertFalse(gen.in_service)
+            for branch in new_net.branches:
+                self.assertFalse(branch.in_service)
+            for facts in new_net.facts:
+                self.assertFalse(facts.in_service)
+            for conv in new_net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in new_net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in new_net.loads:
+                self.assertFalse(load.in_service)
+            for branch in new_net.dc_branches:
+                self.assertFalse(branch.in_service)
+            for shunt in new_net.shunts:
+                self.assertFalse(shunt.in_service)
+            for bat in new_net.batteries:
+                self.assertFalse(bat.in_service)
+            for gen in new_net.var_generators:
+                self.assertTrue(gen.in_service)
+
+    def test_copy(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+
+            new_net = net.get_copy()
+
+            for bus in new_net.buses:
+                self.assertFalse(bus.in_service)
+            for bus in new_net.dc_buses:
+                self.assertFalse(bus.in_service)
+            for gen in new_net.generators:
+                self.assertFalse(gen.in_service)
+            for branch in new_net.branches:
+                self.assertFalse(branch.in_service)
+            for facts in new_net.facts:
+                self.assertFalse(facts.in_service)
+            for conv in new_net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in new_net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in new_net.loads:
+                self.assertFalse(load.in_service)
+            for branch in new_net.dc_branches:
+                self.assertFalse(branch.in_service)
+            for shunt in new_net.shunts:
+                self.assertFalse(shunt.in_service)
+            for bat in new_net.batteries:
+                self.assertFalse(bat.in_service)
+            for gen in new_net.var_generators:
+                self.assertTrue(gen.in_service)
 
     def test_state_tag(self):
 
@@ -573,8 +691,81 @@ class TestInOutService(unittest.TestCase):
     def test_network_properties(self):
 
         for case in test_cases.CASES:
+
+            if os.path.basename(case) in ['sys_problem3.mat',
+                                          'sys_problem2.mat']:
+                continue
             
             net = pf.Parser(case).parse(case)
+
+            if net.num_buses > 2000:
+                continue
+
+            # bus vmax vmin
+            net.make_all_in_service()
+            for bus in net.buses:
+                vmag = bus.v_mag
+                bus.v_mag = 100.
+                net.update_properties()
+                self.assertEqual(net.bus_v_max, 100.)
+                bus.in_service = False
+                net.update_properties()
+                self.assertNotEqual(net.bus_v_max, 100.)
+                bus.in_service = True
+                bus.v_mag = -100.
+                net.update_properties()
+                self.assertEqual(net.bus_v_min, -100.)
+                bus.in_service = False
+                net.update_properties()
+                self.assertNotEqual(net.bus_v_min, -100.)
+                bus.v_mag = vmag
+
+            # mismatches bus outages
+            net.make_all_in_service()
+            for bus in net.buses:
+                bus.in_service = False
+            net.update_properties()
+            for bus in net.buses:
+                self.assertEqual(bus.P_mismatch, 0.)
+                self.assertEqual(bus.Q_mismatch, 0.)
+            self.assertEqual(net.bus_P_mis, 0.)
+            self.assertEqual(net.bus_Q_mis, 0.)
+
+            # mismatches all comp outages except buses
+            net.make_all_in_service()
+            net.update_properties()
+            self.assertNotEqual(net.bus_P_mis, 0.)
+            self.assertNotEqual(net.bus_Q_mis, 0.)
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            net.update_properties()
+            for bus in net.buses:
+                self.assertEqual(bus.P_mismatch, 0.)
+                self.assertEqual(bus.Q_mismatch, 0.)
+            self.assertEqual(net.bus_P_mis, 0.)
+            self.assertEqual(net.bus_Q_mis, 0.)
             
             # tap ratio vio
             net.make_all_in_service()
