@@ -832,6 +832,30 @@ cdef class Bus:
 
         cbus.BUS_del_all_connections(self._c_ptr)
 
+    def set_dP_index(self, idx, t):
+        """
+        Sets helper index for active power mismatches.
+        
+        Parameters
+        ----------
+        idx : int
+        t : int
+        """
+
+        cbus.BUS_set_dP_index(self._c_ptr,idx,t)
+
+    def set_dQ_index(self, idx, t):
+        """
+        Sets helper index for reactive power mismatches.
+        
+        Parameters
+        ----------
+        idx : int
+        t : int
+        """
+
+        cbus.BUS_set_dQ_index(self._c_ptr,idx,t)
+
     def show(self, t=0):
         """
         Shows bus properties.

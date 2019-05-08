@@ -284,7 +284,7 @@ class PyParserMAT(object):
             qmin = gen.Q_min*net.base_power
             vg = gen.bus.v_set[0]
             mbase = net.base_power
-            gen_status = int(not gen.is_on_outage())
+            gen_status = int(gen.in_service)
             pmax = gen.P_max*net.base_power
             pmin = gen.P_min*net.base_power
             case_gen.append(mp.struct.Generator(index, gen_bus, pg, qg, qmax, qmin,
@@ -303,7 +303,7 @@ class PyParserMAT(object):
             rate_a = branch.ratingA*net.base_power
             rate_b = branch.ratingB*net.base_power
             rate_c = branch.ratingC*net.base_power
-            br_status = int(not branch.is_on_outage())
+            br_status = int(branch.in_service)
             case_branch.append(mp.struct.Branch(index, f_bus, t_bus, br_r, br_x, br_b,
                                                 rate_a, rate_b, rate_c, tap, shift, br_status))
 

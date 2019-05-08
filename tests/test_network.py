@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -759,18 +759,16 @@ class TestNetwork(unittest.TestCase):
 
             for t in range(T):
                 for bus in net.buses:
-                    self.assertEqual(bus.index_t[t], bus.index+t*net.num_buses)
-                    self.assertEqual(bus.index_P[t], bus.index+t*net.num_buses)
-                    self.assertEqual(bus.index_Q[t], bus.index+t*net.num_buses+T*net.num_buses)
+                    self.assertEqual(bus.dP_index[t], 0)
+                    self.assertEqual(bus.dP_index[t], 0)
 
             # Single period
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
 
             for bus in net.buses:
-                self.assertEqual(bus.index_t, bus.index)
-                self.assertEqual(bus.index_P, bus.index)
-                self.assertEqual(bus.index_Q, bus.index+net.num_buses)
+                self.assertEqual(bus.dP_index, 0)
+                self.assertEqual(bus.dQ_index, 0)
                 
     def test_generators(self):
 
@@ -2412,8 +2410,8 @@ class TestNetwork(unittest.TestCase):
             dQ_list = []
             for i in range(net.num_buses):
                 bus = net.get_bus(i)
-                dP = f[bus.index_P]
-                dQ = f[bus.index_Q]
+                dP = f[bus.dP_index]
+                dQ = f[bus.dQ_index]
                 dP_list.append(dP)
                 dQ_list.append(dQ)
                 self.assertLess(np.abs(dP-bus.P_mismatch),1e-10)
@@ -2431,8 +2429,8 @@ class TestNetwork(unittest.TestCase):
                 dQ_list = []
                 for i in range(netMP.num_buses):
                     bus = netMP.get_bus(i)
-                    dP = fMP[bus.index_P[t]]
-                    dQ = fMP[bus.index_Q[t]]
+                    dP = fMP[bus.dP_index[t]]
+                    dQ = fMP[bus.dQ_index[t]]
                     dP_list.append(dP)
                     dQ_list.append(dQ)
                     self.assertLess(np.abs(dP-bus.P_mismatch[t]),1e-10)
@@ -2449,13 +2447,13 @@ class TestNetwork(unittest.TestCase):
             constr.eval(x0)
             f = constr.f
             for vargen in net.var_generators:
-                self.assertLess(np.abs(fsaved[vargen.bus.index_P]-
-                                       f[vargen.bus.index_P]-1.),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_P]-
+                self.assertLess(np.abs(fsaved[vargen.bus.dP_index]-
+                                       f[vargen.bus.dP_index]-1.),1e-10)
+                self.assertLess(np.abs(fsaved[vargen.bus.dP_index]-
                                        vargen.bus.P_mismatch-1.),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_Q]-
-                                       f[vargen.bus.index_Q]-2.),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_Q]-
+                self.assertLess(np.abs(fsaved[vargen.bus.dQ_index]-
+                                       f[vargen.bus.dQ_index]-2.),1e-10)
+                self.assertLess(np.abs(fsaved[vargen.bus.dQ_index]-
                                        vargen.bus.Q_mismatch-2.),1e-10)
             for vargen in net.var_generators:
                 self.assertGreater(len(vargen.bus.loads),0)
@@ -2465,13 +2463,13 @@ class TestNetwork(unittest.TestCase):
             constr.eval(x0)
             f = constr.f
             for vargen in net.var_generators:
-                self.assertLess(np.abs(fsaved[vargen.bus.index_P]-
-                                       f[vargen.bus.index_P]),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_P]-
+                self.assertLess(np.abs(fsaved[vargen.bus.dP_index]-
+                                       f[vargen.bus.dP_index]),1e-10)
+                self.assertLess(np.abs(fsaved[vargen.bus.dP_index]-
                                        vargen.bus.P_mismatch),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_Q]-
-                                       f[vargen.bus.index_Q]),1e-10)
-                self.assertLess(np.abs(fsaved[vargen.bus.index_Q]-
+                self.assertLess(np.abs(fsaved[vargen.bus.dQ_index]-
+                                       f[vargen.bus.dQ_index]),1e-10)
+                self.assertLess(np.abs(fsaved[vargen.bus.dQ_index]-
                                        vargen.bus.Q_mismatch),1e-10)
 
             # Mismatches 2 (multiperiod)
@@ -2485,13 +2483,13 @@ class TestNetwork(unittest.TestCase):
             n = netMP.num_buses
             for vargen in netMP.var_generators:
                 for t in range(self.T):
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_P[t]]-
-                                           f[vargen.bus.index_P[t]]-1.),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_P[t]]-
+                    self.assertLess(np.abs(fsaved[vargen.bus.dP_index[t]]-
+                                           f[vargen.bus.dP_index[t]]-1.),1e-10)
+                    self.assertLess(np.abs(fsaved[vargen.bus.dP_index[t]]-
                                            vargen.bus.P_mismatch[t]-1.),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_Q[t]]-
-                                           f[vargen.bus.index_Q[t]]-2.),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_Q[t]]-
+                    self.assertLess(np.abs(fsaved[vargen.bus.dQ_index[t]]-
+                                           f[vargen.bus.dQ_index[t]]-2.),1e-10)
+                    self.assertLess(np.abs(fsaved[vargen.bus.dQ_index[t]]-
                                            vargen.bus.Q_mismatch[t]-2.),1e-10)
             for vargen in netMP.var_generators:
                 self.assertGreater(len(vargen.bus.loads),0)
@@ -2502,13 +2500,13 @@ class TestNetwork(unittest.TestCase):
             f = constrMP.f
             for vargen in netMP.var_generators:
                 for t in range(self.T):
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_P[t]]-
-                                           f[vargen.bus.index_P[t]]),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_P[t]]-
+                    self.assertLess(np.abs(fsaved[vargen.bus.dP_index[t]]-
+                                           f[vargen.bus.dP_index[t]]),1e-10)
+                    self.assertLess(np.abs(fsaved[vargen.bus.dP_index[t]]-
                                            vargen.bus.P_mismatch[t]),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_Q[t]]-
-                                           f[vargen.bus.index_Q[t]]),1e-10)
-                    self.assertLess(np.abs(fsaved[vargen.bus.index_Q[t]]-
+                    self.assertLess(np.abs(fsaved[vargen.bus.dQ_index[t]]-
+                                           f[vargen.bus.dQ_index[t]]),1e-10)
+                    self.assertLess(np.abs(fsaved[vargen.bus.dQ_index[t]]-
                                            vargen.bus.Q_mismatch[t]),1e-10)
 
             net.clear_properties()
@@ -4943,6 +4941,9 @@ class TestNetwork(unittest.TestCase):
         # Reg generators
         gen3 = pf.Generator()
         gen3.name = 'gen3'
+        self.assertFalse(gen3.is_in_service())
+        bus.add_generator(gen3)
+        self.assertTrue(gen3.is_in_service())
         self.assertTrue(bus.reg_generators == [])
         self.assertTrue(gen3.reg_bus is None)
         self.assertFalse(bus.is_regulated_by_gen())
@@ -5062,6 +5063,12 @@ class TestNetwork(unittest.TestCase):
         # Reg branches
         branch3 = pf.Branch()
         branch3.name = 'branch3'
+        self.assertFalse(branch3.is_in_service())
+        busk = pf.Bus()
+        busm = pf.Bus()
+        busk.add_branch_k(branch3)
+        busm.add_branch_m(branch3)
+        self.assertTrue(branch3.is_in_service())
         self.assertTrue(bus.reg_trans == [])
         self.assertTrue(branch3.reg_bus is None)
         self.assertFalse(bus.is_regulated_by_tran())
@@ -5124,6 +5131,9 @@ class TestNetwork(unittest.TestCase):
         # Reg shunts
         shunt3 = pf.Shunt()
         shunt3.name = 'shunt3'
+        self.assertFalse(shunt3.in_service)
+        bus.add_shunt(shunt3)
+        self.assertTrue(shunt3.in_service)
         self.assertTrue(bus.reg_shunts == [])
         self.assertTrue(shunt3.reg_bus is None)
         bus.add_reg_shunt(shunt3)

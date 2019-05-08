@@ -20,34 +20,54 @@ class DummyDCPF(CustomConstraint):
 
         if bus is None:
             return
+
+        if not bus.is_in_service():
+            return
+
+        bus.set_dP_index(self.A_row, t)
                 
         for gen in bus.generators:
-            if gen.is_on_outage():
+            if not gen.is_in_service():
                 continue
             if gen.has_flags('variable','active power'):
                 self.A_nnz = self.A_nnz+1
         for load in bus.loads:
+            if not load.is_in_service():
+                continue
             if load.has_flags('variable','active power'):
                 self.A_nnz = self.A_nnz+1
         for vargen in bus.var_generators:
+            if not vargen.is_in_service():
+                continue
             if vargen.has_flags('variable','active power'):
                 self.A_nnz = self.A_nnz+1
         for bat in bus.batteries:
+            if not bat.is_in_service():
+                continue
             if bat.has_flags('variable','charging power'):
                 self.A_nnz = self.A_nnz+2
                 
         for branch in bus.branches_k:
-            if branch.is_on_outage():
+            if not branch.is_in_service():
                 continue
             buses = [branch.bus_k, branch.bus_m]
-            for k in range(2):
-                m = 1 if k == 0 else 0
-                if buses[k].has_flags('variable','voltage angle'):
-                    self.A_nnz = self.A_nnz+1
-                if buses[m].has_flags('variable','voltage angle'):
-                    self.A_nnz = self.A_nnz+1
-                if branch.has_flags('variable','phase shift'):
-                    self.A_nnz = self.A_nnz+1
+            if buses[0].has_flags('variable','voltage angle'):
+                self.A_nnz = self.A_nnz+1
+            if buses[1].has_flags('variable','voltage angle'):
+                self.A_nnz = self.A_nnz+1
+            if branch.has_flags('variable','phase shift'):
+                self.A_nnz = self.A_nnz+1
+
+        for branch in bus.branches_m:
+            if not branch.is_in_service():
+                continue
+            buses = [branch.bus_m, branch.bus_k]
+            if buses[0].has_flags('variable','voltage angle'):
+                self.A_nnz = self.A_nnz+1
+            if buses[1].has_flags('variable','voltage angle'):
+                self.A_nnz = self.A_nnz+1
+            if branch.has_flags('variable','phase shift'):
+                self.A_nnz = self.A_nnz+1
 
         self.A_row = self.A_row+1
 
@@ -55,74 +75,106 @@ class DummyDCPF(CustomConstraint):
 
         if bus is None:
             return
+
+        if not bus.is_in_service():
+            return
             
         for gen in bus.generators:
-            if gen.is_on_outage():
+            if not gen.is_in_service():
                 continue
             if gen.has_flags('variable','active power'):
-                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.row[self.A_nnz] = self.A_row
                 self.A.col[self.A_nnz] = gen.index_P[t]
                 self.A.data[self.A_nnz] = 1.
                 self.A_nnz = self.A_nnz+1
             else:
-                self.b[bus.index_P[t]] += -gen.P[t]
+                self.b[self.A_row] += -gen.P[t]
         for load in bus.loads:
+            if not load.is_in_service():
+                continue
             if load.has_flags('variable','active power'):
-                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.row[self.A_nnz] = self.A_row
                 self.A.col[self.A_nnz] = load.index_P[t]
                 self.A.data[self.A_nnz] = -1.
                 self.A_nnz = self.A_nnz+1
             else:
-                self.b[bus.index_P[t]] += load.P[t]
+                self.b[self.A_row] += load.P[t]
         for vargen in bus.var_generators:
+            if not vargen.is_in_service():
+                continue
             if vargen.has_flags('variable','active power'):
-                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.row[self.A_nnz] = self.A_row
                 self.A.col[self.A_nnz] = vargen.index_P[t]
                 self.A.data[self.A_nnz] = 1.
                 self.A_nnz = self.A_nnz+1
             else:
-                self.b[bus.index_P[t]] += -vargen.P[t]
+                self.b[self.A_row] += -vargen.P[t]
         for bat in bus.batteries:
+            if not bat.is_in_service():
+                continue
             if bat.has_flags('variable','charging power'):
-                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.row[self.A_nnz] = self.A_row
                 self.A.col[self.A_nnz] = bat.index_Pc[t]
                 self.A.data[self.A_nnz] = -1.
                 self.A_nnz = self.A_nnz+1
-                self.A.row[self.A_nnz] = bus.index_P[t]
+                self.A.row[self.A_nnz] = self.A_row
                 self.A.col[self.A_nnz] = bat.index_Pd[t]
                 self.A.data[self.A_nnz] = 1.
                 self.A_nnz = self.A_nnz+1
             else:
-                self.b[bus.index_P[t]] += bat.P[t]
+                self.b[self.A_row] += bat.P[t]
 
         for branch in bus.branches_k:
-            if branch.is_on_outage():
+            if not branch.is_in_service():
                 continue
             buses = [branch.bus_k, branch.bus_m]
-            for k in range(2):
-                m = 1 if k == 0 else 0
-                sign_phi = 1. if k == 0 else -1.
-                if buses[k].has_flags('variable','voltage angle'):
-                    self.A.row[self.A_nnz] = buses[k].index_P[t]
-                    self.A.col[self.A_nnz] = buses[k].index_v_ang[t]
-                    self.A.data[self.A_nnz] = branch.b
-                    self.A_nnz = self.A_nnz+1
-                else:
-                    self.b[buses[k].index_P[t]] += -branch.b*buses[k].v_ang[t]
-                if buses[m].has_flags('variable','voltage angle'):
-                    self.A.row[self.A_nnz] = buses[k].index_P[t]
-                    self.A.col[self.A_nnz] = buses[m].index_v_ang[t]
-                    self.A.data[self.A_nnz] = -branch.b
-                    self.A_nnz = self.A_nnz+1
-                else:
-                    self.b[buses[k].index_P[t]] += branch.b*buses[m].v_ang[t]
-                if branch.has_flags('variable','phase shift'):
-                    self.A.row[self.A_nnz] = buses[k].index_P[t]
-                    self.A.col[self.A_nnz] = branch.index_phase[t]
-                    self.A.data[self.A_nnz] = -branch.b*sign_phi
-                    self.A_nnz = self.A_nnz+1
-                else:
-                    self.b[buses[k].index_P[t]] += branch.b*branch.phase[t]*sign_phi
+            if buses[0].has_flags('variable','voltage angle'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = buses[0].index_v_ang[t]
+                self.A.data[self.A_nnz] = branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += -branch.b*buses[0].v_ang[t]
+            if buses[1].has_flags('variable','voltage angle'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = buses[1].index_v_ang[t]
+                self.A.data[self.A_nnz] = -branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += branch.b*buses[1].v_ang[t]
+            if branch.has_flags('variable','phase shift'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = branch.index_phase[t]
+                self.A.data[self.A_nnz] = -branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += branch.b*branch.phase[t]
+
+        for branch in bus.branches_m:
+            if not branch.is_in_service():
+                continue
+            buses = [branch.bus_m, branch.bus_k]
+            if buses[0].has_flags('variable','voltage angle'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = buses[0].index_v_ang[t]
+                self.A.data[self.A_nnz] = branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += -branch.b*buses[0].v_ang[t]
+            if buses[1].has_flags('variable','voltage angle'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = buses[1].index_v_ang[t]
+                self.A.data[self.A_nnz] = -branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += branch.b*buses[1].v_ang[t]
+            if branch.has_flags('variable','phase shift'):
+                self.A.row[self.A_nnz] = self.A_row
+                self.A.col[self.A_nnz] = branch.index_phase[t]
+                self.A.data[self.A_nnz] = branch.b
+                self.A_nnz = self.A_nnz+1
+            else:
+                self.b[self.A_row] += -branch.b*branch.phase[t]
                     
         self.A_row = self.A_row+1
 

@@ -498,9 +498,9 @@ class TestFunctions(unittest.TestCase):
             func0.eval(x0)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func1 = pf.Function('voltage magnitude regularization',1.,net)
             func1.analyze()
@@ -760,9 +760,9 @@ class TestFunctions(unittest.TestCase):
             x0 = net.get_var_values()
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             # Function
             func = pf.Function('variable regularization',1.,net)
@@ -1045,9 +1045,9 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('generator powers regularization',1.,net)
 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             func.analyze()
             func.eval(x0+np.random.randn(x0.size))
@@ -1201,9 +1201,9 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('voltage angle regularization',1.,net)
 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -1361,9 +1361,9 @@ class TestFunctions(unittest.TestCase):
             x0 = net.get_var_values()+np.random.randn(net.num_vars)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             # Function
             func = pf.Function('tap ratio regularization',1.,net)
@@ -1504,9 +1504,9 @@ class TestFunctions(unittest.TestCase):
             Hphi0 = func.Hphi.copy()
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -1757,9 +1757,9 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('generation cost',1.,net)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -2006,9 +2006,9 @@ class TestFunctions(unittest.TestCase):
             x0 = net.get_var_values() + np.random.randn(net.num_vars)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             
             # Function
             func = pf.Function('sparse controls penalty',1.,net)
@@ -2193,9 +2193,9 @@ class TestFunctions(unittest.TestCase):
             Hphi0 = func.Hphi.copy()
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -2334,9 +2334,9 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('phase shift regularization',1.,net)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -2594,9 +2594,9 @@ class TestFunctions(unittest.TestCase):
             Hphi0 = func.Hphi.copy()
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -2975,9 +2975,9 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('net consumption cost',1.,net)
 
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
 
             func.analyze()
             func.eval(x0)
@@ -3179,7 +3179,7 @@ class TestFunctions(unittest.TestCase):
 
             x0 = net.get_var_values()
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             # Analyze without outages
             for f in functions:
@@ -3191,9 +3191,9 @@ class TestFunctions(unittest.TestCase):
                 f.eval(x0)
                 
             for gen in net.generators:
-                gen.outage = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.outage = True
+                branch.in_service = False
                 
             # Eval with outages
             for f in functions:
@@ -3211,7 +3211,7 @@ class TestFunctions(unittest.TestCase):
                 self.assertEqual(f.state_tag, net.state_tag)
                 f.eval(x0)
 
-            net.clear_outages()
+            net.make_all_in_service()
 
             # Eval without outages
             for f in functions:

@@ -227,6 +227,7 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
     """
 
     test.assertTrue(bus1 is not bus2)
+    test.assertEqual(bus1.in_service, bus2.in_service)
     test.assertEqual(bus1.number, bus2.number)
     test.assertEqual(bus1.oindex, bus2.oindex)
     test.assertEqual(bus1.area, bus2.area)
@@ -336,7 +337,7 @@ def compare_generators(test, gen1, gen2, check_internals=False, eps=1e-10):
     test.assertEqual(gen1.name, gen2.name)
     test.assertEqual(gen1.num_periods, gen2.num_periods)
     test.assertEqual(gen1.bus.index, gen2.bus.index)
-    test.assertEqual(gen1.is_on_outage(), gen2.is_on_outage())
+    test.assertEqual(gen1.is_in_service(), gen2.is_in_service())
     test.assertEqual(gen1.is_slack(), gen2.is_slack())
     test.assertEqual(gen1.is_regulator(), gen2.is_regulator())
     test.assertEqual(gen1.is_P_adjustable(), gen2.is_P_adjustable())
@@ -427,6 +428,7 @@ def compare_shunts(test, shunt1, shunt2, check_internals=False, eps=1e-10):
     """
 
     test.assertTrue(shunt1 is not shunt2)
+    test.assertEqual(shunt1.in_service, shunt2.in_service)
     test.assertEqual(shunt1.name, shunt2.name)
     test.assertEqual(shunt1.num_periods, shunt2.num_periods)
     test.assertEqual(shunt1.bus.index, shunt2.bus.index)
@@ -499,7 +501,7 @@ def compare_branches(test, branch1, branch2, check_internals=False, eps=1e-10):
     test.assertLess(norminf(branch1.ratingA-branch2.ratingA), eps)
     test.assertLess(norminf(branch1.ratingB-branch2.ratingB), eps)
     test.assertLess(norminf(branch1.ratingC-branch2.ratingC), eps)
-    test.assertEqual(branch1.is_on_outage(), branch2.is_on_outage())
+    test.assertEqual(branch1.is_in_service(), branch2.is_in_service())
     test.assertEqual(branch1.has_pos_ratio_v_sens(), branch2.has_pos_ratio_v_sens())
     if check_internals:
         test.assertLess(norminf(branch1.index_ratio-branch2.index_ratio),eps)
@@ -531,6 +533,7 @@ def compare_dc_buses(test, bus1, bus2, check_internals=False, check_indices=True
     """
 
     test.assertTrue(bus1 is not bus2)
+    test.assertEqual(bus1.in_service, bus2.in_service)
     test.assertEqual(bus1.number, bus2.number)
     test.assertEqual(bus1.num_periods, bus2.num_periods)
     test.assertEqual(bus1.name.upper().strip(), bus2.name.upper().strip())
@@ -570,6 +573,7 @@ def compare_dc_branches(test, branch1, branch2, check_internals=False, eps=1e-10
     """
 
     test.assertTrue(branch1 is not branch2)
+    test.assertEqual(branch1.in_service, branch2.in_service)
     test.assertEqual(branch1.name, branch2.name)
     test.assertEqual(branch1.num_periods, branch2.num_periods)
     test.assertEqual(branch1.bus_k.index, branch2.bus_k.index)
@@ -595,6 +599,7 @@ def compare_csc_converters(test, conv1, conv2, check_internals=False, eps=1e-10)
     """
 
     test.assertTrue(conv1 is not conv2)
+    test.assertEqual(conv1.in_service, conv2.in_service)
     test.assertEqual(conv1.name, conv2.name)
     test.assertEqual(conv1.num_periods, conv2.num_periods)
     test.assertEqual(conv1.ac_bus.index, conv2.ac_bus.index)
@@ -656,6 +661,7 @@ def compare_vsc_converters(test, conv1, conv2, check_internals=False, eps=1e-10)
     """
 
     test.assertTrue(conv1 is not conv2)
+    test.assertEqual(conv1.in_service, conv2.in_service)
     test.assertEqual(conv1.name, conv2.name)
     test.assertEqual(conv1.num_periods, conv2.num_periods)
     test.assertEqual(conv1.ac_bus.index, conv2.ac_bus.index)
@@ -719,7 +725,8 @@ def compare_facts(test, facts1, facts2, check_internals=False, eps=1e-10):
         test.assertEqual(facts1.reg_bus.index, facts2.reg_bus.index)
     else:
         test.assertTrue(facts2.reg_bus is None)
-        
+
+    test.assertEqual(facts1.in_service, facts2.in_service)
     test.assertEqual(facts1.is_STATCOM(), facts2.is_STATCOM())
     test.assertEqual(facts1.is_SSSC(), facts2.is_SSSC())
     test.assertEqual(facts1.is_UPFC(), facts2.is_UPFC())

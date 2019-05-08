@@ -423,8 +423,8 @@ class TestProblem(unittest.TestCase):
             p.store_sensitivities(np.zeros(p.A.shape[0]),sens,None,None)
             for i in range(net.num_buses):
                 bus = net.get_bus(i)
-                self.assertEqual(bus.sens_P_balance,sens[bus.index_P+offset])
-                self.assertEqual(bus.sens_Q_balance,sens[bus.index_Q+offset])
+                self.assertEqual(bus.sens_P_balance,sens[bus.dP_index+offset])
+                self.assertEqual(bus.sens_Q_balance,sens[bus.dQ_index+offset])
             self.assertRaises(pf.ProblemError,
                               p.store_sensitivities,
                               np.zeros(p.A.shape[0]),
@@ -695,8 +695,8 @@ class TestProblem(unittest.TestCase):
             p.store_sensitivities(np.zeros(p.A.shape[0]),sens,None,None)
             for i in range(net.num_buses):
                 bus = net.get_bus(i)
-                self.assertEqual(bus.sens_P_balance,sens[bus.index_P+offset])
-                self.assertEqual(bus.sens_Q_balance,sens[bus.index_Q+offset])
+                self.assertEqual(bus.sens_P_balance,sens[bus.dP_index+offset])
+                self.assertEqual(bus.sens_Q_balance,sens[bus.dQ_index+offset])
             self.assertRaises(pf.ProblemError,
                               p.store_sensitivities,
                               np.zeros(p.A.shape[0]),

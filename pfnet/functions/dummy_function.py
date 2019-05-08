@@ -22,7 +22,7 @@ class DummyGenCost(CustomFunction):
             return
 
         for gen in bus.generators:
-            if gen.has_flags('variable','active power') and not gen.is_on_outage():
+            if gen.has_flags('variable','active power') and gen.is_in_service():
                 self.Hphi_nnz = self.Hphi_nnz+1
                 
     def analyze_step(self, bus, busdc, t):
@@ -31,7 +31,7 @@ class DummyGenCost(CustomFunction):
             return
         
         for gen in bus.generators:
-            if gen.has_flags('variable','active power') and not gen.is_on_outage():
+            if gen.has_flags('variable','active power') and gen.is_in_service():
                 self.Hphi.row[self.Hphi_nnz] = gen.index_P[t]
                 self.Hphi.col[self.Hphi_nnz] = gen.index_P[t]
                 self.Hphi_nnz = self.Hphi_nnz+1
@@ -45,7 +45,9 @@ class DummyGenCost(CustomFunction):
             Q0 = gen.cost_coeff_Q0
             Q1 = gen.cost_coeff_Q1
             Q2 = gen.cost_coeff_Q2
-            if gen.has_flags('variable','active power') and not gen.is_on_outage():
+            if not gen.is_in_service():
+                continue
+            if gen.has_flags('variable','active power'):
                 P = x[gen.index_P[t]]
                 self.gphi[gen.index_P[t]] = Q1+2.*Q2*P
                 self.Hphi.data[self.Hphi_nnz] = 2.*Q2

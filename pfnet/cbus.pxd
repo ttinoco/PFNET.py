@@ -159,6 +159,8 @@ cdef extern from "pfnet/bus.h":
     void BUS_set_v_max_emer(Bus* bus, REAL v_max_emer)
     void BUS_set_v_min_emer(Bus* bus, REAL v_min_emer)
     void BUS_set_in_service(Bus* bus, bint in_service)
+    void BUS_set_dP_index(Bus* bus, int idx, int t)
+    void BUS_set_dQ_index(Bus* bus, int idx, int t)
 
     void BUS_add_gen(Bus* bus, Gen* gen)
     void BUS_del_gen(Bus* bus, Gen* gen)
