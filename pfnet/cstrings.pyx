@@ -132,15 +132,13 @@ str2prop_branch = {'any' : cbranch.BRANCH_PROP_ANY,
                    'tap changer' : cbranch.BRANCH_PROP_TAP_CHANGER,
                    'tap changer - v' : cbranch.BRANCH_PROP_TAP_CHANGER_V,
                    'tap changer - Q' : cbranch.BRANCH_PROP_TAP_CHANGER_Q,
-                   'phase shifter' : cbranch.BRANCH_PROP_PHASE_SHIFTER,
-                   'not on outage' : cbranch.BRANCH_PROP_NOT_OUT}
+                   'phase shifter' : cbranch.BRANCH_PROP_PHASE_SHIFTER}
 
 str2prop_gen = {'any' : cgen.GEN_PROP_ANY,
                 'slack' : cgen.GEN_PROP_SLACK,
                 'regulator' : cgen.GEN_PROP_REG,
                 'not slack' : cgen.GEN_PROP_NOT_SLACK,
                 'not regulator' : cgen.GEN_PROP_NOT_REG,
-                'not on outage' : cgen.GEN_PROP_NOT_OUT,
                 'adjustable active power' : cgen.GEN_PROP_P_ADJUST}
 
 str2prop_shunt =  {'any' : cshunt.SHUNT_PROP_ANY,

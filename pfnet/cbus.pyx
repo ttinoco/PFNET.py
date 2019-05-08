@@ -59,6 +59,17 @@ cdef class Bus:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the bus is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cbus.BUS_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether the bus is equal to given bus.
@@ -852,13 +863,18 @@ cdef class Bus:
         else:
             return False
 
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cbus.BUS_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cbus.BUS_set_in_service(self._c_ptr, in_service)
+
     property area:
-       """ Bus area. """
+       """ Bus area (int). """
        def __get__(self): return cbus.BUS_get_area(self._c_ptr)
        def __set__(self, a): cbus.BUS_set_area(self._c_ptr, a)
 
     property zone:
-       """ Bus zone. """
+       """ Bus zone (int). """
        def __get__(self): return cbus.BUS_get_zone(self._c_ptr)
        def __set__(self, z): cbus.BUS_set_zone(self._c_ptr, z)
         
@@ -877,33 +893,6 @@ cdef class Bus:
     property oindex:
         """ Index of bus in original network (before merging equivalent buses) (int). """
         def __get__(self): return cbus.BUS_get_oindex(self._c_ptr)
-
-    property index_t:
-        """ Unique indices for bus and time (int). """
-        def __get__(self):
-            r = [cbus.BUS_get_index_t(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
-    property index_P:
-        """ Index of bus active power mismatch (int or |Array|). """
-        def __get__(self):
-            r = [cbus.BUS_get_index_P(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
-
-    property index_Q:
-        """ Index for bus reactive power mismatch (int). """
-        def __get__(self):
-            r = [cbus.BUS_get_index_Q(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
             
     property index_v_mag:
         """ Index of voltage magnitude variable (int or |Array|). """

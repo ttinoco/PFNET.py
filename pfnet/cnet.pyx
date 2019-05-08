@@ -633,13 +633,6 @@ cdef class Network:
 
         cnet.NET_clear_error(self._c_net)
 
-    def clear_outages(self):
-        """
-        Clears all component outages.
-        """
-
-        cnet.NET_clear_outages(self._c_net)
-
     def clear_flags(self):
         """
         Clears all the flags of all the network components.
@@ -1463,38 +1456,61 @@ cdef class Network:
         else:
             return m
 
-    def get_num_buses(self):
+    def get_num_buses(self, only_in_service=False):
         """
         Gets number of buses in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_buses(self._c_net)
+        return cnet.NET_get_num_buses(self._c_net, only_in_service)
 
-    def get_num_slack_buses(self):
+    def get_num_buses_out_of_service(self):
+        """
+        Gets number of buses in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_buses_out_of_service(self._c_net)
+
+    def get_num_slack_buses(self, only_in_service=False):
         """
         Gets number of slack buses in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_slack_buses(self._c_net)
+        return cnet.NET_get_num_slack_buses(self._c_net, only_in_service)
 
-    def get_num_star_buses(self):
+    def get_num_star_buses(self, only_in_service=False):
         """
         Gets number of star buses in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_star_buses(self._c_net)
+        return cnet.NET_get_num_star_buses(self._c_net, only_in_service)
 
     def get_num_redundant_buses(self):
         """
@@ -1508,458 +1524,682 @@ cdef class Network:
 
         return cnet.NET_get_num_red_buses(self._c_net)
 
-    def get_num_buses_reg_by_gen(self):
+    def get_num_buses_reg_by_gen(self, only_in_service=False):
         """
         Gets number of buses whose voltage magnitudes are regulated by generators.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
 
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_buses_reg_by_gen(self._c_net)
+        return cnet.NET_get_num_buses_reg_by_gen(self._c_net, only_in_service)
 
-    def get_num_buses_reg_by_tran(self, only=False):
+    def get_num_buses_reg_by_tran(self, only_in_service=False):
         """
         Gets number of buses whose voltage magnitudes are regulated by tap-changing transformers.
 
         Parameters
         ----------
-        only : |TrueFalse|
+        only_in_service: |TrueFalse|
 
         Returns
         -------
         num : int
         """
 
-        if not only:
-            return cnet.NET_get_num_buses_reg_by_tran(self._c_net)
-        else:
-            return cnet.NET_get_num_buses_reg_by_tran_only(self._c_net)
+        return cnet.NET_get_num_buses_reg_by_tran(self._c_net, only_in_service)
 
-    def get_num_buses_reg_by_shunt(self, only=False):
+    def get_num_buses_reg_by_shunt(self, only_in_service=False):
         """
         Gets number of buses whose voltage magnitudes are regulated by switched shunt devices.
 
         Parameters
         ----------
-        only : |TrueFalse|
+        only_in_service: |TrueFalse|
 
         Returns
         -------
         num : int
         """
 
-        if not only:
-            return cnet.NET_get_num_buses_reg_by_shunt(self._c_net)
-        else:
-            return cnet.NET_get_num_buses_reg_by_shunt_only(self._c_net)
+        return cnet.NET_get_num_buses_reg_by_shunt(self._c_net, only_in_service)
 
-    def get_num_buses_reg_by_vsc_converter(self):
+    def get_num_buses_reg_by_vsc_converter(self, only_in_service=False):
         """
         Gets number of buses whose voltage magnitudes are regulated by VSC converters.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_buses_reg_by_vsc_conv(self._c_net)
+        return cnet.NET_get_num_buses_reg_by_vsc_conv(self._c_net, only_in_service)
 
-    def get_num_buses_reg_by_facts(self):
+    def get_num_buses_reg_by_facts(self, only_in_service=False):
         """
         Gets number of buses whose voltage magnitudes are regulated by FACTS devices.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_buses_reg_by_facts(self._c_net)
+        return cnet.NET_get_num_buses_reg_by_facts(self._c_net, only_in_service)
 
-    def get_num_branches(self):
+    def get_num_branches(self, only_in_service=False):
         """
         Gets number of branches in the network.
 
-        Returns
-        -------
-        num : int
-        """
-
-        return cnet.NET_get_num_branches(self._c_net)
-
-    def get_num_branches_not_on_outage(self):
-        """
-        Gets number of branches in the network that are not on outage.
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
 
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_branches_not_on_outage(self._c_net)
+        return cnet.NET_get_num_branches(self._c_net, only_in_service)
 
-    def get_num_branches_on_outage(self):
+    def get_num_branches_out_of_service(self):
         """
-        Gets number of branches in the network that are on outage.
+        Gets number of branches in the network that are out of service.
 
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_branches_on_outage(self._c_net)
+        return cnet.NET_get_num_branches_out_of_service(self._c_net)
 
-    def get_num_fixed_trans(self):
+    def get_num_fixed_trans(self, only_in_service=False):
         """
         Gets number of fixed transformers in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_fixed_trans(self._c_net)
+        return cnet.NET_get_num_fixed_trans(self._c_net, only_in_service)
 
-    def get_num_lines(self):
+    def get_num_lines(self, only_in_service=False):
         """
         Gets number of transmission lines in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_lines(self._c_net)
+        return cnet.NET_get_num_lines(self._c_net, only_in_service)
 
-    def get_num_zero_impedance_lines(self):
+    def get_num_zero_impedance_lines(self, only_in_service=False):
         """
         Gets number of zero impedance lines in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_zero_impedance_lines(self._c_net)
+        return cnet.NET_get_num_zero_impedance_lines(self._c_net, only_in_service)
 
-    def get_num_phase_shifters(self):
+    def get_num_phase_shifters(self, only_in_service=False):
         """
         Gets number of phase-shifting transformers in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_phase_shifters(self._c_net)
+        return cnet.NET_get_num_phase_shifters(self._c_net, only_in_service)
 
-    def get_num_tap_changers(self):
+    def get_num_tap_changers(self, only_in_service=False):
         """
         Gets number of tap-changing transformers in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_tap_changers(self._c_net)
+        return cnet.NET_get_num_tap_changers(self._c_net, only_in_service)
 
-    def get_num_tap_changers_v(self):
+    def get_num_tap_changers_v(self, only_in_service=False):
         """
         Gets number of tap-changing transformers in the network that regulate voltage magnitudes.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_tap_changers_v(self._c_net)
+        return cnet.NET_get_num_tap_changers_v(self._c_net, only_in_service)
 
-    def get_num_tap_changers_Q(self):
+    def get_num_tap_changers_Q(self, only_in_service=False):
         """
         Gets number of tap-changing transformers in the network that regulate reactive flows.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_tap_changers_Q(self._c_net)
+        return cnet.NET_get_num_tap_changers_Q(self._c_net, only_in_service)
 
-    def get_num_generators(self):
+    def get_num_generators(self, only_in_service=False):
         """
         Gets number of generators in the network.
 
-        Returns
-        -------
-        num : int
-        """
-
-        return cnet.NET_get_num_gens(self._c_net)
-
-    def get_num_generators_not_on_outage(self):
-        """
-        Gets number of generators in the network that are not on outage.
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
 
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_gens_not_on_outage(self._c_net)
+        return cnet.NET_get_num_gens(self._c_net, only_in_service)
 
-    def get_num_generators_on_outage(self):
+    def get_num_generators_out_of_service(self):
         """
-        Gets number of generators in the network that are on outage.
+        Gets number of generators in the network that are out of service.
 
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_gens_on_outage(self._c_net)
+        return cnet.NET_get_num_gens_out_of_service(self._c_net)
 
-    def get_num_reg_gens(self):
+    def get_num_reg_gens(self, only_in_service=False):
         """
         Gets number generators in the network that provide voltage regulation.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_reg_gens(self._c_net)
+        return cnet.NET_get_num_reg_gens(self._c_net, only_in_service)
 
-    def get_num_slack_gens(self):
+    def get_num_slack_gens(self, only_in_service=False):
         """
         Gets number of slack generators in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_slack_gens(self._c_net)
+        return cnet.NET_get_num_slack_gens(self._c_net, only_in_service)
 
-    def get_num_P_adjust_gens(self):
+    def get_num_P_adjust_gens(self, only_in_service=False):
         """
         Gets number of generators in the network that have adjustable active powers.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_P_adjust_gens(self._c_net)
+        return cnet.NET_get_num_P_adjust_gens(self._c_net, only_in_service)
 
-    def get_num_loads(self):
+    def get_num_loads(self, only_in_service=False):
         """
         Gets number of loads in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_loads(self._c_net)
+        return cnet.NET_get_num_loads(self._c_net, only_in_service)
 
-    def get_num_P_adjust_loads(self):
+    def get_num_loads_out_of_service(self):
+        """
+        Gets number of loads in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_loads_out_of_service(self._c_net)
+
+    def get_num_P_adjust_loads(self, only_in_service=False):
         """
         Gets number of loads in the network that have adjustable active powers.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_P_adjust_loads(self._c_net)
+        return cnet.NET_get_num_P_adjust_loads(self._c_net, only_in_service)
 
-    def get_num_vdep_loads(self):
+    def get_num_vdep_loads(self, only_in_service=False):
         """
         Gets number of loads in the network that are voltage dependent.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vdep_loads(self._c_net)
+        return cnet.NET_get_num_vdep_loads(self._c_net, only_in_service)
 
-    def get_num_shunts(self):
+    def get_num_shunts(self, only_in_service=False):
         """
         Gets number of shunts in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_shunts(self._c_net)
+        return cnet.NET_get_num_shunts(self._c_net, only_in_service)
 
-    def get_num_fixed_shunts(self):
+    def get_num_shunts_out_of_service(self):
+        """
+        Gets number of shunts in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_shunts_out_of_service(self._c_net)
+
+    def get_num_fixed_shunts(self, only_in_service=False):
         """
         Gets number of fixed shunts in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_fixed_shunts(self._c_net)
+        return cnet.NET_get_num_fixed_shunts(self._c_net, only_in_service)
 
-    def get_num_switched_shunts(self):
+    def get_num_switched_shunts(self, only_in_service=False):
         """
         Gets number of switched shunts in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_switched_shunts(self._c_net)
+        return cnet.NET_get_num_switched_shunts(self._c_net, only_in_service)
 
-    def get_num_switched_v_shunts(self):
+    def get_num_switched_v_shunts(self, only_in_service=False):
         """
         Gets number of switched shunts in the network
         that provide voltage regulation.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_switched_v_shunts(self._c_net)
+        return cnet.NET_get_num_switched_v_shunts(self._c_net, only_in_service)
 
-    def get_num_var_generators(self):
+    def get_num_var_generators(self, only_in_service=False):
         """
         Gets number of variable generators in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vargens(self._c_net)
+        return cnet.NET_get_num_vargens(self._c_net, only_in_service)
 
-    def get_num_batteries(self):
+    def get_num_var_generators_out_of_service(self):
+        """
+        Gets number of var generators in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vargens_out_of_service(self._c_net)
+
+    def get_num_batteries(self, only_in_service=False):
         """
         Gets number of batteries in the network.
 
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_bats(self._c_net)
+        return cnet.NET_get_num_bats(self._c_net, only_in_service)
 
-    def get_num_csc_converters(self):
+    def get_num_batteries_out_of_service(self):
+        """
+        Gets number of batteries in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_bats_out_of_service(self._c_net)
+
+    def get_num_csc_converters(self, only_in_service=False):
         """
         Gets number of CSC converters in the network.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_csc_convs(self._c_net)
+        return cnet.NET_get_num_csc_convs(self._c_net, only_in_service)
 
-    def get_num_vsc_converters(self):
+    def get_num_csc_converters_out_of_service(self):
+        """
+        Gets number of CSC converters in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_csc_convs_out_of_service(self._c_net)
+
+    def get_num_vsc_converters(self, only_in_service=False):
         """
         Gets number of VSC converters in the network.
+        
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+        
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs(self._c_net)
+        return cnet.NET_get_num_vsc_convs(self._c_net, only_in_service)
 
-    def get_num_vsc_converters_in_P_dc_mode(self):
+    def get_num_vsc_converters_out_of_service(self):
+        """
+        Gets number of VSC converters in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_vsc_convs_out_of_service(self._c_net)
+
+    def get_num_vsc_converters_in_P_dc_mode(self, only_in_service=False):
         """
         Gets number of VSC converters in the network that are operating in DC power control mode.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs_in_P_dc_mode(self._c_net)
+        return cnet.NET_get_num_vsc_convs_in_P_dc_mode(self._c_net, only_in_service=False)
 
-    def get_num_vsc_converters_in_v_dc_mode(self):
+    def get_num_vsc_converters_in_v_dc_mode(self, only_in_service=False):
         """
         Gets number of VSC converters in the network that are operating in DC voltage control mode.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs_in_v_dc_mode(self._c_net)
+        return cnet.NET_get_num_vsc_convs_in_v_dc_mode(self._c_net, only_in_service)
 
-    def get_num_vsc_converters_in_v_ac_mode(self):
+    def get_num_vsc_converters_in_v_ac_mode(self, only_in_service=False):
         """
         Gets number of VSC converters in the network that are operating in AC voltage control mode.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+        
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs_in_v_ac_mode(self._c_net)
+        return cnet.NET_get_num_vsc_convs_in_v_ac_mode(self._c_net, only_in_service)
 
-    def get_num_vsc_converters_in_f_ac_mode(self):
+    def get_num_vsc_converters_in_f_ac_mode(self, only_in_service=False):
         """
         Gets number of VSC converters in the network that are operating in AC power factor control mode.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_vsc_convs_in_f_ac_mode(self._c_net)
+        return cnet.NET_get_num_vsc_convs_in_f_ac_mode(self._c_net, only_in_service)
 
-    def get_num_dc_buses(self):
+    def get_num_dc_buses(self, only_in_service=False):
         """
         Gets number of DC buses in the network.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_dc_buses(self._c_net)
+        return cnet.NET_get_num_dc_buses(self._c_net, only_in_service)
 
-    def get_num_dc_branches(self):
+    def get_num_dc_buses_out_of_service(self):
+        """
+        Gets number of DC buses in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_dc_buses_out_of_service(self._c_net)
+
+    def get_num_dc_branches(self, only_in_service=False):
         """
         Gets number of DC branches in the network.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_dc_branches(self._c_net)
+        return cnet.NET_get_num_dc_branches(self._c_net, only_in_service)
 
-    def get_num_facts(self):
+    def get_num_dc_branches_out_of_service(self):
+        """
+        Gets number of DC branches in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_dc_branches_out_of_service(self._c_net)
+
+    def get_num_facts(self, only_in_service=False):
         """
         Gets number of FACTS devices in the network.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_facts(self._c_net)
+        return cnet.NET_get_num_facts(self._c_net, only_in_service)
 
-    def get_num_facts_in_normal_series_mode(self):
+    def get_num_facts_out_of_service(self):
+        """
+        Gets number of FACTS in the network that are out of service.
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_facts_out_of_service(self._c_net)
+
+    def get_num_facts_in_normal_series_mode(self, only_in_service=False):
         """
         Gets number of FACTS devices in the network that are operating in normal series mode.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_facts_in_normal_series_mode(self._c_net)
+        return cnet.NET_get_num_facts_in_normal_series_mode(self._c_net, only_in_service)
 
-    def get_num_reg_facts(self):
+    def get_num_reg_facts(self, only_in_service=False):
         """
         Gets number of FACTS in the network that provide voltage regulation.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
         Returns
         -------
         num : int
         """
 
-        return cnet.NET_get_num_reg_facts(self._c_net)
+        return cnet.NET_get_num_reg_facts(self._c_net, only_in_service)
 
     def get_properties(self):
         """
@@ -2442,51 +2682,51 @@ cdef class Network:
 
     property num_buses:
         """ Number of buses in the network (int). """
-        def __get__(self): return cnet.NET_get_num_buses(self._c_net)
+        def __get__(self): return cnet.NET_get_num_buses(self._c_net,False)
 
     property num_branches:
         """ Number of branches in the network (int). """
-        def __get__(self): return cnet.NET_get_num_branches(self._c_net)
+        def __get__(self): return cnet.NET_get_num_branches(self._c_net,False)
 
     property num_generators:
         """ Number of generators in the network (int). """
-        def __get__(self): return cnet.NET_get_num_gens(self._c_net)
+        def __get__(self): return cnet.NET_get_num_gens(self._c_net,False)
 
     property num_loads:
         """ Number of loads in the network (int). """
-        def __get__(self): return cnet.NET_get_num_loads(self._c_net)
+        def __get__(self): return cnet.NET_get_num_loads(self._c_net,False)
 
     property num_shunts:
         """ Number of shunt devices in the network (int). """
-        def __get__(self): return cnet.NET_get_num_shunts(self._c_net)
+        def __get__(self): return cnet.NET_get_num_shunts(self._c_net,False)
 
     property num_var_generators:
         """ Number of variable generators in the network (int). """
-        def __get__(self): return cnet.NET_get_num_vargens(self._c_net)
+        def __get__(self): return cnet.NET_get_num_vargens(self._c_net,False)
 
     property num_batteries:
         """ Number of batteries in the network (int). """
-        def __get__(self): return cnet.NET_get_num_bats(self._c_net)
+        def __get__(self): return cnet.NET_get_num_bats(self._c_net,False)
 
     property num_csc_converters:
         """ Number of CSC converters in the network (int). """
-        def __get__(self): return cnet.NET_get_num_csc_convs(self._c_net)
+        def __get__(self): return cnet.NET_get_num_csc_convs(self._c_net,False)
 
     property num_vsc_converters:
         """ Number of VSC converters in the network (int). """
-        def __get__(self): return cnet.NET_get_num_vsc_convs(self._c_net)
+        def __get__(self): return cnet.NET_get_num_vsc_convs(self._c_net,False)
 
     property num_dc_buses:
         """ Number of DC buses in the network (int). """
-        def __get__(self): return cnet.NET_get_num_dc_buses(self._c_net)
+        def __get__(self): return cnet.NET_get_num_dc_buses(self._c_net,False)
 
     property num_dc_branches:
         """ Number of DC branches in the network (int). """
-        def __get__(self): return cnet.NET_get_num_dc_branches(self._c_net)
+        def __get__(self): return cnet.NET_get_num_dc_branches(self._c_net,False)
 
     property num_facts:
         """ Number of FACTS devices in the network (int). """
-        def __get__(self): return cnet.NET_get_num_facts(self._c_net)
+        def __get__(self): return cnet.NET_get_num_facts(self._c_net,False)
 
     property num_vars:
         """ Number of network quantities that have been set to variable (int). """

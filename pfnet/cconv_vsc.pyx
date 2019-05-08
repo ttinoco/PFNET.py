@@ -60,6 +60,17 @@ cdef class ConverterVSC:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the VSC converter is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cconv_vsc.CONVVSC_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether VSC converter is equal to given VSC converter.
@@ -195,6 +206,11 @@ cdef class ConverterVSC:
             return s
         else:
             raise ConverterVSCError('index does not correspond to any variable')
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cconv_vsc.CONVVSC_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cconv_vsc.CONVVSC_set_in_service(self._c_ptr, in_service)
         
     property name:
         """ VSC converter name (string). """

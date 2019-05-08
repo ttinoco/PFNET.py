@@ -80,6 +80,17 @@ cdef class VarGenerator:
                                         str2flag[flag_type],
                                         reduce(lambda x,y: x|y,[str2q[self.obj_type][qq] for qq in q],0))
 
+    def is_in_service(self):
+        """
+        Determines whether the variable generator is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cvargen.VARGEN_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether the var generator is equal to given var generator.
@@ -122,6 +133,11 @@ cdef class VarGenerator:
             return s
         else:
             raise VarGeneratorError('index does not correspond to any variable')
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cvargen.VARGEN_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cvargen.VARGEN_set_in_service(self._c_ptr, in_service)
 
     property num_periods:
         """ Number of time periods (int). """

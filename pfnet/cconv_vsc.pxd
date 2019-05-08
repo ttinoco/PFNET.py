@@ -77,6 +77,7 @@ cdef extern from "pfnet/conv_vsc.h":
 
     bint CONVVSC_has_flags(void* vconv, char flag_type, unsigned char mask)
 
+    bint CONVVSC_is_in_service(void* conv)
     bint CONVVSC_is_equal(ConvVSC* conv, ConvVSC* other)
     bint CONVVSC_is_in_f_ac_mode(ConvVSC* conv)
     bint CONVVSC_is_in_v_ac_mode(ConvVSC* conv)
@@ -100,4 +101,4 @@ cdef extern from "pfnet/conv_vsc.h":
     void CONVVSC_set_target_power_factor(ConvVSC* conv, REAL pf)
     void CONVVSC_set_mode_ac(ConvVSC* conv, char mode)
     void CONVVSC_set_mode_dc(ConvVSC* conv, char mode) 
-    
+    void CONVVSC_set_in_service(ConvVSC* conv, bint in_service)    

@@ -29,7 +29,6 @@ cdef extern from "pfnet/branch.h":
     cdef char BRANCH_PROP_TAP_CHANGER_V
     cdef char BRANCH_PROP_TAP_CHANGER_Q
     cdef char BRANCH_PROP_PHASE_SHIFTER
-    cdef char BRANCH_PROP_NOT_OUT
     
     cdef int BRANCH_TYPE_LINE
     cdef int BRANCH_TYPE_TRAN_FIXED
@@ -107,8 +106,9 @@ cdef extern from "pfnet/branch.h":
     BrYCor* BRANCH_get_y_correction(Branch* br)
     bint BRANCH_has_y_correction(Branch* br)
     bint BRANCH_has_pos_ratio_v_sens(Branch* br)
+
+    bint BRANCH_is_in_service(void* br)
     bint BRANCH_is_equal(Branch* br, Branch* other)
-    bint BRANCH_is_on_outage(Branch* br)
     bint BRANCH_is_fixed_tran(Branch* br)
     bint BRANCH_is_line(Branch* br)
     bint BRANCH_is_phase_shifter(Branch* br)
@@ -117,12 +117,12 @@ cdef extern from "pfnet/branch.h":
     bint BRANCH_is_tap_changer_Q(Branch* br)
     bint BRANCH_is_part_of_3_winding_transformer(Branch* br)
     bint BRANCH_is_zero_impedance_line(Branch* br)
+
     bint BRANCH_has_flags(Branch* br, char flag_type, char mask)
     Branch* BRANCH_new(int num_periods)
     Branch* BRANCH_array_new(int size, int num_periods)
     void BRANCH_array_del(Branch* br_array, int size)
     void BRANCH_array_show(Branch* br_array, int size, int t)
-    void BRANCH_set_outage(Branch* br, BOOL outage)
     void BRANCH_set_name(Branch* br, char* name)
     void BRANCH_set_type(Branch* br, char type)
     void BRANCH_set_bus_k(Branch* br, Bus* bus_k)
@@ -149,6 +149,7 @@ cdef extern from "pfnet/branch.h":
     void BRANCH_set_ratingA(Branch* br, REAL r)
     void BRANCH_set_ratingB(Branch* br, REAL r)
     void BRANCH_set_ratingC(Branch* br, REAL r)
+    void BRANCH_set_in_service(Branch* br, bint in_service)
     void BRANCH_show(Branch* br, int t)
 
     cmat.Mat* BRANCH_power_flow_Jacobian(Branch* br, cvec.Vec* x, int t, bint km)

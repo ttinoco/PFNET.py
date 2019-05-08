@@ -47,6 +47,7 @@ cdef extern from "pfnet/bat.h":
     char* BAT_get_var_info_string(Bat* bat, int index)
     bint BAT_has_flags(Bat* bat, char flag_type, char mask)
     bint BAT_is_equal(Bat* bat, Bat* other)
+    bint BAT_is_in_service(void* bat)
     Bat* BAT_new(int num_periods)
     Bat* BAT_array_new(int size, int num_periods)
     void BAT_array_del(Bat* bat_array, int size)
@@ -59,3 +60,4 @@ cdef extern from "pfnet/bat.h":
     void BAT_set_E_final(Bat* bat, REAL E)
     void BAT_set_eta_c(Bat* bat, REAL eta_c)
     void BAT_set_eta_d(Bat* bat, REAL eta_d)
+    void BAT_set_in_service(Bat* bat, bint in_service)

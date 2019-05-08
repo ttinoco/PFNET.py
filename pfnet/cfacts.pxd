@@ -93,6 +93,7 @@ cdef extern from "pfnet/facts.h":
     char* FACTS_get_json_string(Facts* facts, char* output)
     bint FACTS_has_flags(void* facts, char flag_type, unsigned char mask)
 
+    bint FACTS_is_in_service(void* facts)
     bint FACTS_is_equal(Facts* facts, Facts* other)
     bint FACTS_is_regulator(Facts* facts)
     bint FACTS_is_STATCOM(Facts* facts)
@@ -124,3 +125,4 @@ cdef extern from "pfnet/facts.h":
     void FACTS_set_P_max_dc(Facts* facts, REAL P_max)
     void FACTS_set_v_min_m(Facts* facts, REAL v_min)
     void FACTS_set_v_max_m(Facts* facts, REAL v_max)
+    void FACTS_set_in_service(Facts* facts, bint in_service)

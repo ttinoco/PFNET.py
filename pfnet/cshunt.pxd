@@ -53,7 +53,8 @@ cdef extern from "pfnet/shunt.h":
     Shunt* SHUNT_get_reg_next(Shunt* shunt)
     char* SHUNT_get_json_string(Shunt* shunt, char* output)
     char* SHUNT_get_var_info_string(Shunt* shunt, int index)
-    bint SHUNT_is_equal(Shunt* load, Shunt* other)
+    bint SHUNT_is_in_service(void* shunt)
+    bint SHUNT_is_equal(Shunt* shunt, Shunt* other)
     bint SHUNT_is_fixed(Shunt* shunt)
     bint SHUNT_is_switched(Shunt* shunt)
     bint SHUNT_is_switched_locked(Shunt* shunt)
@@ -74,3 +75,5 @@ cdef extern from "pfnet/shunt.h":
     void SHUNT_set_b_max(Shunt* shunt, REAL b_max)
     void SHUNT_set_b_min(Shunt* shunt, REAL b_min)
     void SHUNT_set_b_values(Shunt* shunt, REAL* values, int num)
+    void SHUNT_set_in_service(Shunt* shunt, bint in_service)
+  

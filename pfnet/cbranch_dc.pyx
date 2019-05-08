@@ -55,6 +55,17 @@ cdef class BranchDC:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the DC branch is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cbranch_dc.BRANCHDC_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether DC branch is equal to given DC branch.
@@ -223,6 +234,11 @@ cdef class BranchDC:
             return AttributeFloat(r[0])
         else:
             return np.array(r)
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cbranch_dc.BRANCHDC_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cbranch_dc.BRANCHDC_set_in_service(self._c_ptr, in_service)
 
     property name:
         """ DC branch name (string). """

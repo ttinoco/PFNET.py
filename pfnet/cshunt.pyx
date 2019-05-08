@@ -58,6 +58,17 @@ cdef class Shunt:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the shunt device is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether shunt is equal to given shunt.
@@ -255,6 +266,11 @@ cdef class Shunt:
         cdef np.ndarray[double,mode='c'] x = values
         PyArray_CLEARFLAGS(x,np.NPY_OWNDATA)
         cshunt.SHUNT_set_b_values(self._c_ptr,<cnet.REAL*>(x.data),x.size)
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cshunt.SHUNT_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cshunt.SHUNT_set_in_service(self._c_ptr, in_service)
 
     property name:
         """ Shunt name (string). """

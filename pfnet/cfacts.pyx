@@ -61,6 +61,17 @@ cdef class Facts:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the FACTS device is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cfacts.FACTS_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether facts is equal to given facts.
@@ -282,6 +293,12 @@ cdef class Facts:
             return s
         else:
             raise FactsError('index does not correspond to any variable')
+
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cfacts.FACTS_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cfacts.FACTS_set_in_service(self._c_ptr, in_service)
 
     property name:
         """ Facts name (string). """

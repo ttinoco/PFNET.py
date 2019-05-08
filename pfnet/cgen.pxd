@@ -24,7 +24,6 @@ cdef extern from "pfnet/gen.h":
     cdef char GEN_PROP_REG
     cdef char GEN_PROP_NOT_REG
     cdef char GEN_PROP_NOT_SLACK
-    cdef char GEN_PROP_NOT_OUT
     cdef char GEN_PROP_P_ADJUST
 
     char GEN_get_flags_vars(Gen* gen)
@@ -63,8 +62,8 @@ cdef extern from "pfnet/gen.h":
     Gen* GEN_get_reg_next(Gen* gen)
     char* GEN_get_json_string(Gen* gen, char* output)
     char* GEN_get_var_info_string(Gen* gen, int index)
+    bint GEN_is_in_service(void* gen)
     bint GEN_is_equal(Gen* gen, Gen* other)
-    bint GEN_is_on_outage(Gen* gen)
     bint GEN_is_P_adjustable(Gen* gen)
     bint GEN_is_regulator(Gen* gen)
     bint GEN_is_slack(Gen* gen)
@@ -72,7 +71,6 @@ cdef extern from "pfnet/gen.h":
     Gen* GEN_new(int num_periods)
     Gen* GEN_array_new(int size, int num_periods)
     void GEN_array_del(Gen* gen_array, int size)
-    void GEN_set_outage(Gen* gen, BOOL outage)
     void GEN_set_name(Gen* gen, char* name)
     void GEN_set_bus(Gen* gen, Bus* bus)
     void GEN_set_reg_bus(Gen* gen, Bus* reg_bus)
@@ -86,3 +84,4 @@ cdef extern from "pfnet/gen.h":
     void GEN_set_cost_coeff_Q0(Gen* gen, REAL c)
     void GEN_set_cost_coeff_Q1(Gen* gen, REAL c)
     void GEN_set_cost_coeff_Q2(Gen* gen, REAL c)
+    void GEN_set_in_service(Gen* gen, bint in_service)

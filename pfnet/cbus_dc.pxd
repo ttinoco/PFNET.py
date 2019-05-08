@@ -31,7 +31,6 @@ cdef extern from "pfnet/bus_dc.h":
     char BUSDC_get_obj_type(void* bus)
     int BUSDC_get_num_periods(BusDC* bus)
     int BUSDC_get_index(BusDC* bus)
-    int BUSDC_get_index_t(BusDC* bus, int t)
     int BUSDC_get_index_v(BusDC* bus, int t)
     int BUSDC_get_number(BusDC* bus)
     char* BUSDC_get_name(BusDC* bus)
@@ -46,7 +45,8 @@ cdef extern from "pfnet/bus_dc.h":
     REAL BUSDC_get_P_mis(BusDC* bus, int t)
 
     char* BUSDC_get_json_string(BusDC* bus, char* output)
-    char* BUSDC_get_var_info_string(BusDC* bus, int index)  
+    char* BUSDC_get_var_info_string(BusDC* bus, int index)
+    bint BUSDC_is_in_service(void* bus)
     bint BUSDC_is_equal(BusDC* bus, BusDC* other)
     bint BUSDC_has_flags(BusDC* bus, char flag_type, char mask)
     BusDC* BUSDC_new(int num_periods)
@@ -55,7 +55,8 @@ cdef extern from "pfnet/bus_dc.h":
     void BUSDC_set_number(BusDC* bus, REAL num)
     void BUSDC_set_name(BusDC* bus, char* name)
     void BUSDC_set_v(BusDC* bus, REAL v_mag, int t)
-    void BUSDC_set_v_base(BusDC* bus, REAL v_base) 
+    void BUSDC_set_v_base(BusDC* bus, REAL v_base)
+    void BUSDC_set_in_service(BusDC* bus, bint in_service)
 
     void BUSDC_add_csc_conv(BusDC* bus, ConvCSC* conv)
     void BUSDC_del_csc_conv(BusDC* bus, ConvCSC* conv)

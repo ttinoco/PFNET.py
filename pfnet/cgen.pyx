@@ -59,6 +59,17 @@ cdef class Generator:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the generator is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cgen.GEN_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether generator is equal to given generator.
@@ -97,17 +108,6 @@ cdef class Generator:
             return not self.is_equal(other)
         else:
             return False
-
-    def is_on_outage(self):
-        """
-        Determines whether generator in on outage.
-
-        Returns
-        -------
-        flag : |TrueFalse|
-        """
-
-        return cgen.GEN_is_on_outage(self._c_ptr)
 
     def is_slack(self):
         """
@@ -183,6 +183,11 @@ cdef class Generator:
             return s
         else:
             raise GeneratorError('index does not correspond to any variable')
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cgen.GEN_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cgen.GEN_set_in_service(self._c_ptr, in_service)
 
     property name:
         """ Generator name (string). """
@@ -312,11 +317,6 @@ cdef class Generator:
         """ Coefficient for genertion cost function (quadratic term, units of $/(hr p.u.^2)) (float). """
         def __get__(self): return cgen.GEN_get_cost_coeff_Q2(self._c_ptr)
         def __set__(self, c): cgen.GEN_set_cost_coeff_Q2(self._c_ptr, c)
-
-    property outage:
-        """ Flag that indicates whehter generator is on outage (boolean). """
-        def __get__(self): return cgen.GEN_is_on_outage(self._c_ptr)
-        def __set__(self, o): cgen.GEN_set_outage(self._c_ptr, o);
 
     property json_string:
         """ JSON string (string). """

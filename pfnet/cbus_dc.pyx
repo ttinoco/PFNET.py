@@ -58,6 +58,17 @@ cdef class BusDC:
 
         return new_CPtr(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whether the DC bus is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cbus_dc.BUSDC_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether the DC bus is equal to given DC bus.
@@ -306,6 +317,11 @@ cdef class BusDC:
             return not self.is_equal(other)
         else:
             return False
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cbus_dc.BUSDC_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cbus_dc.BUSDC_set_in_service(self._c_ptr, in_service)
         
     property num_periods:
         """ Number of time periods (int). """
@@ -318,15 +334,6 @@ cdef class BusDC:
     property index:
         """ Bus index (int). """
         def __get__(self): return cbus_dc.BUSDC_get_index(self._c_ptr)
-
-    property index_t:
-        """ Unique indices for bus and time (int). """
-        def __get__(self):
-            r = [cbus_dc.BUSDC_get_index_t(self._c_ptr,t) for t in range(self.num_periods)]
-            if self.num_periods == 1:
-                return AttributeInt(r[0])
-            else:
-                return np.array(r)
 
     property index_v:
         """ Index of voltage variable (int or |Array|). """

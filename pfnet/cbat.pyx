@@ -101,6 +101,17 @@ cdef class Battery:
                                   str2flag[flag_type],
                                   reduce(lambda x,y: x|y,[str2q[self.obj_type][qq] for qq in q],0))
 
+    def is_in_service(self):
+        """
+        Determines whether the battery is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cbat.BAT_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether the battery is equal to given battery.
@@ -122,6 +133,11 @@ cdef class Battery:
         b_other = other
 
         return cbat.BAT_is_equal(self._c_ptr,b_other._c_ptr)
+
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cbat.BAT_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cbat.BAT_set_in_service(self._c_ptr, in_service)
 
     property name:
         """ Battery name (string). """

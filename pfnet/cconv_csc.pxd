@@ -82,6 +82,7 @@ cdef extern from "pfnet/conv_csc.h":
     REAL* CONVCSC_get_Q_array(ConvCSC* conv)
     REAL* CONVCSC_get_ratio_array(ConvCSC* conv)
 
+    bint CONVCSC_is_in_service(void* conv)
     bint CONVCSC_is_equal(ConvCSC* conv, ConvCSC* other)
     bint CONVCSC_is_inverter(ConvCSC* conv)
     bint CONVCSC_is_rectifier(ConvCSC* conv)
@@ -106,4 +107,5 @@ cdef extern from "pfnet/conv_csc.h":
     void CONVCSC_set_r(ConvCSC* conv, REAL r)
     void CONVCSC_set_type(ConvCSC* conv, char type)
     void CONVCSC_set_mode_dc(ConvCSC* conv, char mode)  
-
+    void CONVCSC_set_in_service(ConvCSC* conv, bint in_service)
+  

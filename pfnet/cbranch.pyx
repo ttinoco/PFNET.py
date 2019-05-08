@@ -81,6 +81,17 @@ cdef class Branch:
 
         return cbranch.BRANCH_has_pos_ratio_v_sens(self._c_ptr)
 
+    def is_in_service(self):
+        """
+        Determines whther the branch is in service.
+
+        Returns
+        -------
+        in_service : |TrueFalse|
+        """
+
+        return cbranch.BRANCH_is_in_service(self._c_ptr)
+
     def is_equal(self, other):
         """
         Determines whether branch is equal to given branch.
@@ -186,17 +197,6 @@ cdef class Branch:
             return not self.is_equal(other)
         else:
             return False
-
-    def is_on_outage(self):
-        """
-        Determines whether branch in on outage.
-
-        Returns
-        -------
-        flag : |TrueFalse|
-        """
-
-        return cbranch.BRANCH_is_on_outage(self._c_ptr)
 
     def is_fixed_tran(self):
         """
@@ -738,6 +738,11 @@ cdef class Branch:
         free(v)
         return m
 
+    property in_service:
+        """ In service flag (boolean). """
+        def __get__(self): return cbranch.BRANCH_is_in_service(self._c_ptr)
+        def __set__(self, in_service): cbranch.BRANCH_set_in_service(self._c_ptr, in_service)
+
     property name:
         """ Branch name (string). """
         def __get__(self):
@@ -1055,11 +1060,6 @@ cdef class Branch:
                                               cbranch.BRANCH_get_num_periods(self._c_ptr))
         def __set__(self,x):
             self.sens_i_mag_u_bound[:] = x
-
-    property outage:
-        """ Flag that indicates whether branch is on outage (boolean). """
-        def __get__(self): return cbranch.BRANCH_is_on_outage(self._c_ptr)
-        def __set__(self, o): cbranch.BRANCH_set_outage(self._c_ptr, o);
 
     property json_string:
         """ JSON string (string). """

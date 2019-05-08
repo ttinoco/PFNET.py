@@ -192,9 +192,9 @@ cdef class Load:
             cload.LOAD_set_name(self._c_ptr,name)
 
     property in_service:
-        """ Flag that indicates whehter load in in service (boolean). """
+        """ In service flag (boolean). """
         def __get__(self): return cload.LOAD_is_in_service(self._c_ptr)
-        def __set__(self, i): cload.LOAD_set_in_service(self._c_ptr, i);
+        def __set__(self, in_service): cload.LOAD_set_in_service(self._c_ptr, in_service);
 
     property num_periods:
         """ Number of time periods (int). """
