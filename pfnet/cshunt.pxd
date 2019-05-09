@@ -53,6 +53,7 @@ cdef extern from "pfnet/shunt.h":
     Shunt* SHUNT_get_reg_next(Shunt* shunt)
     char* SHUNT_get_json_string(Shunt* shunt, char* output)
     char* SHUNT_get_var_info_string(Shunt* shunt, int index)
+    bint SHUNT_is_part_of_transformer(Shunt* shunt)
     bint SHUNT_is_in_service(void* shunt)
     bint SHUNT_is_equal(Shunt* shunt, Shunt* other)
     bint SHUNT_is_fixed(Shunt* shunt)

@@ -17,6 +17,113 @@ class TestParser(unittest.TestCase):
     def setUp(self):
         
         pass
+
+    def test_parserraw_in_out(self):
+        
+        case = os.path.join('data', 'psse_sample_case_oos.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('raw file not available')
+
+        net = pf.ParserRAW().parse(case)
+
+        parser = pf.ParserRAW()
+        parser.set('keep_all_out_of_service', True)
+        net_oos = parser.parse(case)
+
+        # Buses
+        self.assertEqual(net.num_buses+3, net_oos.num_buses)
+        self.assertRaises(pf.NetworkError, net.get_bus_from_number, 208)
+        self.assertRaises(pf.NetworkError, net.get_bus_from_number, 209)
+        self.assertRaises(pf.NetworkError, net.get_bus_from_number, 3012)
+        bus = net_oos.get_bus_from_number(208)
+        self.assertFalse(bus.in_service)
+        bus = net_oos.get_bus_from_number(209)
+        self.assertFalse(bus.in_service)
+        bus = net_oos.get_bus_from_number(3012)
+        self.assertFalse(bus.in_service)
+
+        # star buses
+        for bus in net_oos.buses:
+            if bus.is_star():
+                b = net.get_bus_from_number(bus.number)
+                self.assertTrue(b.is_star())
+
+        # Loads
+        self.assertEqual(net.num_loads+2, net_oos.num_loads)
+        self.assertRaises(pf.NetworkError, net.get_load_from_name_and_bus_number, '2', 154)
+        self.assertRaises(pf.NetworkError, net.get_load_from_name_and_bus_number, '3', 154)
+        load = net_oos.get_load_from_name_and_bus_number('2', 154)
+        self.assertFalse(load.in_service)
+        load = net_oos.get_load_from_name_and_bus_number('3', 154)
+        self.assertFalse(load.in_service)
+
+        # Generators
+        self.assertEqual(net.num_generators+2, net_oos.num_generators)
+        self.assertRaises(pf.NetworkError, net.get_generator_from_name_and_bus_number, '2', 301)
+        self.assertRaises(pf.NetworkError, net.get_generator_from_name_and_bus_number, '3', 301)
+        gen = net_oos.get_generator_from_name_and_bus_number('2', 301)
+        self.assertFalse(gen.in_service)
+        gen = net_oos.get_generator_from_name_and_bus_number('3', 301)
+        self.assertFalse(gen.in_service)
+
+        # Facts
+        self.assertEqual(net.num_facts+2, net_oos.num_facts)
+        self.assertRaises(pf.NetworkError, net.get_facts_from_name_and_bus_numbers, 'FACTS_DVCE_1', 153, 0)
+        self.assertRaises(pf.NetworkError, net.get_facts_from_name_and_bus_numbers, 'FACTS_DVCE_2', 153, 155)
+        facts = net_oos.get_facts_from_name_and_bus_numbers('FACTS_DVCE_1', 153, 0)
+        self.assertFalse(facts.in_service)
+        facts = net_oos.get_facts_from_name_and_bus_numbers('FACTS_DVCE_2', 153, 155)
+        self.assertFalse(facts.in_service)
+
+        # CSC
+        self.assertEqual(net.num_csc_converters+2, net_oos.num_csc_converters)
+        conv = net_oos.get_csc_converter_from_name_and_ac_bus_number('TWO_TERM_DC2', 301)
+        self.assertFalse(conv.in_service)
+        conv = net_oos.get_csc_converter_from_name_and_ac_bus_number('TWO_TERM_DC2', 3022)
+        self.assertFalse(conv.in_service)
+
+        # VSC
+        self.assertEqual(net.num_vsc_converters+2, net_oos.num_vsc_converters)
+        conv = net_oos.get_vsc_converter_from_name_and_ac_bus_number('VDCLINE2', 203)
+        self.assertFalse(conv.in_service)
+        conv = net_oos.get_vsc_converter_from_name_and_ac_bus_number('VDCLINE2', 205)
+        self.assertFalse(conv.in_service)
+
+        # DC buses
+        self.assertEqual(net.num_dc_buses+4, net_oos.num_dc_buses)
+        self.assertEqual(net.num_dc_buses, net_oos.get_num_dc_buses(only_in_service=True))
+        
+        # DC branches
+        self.assertEqual(net.num_dc_branches+2, net_oos.num_dc_branches)
+        self.assertEqual(net.num_dc_branches, net_oos.get_num_dc_branches(only_in_service=True))
+
+        # fixed shunts
+        self.assertEqual(net.get_num_fixed_shunts()+2+len([s for s in net_oos.shunts if s.is_part_of_transformer() and not s.in_service]),
+                         net_oos.get_num_fixed_shunts())
+        self.assertRaises(pf.NetworkError, net.get_fixed_shunt_from_name_and_bus_number, '1', 152)
+        self.assertRaises(pf.NetworkError, net.get_fixed_shunt_from_name_and_bus_number, '1', 154)
+        shunt = net_oos.get_fixed_shunt_from_name_and_bus_number('1', 152)
+        self.assertFalse(shunt.in_service)
+        shunt = net_oos.get_fixed_shunt_from_name_and_bus_number('1', 154)
+        self.assertFalse(shunt.in_service)
+
+        # switched shunts
+        self.assertEqual(net.get_num_switched_shunts()+1, net_oos.get_num_switched_shunts())
+        self.assertRaises(pf.NetworkError, net.get_switched_shunt_from_name_and_bus_number, '', 3021)
+        shunt = net_oos.get_switched_shunt_from_name_and_bus_number('', 3021)
+        self.assertFalse(shunt.in_service)
+
+        # Branches       
+        self.assertEqual(net.get_num_branches()+4, net_oos.get_num_branches())
+        self.assertRaises(pf.NetworkError, net.get_branch_from_name_and_bus_numbers, '3', 208, 93003)
+        self.assertRaises(pf.NetworkError, net.get_branch_from_name_and_bus_numbers, '4', 209, 93004)
+        self.assertRaises(pf.NetworkError, net.get_branch_from_name_and_bus_numbers, '2', 3012, 93006)
+        br = net_oos.get_branch_from_name_and_bus_numbers('3', 208, 93003)
+        self.assertFalse(br.in_service)
+        br = net_oos.get_branch_from_name_and_bus_numbers('4', 209, 93004)
+        self.assertFalse(br.in_service)
+        br = net_oos.get_branch_from_name_and_bus_numbers('2', 3012, 93006)
+        self.assertFalse(br.in_service)
         
     def test_parserraw_write(self):
 

@@ -58,6 +58,17 @@ cdef class Shunt:
 
         return new_CPtr(self._c_ptr)
 
+    def is_part_of_transformer(self):
+        """
+        Determines whether the shunt is part of a transformer.
+
+        Returns
+        -------
+        flag : |TrueFalse|
+        """
+
+        return cshunt.SHUNT_is_part_of_transformer(self._c_ptr)
+
     def is_in_service(self):
         """
         Determines whether the shunt device is in service.

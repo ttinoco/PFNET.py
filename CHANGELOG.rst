@@ -12,7 +12,8 @@ Unreleased
 * Gen redispatch penalty function.
 * Branch __str__ and __repr__.
 * Network method for clipping switched shunt b.
-* Network JSON encoder and decoder.  
+* Network JSON encoder and decoder.
+* Support for net components being in or out of service.  
 
 Version 1.3.4
 -------------
