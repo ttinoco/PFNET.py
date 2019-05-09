@@ -22,6 +22,10 @@ class TestHeuristics(unittest.TestCase):
             net = pf.Parser(case).parse(case, T)
             self.assertEqual(net.num_periods, T)
 
+            for gen in net.generators:
+                if gen.is_regulator():
+                    gen.Q[:] = gen.Q_max + 1.
+
             # Variables
             net.set_flags('bus',
                           'variable',
@@ -88,7 +92,7 @@ class TestHeuristics(unittest.TestCase):
             acpf = pf.Constraint('AC power balance', net)
             pvpq = pf.Constraint('PVPQ switching', net)
             fix = pf.Constraint('variable fixing', net)
-
+            
             self.assertRaises(pf.HeuristicError, heur.apply, [], x)
             self.assertRaises(pf.HeuristicError, heur.apply, [fix], x)
             self.assertRaises(pf.HeuristicError, heur.apply, [fix, acpf], x)
@@ -98,6 +102,8 @@ class TestHeuristics(unittest.TestCase):
 
             for c in [acpf, pvpq, fix]:
                 c.analyze()
+
+            A = pvpq.A.copy()
 
             self.assertRaises(pf.HeuristicError, heur.apply, [], x)
             self.assertRaises(pf.HeuristicError, heur.apply, [fix], x)
@@ -109,4 +115,34 @@ class TestHeuristics(unittest.TestCase):
             heur.apply([acpf, fix, pvpq], x)
             self.assertEqual(acpf.f.size, 2*net.num_buses*T)
             self.assertEqual(pvpq.A.shape[1], net.num_vars)
+
+            self.assertFalse(np.all(A.data == pvpq.A.data))
+
+            for gen in net.generators:
+                gen.in_service = False
+
+            for c in [acpf, pvpq, fix]:
+                c.analyze()
+
+            A = pvpq.A.copy()
+
+            heur.apply([acpf, fix, pvpq], x)
+            self.assertEqual(acpf.f.size, 2*net.num_buses*T)
+            self.assertEqual(pvpq.A.shape[1], net.num_vars)
+
+            self.assertTrue(np.all(A.data == pvpq.A.data))
+            
+            net.make_all_in_service()
+
+            for bus in net.buses:
+                bus.in_service = False
+
+            for c in [acpf, pvpq, fix]:
+                c.analyze()
+
+            A = pvpq.A.copy()
+
+            heur.apply([acpf, fix, pvpq], x)
+
+            self.assertTrue(np.all(A.data == pvpq.A.data))
             
