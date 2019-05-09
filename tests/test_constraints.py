@@ -4725,6 +4725,69 @@ class TestConstraints(unittest.TestCase):
                     self.assertEqual(bus.sens_P_balance[t],3.5*bus.dP_index[t]+0.33+t*2*net.num_buses)
                     self.assertEqual(bus.sens_Q_balance[t],3.4*bus.dQ_index[t]+0.32+t*2*net.num_buses)
 
+            # with outages except buses
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, net.num_buses*4*self.T)
+            self.assertEqual(constr.J.shape[0], 2*net.num_buses*self.T)
+            self.assertEqual(constr.f.size, 2*net.num_buses*self.T)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 2*net.num_buses*3*self.T)
+            self.assertFalse(np.all(constr.H_nnz == 0), 0)
+
+            # with bus outages
+            net.make_all_in_service()
+            for bus in net.buses:
+                bus.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_ACPF_with_outages(self):
 
         # Constants
@@ -5079,6 +5142,27 @@ class TestConstraints(unittest.TestCase):
                         else:
                             self.assertEqual(bus.sens_v_set_reg[t],-bus.index-10 if bus.index != 0 else 10.5)
 
+            # With outages
+            for gen in net.generators:
+                gen.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_REG_VSET_with_outages(self):
 
         # Multiperiod
@@ -5131,7 +5215,8 @@ class TestConstraints(unittest.TestCase):
                 if bus.is_regulated_by_gen():
                     for gen in bus.reg_generators:
                         gen.in_service = False
-                    self.assertFalse(bus.is_regulated_by_gen())
+                    self.assertFalse(bus.is_regulated_by_gen(only_in_service=True))
+                    self.assertTrue(bus.is_regulated_by_gen())
 
             constr2 = pf.Constraint('voltage set point regulation', net)
             constr2.analyze()
@@ -5325,6 +5410,27 @@ class TestConstraints(unittest.TestCase):
                         if branch.is_tap_changer_v():
                             self.assertEqual(branch.reg_bus.sens_v_reg_by_tran[t],branch.reg_bus.index*t)
 
+            # With outages
+            for br in net.branches:
+                br.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_REG_TRAN_with_outages(self):
 
         # Multiperiod
@@ -5372,7 +5478,8 @@ class TestConstraints(unittest.TestCase):
                 if bus.is_regulated_by_tran():
                     for branch in bus.reg_trans:
                         branch.in_service = False
-                    self.assertFalse(bus.is_regulated_by_tran())
+                    self.assertFalse(bus.is_regulated_by_tran(only_in_service=True))
+                    self.assertTrue(bus.is_regulated_by_tran())
 
             constr2 = pf.Constraint('voltage regulation by transformers', net)
             constr2.analyze()
@@ -5568,6 +5675,27 @@ class TestConstraints(unittest.TestCase):
                     for shunt in bus.reg_shunts:
                         self.assertEqual(bus.sens_v_reg_by_shunt[t],bus.index*t)
 
+            # With outages
+            for shunt in net.shunts:
+                shunt.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_REG_SHUNT_with_outages(self):
 
         # Multiperiod
@@ -5610,6 +5738,32 @@ class TestConstraints(unittest.TestCase):
             self.assertLess(norm(constr0.b-constr1.b), 1e-8)
             self.assertEqual((constr0.J-constr1.J).tocoo().nnz, 0)
             self.assertLess(norm(constr0.f-constr1.f), 1e-8)
+
+    def test_network_state_tag(self):
+
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case, self.T)
+
+            if net.num_shunts == 0:
+                continue
+            
+            x = np.zeros(0)
+            
+            constr =  pf.Constraint('AC power balance',net)
+            constr.analyze()
+            constr.eval(x)
+
+            y = net.state_tag
+
+            # shunt
+            for shunt in net.shunts:
+                shunt.in_service = False
+
+            z = net.state_tag
+            self.assertEqual(y+net.num_shunts, z)
+
+            self.assertRaises(pf.ConstraintError, constr.eval, x)
                         
     def test_robustness(self):
 
@@ -6113,6 +6267,69 @@ class TestConstraints(unittest.TestCase):
                     self.assertNotEqual(bus.sens_P_balance[t], 0.)
                     self.assertEqual(bus.sens_Q_balance[t], 0.)
 
+            # with outages except buses
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], net.num_buses*self.T)
+            self.assertEqual(constr.b.size, net.num_buses*self.T)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+            
+            # with bus outages
+            net.make_all_in_service()
+            for bus in net.buses:
+                bus.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_DCPF_with_outages(self):
 
         # Multiperiods
@@ -6406,6 +6623,27 @@ class TestConstraints(unittest.TestCase):
                 self.assertLessEqual(norm(ls[t]-ls[0]),1e-10*norm(ls[0]))
                 self.assertLessEqual(norm(us[t]-us[0]),1e-10*norm(us[0]))
 
+            # with outages
+            for br in net.branches:
+                br.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_DC_FLOW_LIM_with_outages(self):
 
         # Multi period
@@ -6598,6 +6836,27 @@ class TestConstraints(unittest.TestCase):
             self.assertGreater(norm(constr.A.data),0)
             self.assertGreater(norm(constr.b),0)
             self.assertLess(norm(constr.b-(constrPF.J*x0-constrPF.f)),1e-10*(norm(b)+1))
+            
+            # with bus outages
+            for bus in net.buses:
+                bus.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
 
     def test_constr_LINPF_with_outages(self):
 
@@ -6822,6 +7081,27 @@ class TestConstraints(unittest.TestCase):
                                             else:
                                                 self.assertEqual(G.col[j],gen.index_P[t-1])
                                                 self.assertEqual(G.data[j],-1.)
+
+            # with outages
+            for gen in net.generators:
+                gen.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0) 
 
     def test_constr_GEN_RAMP_with_outages(self):
 
@@ -7148,6 +7428,27 @@ class TestConstraints(unittest.TestCase):
                             self.assertEqual(branch.sens_i_mag_u_bound[t], mu[G_row+1])
                         G_row += 2
 
+            # with outages
+            for br in net.branches:
+                br.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0) 
+
         # Single period
         for case in test_cases.CASES:
 
@@ -7423,6 +7724,27 @@ class TestConstraints(unittest.TestCase):
             self.assertTrue(np.all(constr.A.col == constrREF.A.col))
             self.assertTrue(np.all(constr.A.data == constrREF.A.data))
 
+            # with bus outages
+            for bus in net.buses:
+                bus.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_BAT_DYN(self):
 
         # Multi period
@@ -7591,6 +7913,27 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(b[A.row[j]],-bat.E_final)
                         self.assertEqual(np.where(A.row == A.row[j])[0].size,3)
                         self.assertEqual(A.row[j],eq_row)
+
+            # with outages
+            for bat in net.batteries:
+                bat.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
 
     def test_constr_BAT_DYN_with_outages(self):
 
@@ -7762,6 +8105,27 @@ class TestConstraints(unittest.TestCase):
                 for t in range(net.num_periods):
                     self.assertAlmostEqual(load.power_factor[t],load.target_power_factor)
 
+            # with outages
+            for load in net.loads:
+                load.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_LOAD_PF_with_outages(self):
 
         # Multi period
@@ -7927,9 +8291,26 @@ class TestConstraints(unittest.TestCase):
             self.assertTupleEqual(l.shape,(constr.G_row,))
             self.assertTrue(np.all(l == -1e8))
 
-    def test_constr_AC_LIN_FLOW_LIM_with_outages(self):
-
-        pass
+            # with outages
+            for br in net.branches:
+                br.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertTrue(np.all(constr.f == 0.))
+            self.assertTrue(np.all(constr.J.data == 0.))
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
 
     def test_nonlinear_constr_creation(self):
         

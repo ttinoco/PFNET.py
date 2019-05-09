@@ -3359,7 +3359,7 @@ class TestFunctions(unittest.TestCase):
         for case in test_cases.CASES:
 
             net = pf.Parser(case).parse(case, self.T)
-
+            
             x = np.zeros(0)
 
             f = pf.Function('generation cost',1.,net)
