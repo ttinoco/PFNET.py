@@ -136,69 +136,95 @@ cdef class Bus:
 
         cbus.BUS_set_star_flag(self._c_ptr, flag)
 
-    def is_v_set_regulated(self):
+    def is_v_set_regulated(self, only_in_service=False):
         """
         Determines whether the bus has its voltage set point regulated.
+
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_v_set_regulated(self._c_ptr)
+        return cbus.BUS_is_v_set_regulated(self._c_ptr, only_in_service)
 
-    def is_regulated_by_gen(self):
+    def is_regulated_by_gen(self, only_in_service=False):
         """
         Determines whether the bus is regulated by a generator.
 
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_regulated_by_gen(self._c_ptr)
+        return cbus.BUS_is_regulated_by_gen(self._c_ptr, only_in_service)
 
-    def is_regulated_by_tran(self):
+    def is_regulated_by_tran(self, only_in_service=False):
         """
         Determines whether the bus is regulated by a transformer.
 
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_regulated_by_tran(self._c_ptr)
+        return cbus.BUS_is_regulated_by_tran(self._c_ptr, only_in_service)
 
-    def is_regulated_by_shunt(self):
+    def is_regulated_by_shunt(self, only_in_service=False):
         """
         Determines whether the bus is regulated by a shunt device.
 
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_regulated_by_shunt(self._c_ptr)
+        return cbus.BUS_is_regulated_by_shunt(self._c_ptr, only_in_service)
 
-    def is_regulated_by_vsc_converter(self):
+    def is_regulated_by_vsc_converter(self, only_in_service=False):
         """
         Determines whether the bus is regulated by a VSC converter.
 
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_regulated_by_vsc_conv(self._c_ptr)
+        return cbus.BUS_is_regulated_by_vsc_conv(self._c_ptr, only_in_service)
 
-    def is_regulated_by_facts(self):
+    def is_regulated_by_facts(self, only_in_service=False):
         """
         Determines whether the bus is regulated by a FACTS device.
+
+        Parameters
+        ----------
+        only_in_service : |TrueFalse| (for considering only regulating devices that are in service)
+
         Returns
         -------
         flag : |TrueFalse|
         """
 
-        return cbus.BUS_is_regulated_by_facts(self._c_ptr)
+        return cbus.BUS_is_regulated_by_facts(self._c_ptr, only_in_service)
 
     def has_flags(self, flag_type, q):
         """

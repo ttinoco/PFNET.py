@@ -2234,10 +2234,7 @@ class TestConstraints(unittest.TestCase):
                     ar = np.where(A.col == bus.index_v_mag[t])[0]
                     self.assertEqual(ar.size,1)
                     self.assertEqual(A.col[ar[0]],bus.index_v_mag[t])
-                    if bus.is_regulated_by_gen():
-                        self.assertEqual(b[A.row[ar[0]]],bus.v_set[t])
-                    else:
-                        self.assertEqual(b[A.row[ar[0]]],bus.v_mag[t])
+                    self.assertEqual(b[A.row[ar[0]]],bus.v_mag[t])
                     ar = np.where(A.col == bus.index_v_ang[t])[0]
                     self.assertEqual(ar.size,1)
                     self.assertEqual(A.col[ar[0]],bus.index_v_ang[t])
@@ -2435,7 +2432,7 @@ class TestConstraints(unittest.TestCase):
 
         # Single period
         for case in test_cases.CASES:
-
+            
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
 
@@ -2799,6 +2796,33 @@ class TestConstraints(unittest.TestCase):
                           'bounded',
                           'any',
                           'all')
+
+            # outages have no effect
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            
             self.assertEqual(net.num_vars,num_vars_saved)
             self.assertEqual(net.num_fixed,0)
             self.assertEqual(net.num_bounded,net.num_vars)
@@ -3511,6 +3535,33 @@ class TestConstraints(unittest.TestCase):
                           'bounded',
                           'any',
                           'all')
+
+            # outages have no effect
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            
             self.assertGreater(net.num_vars,0)
             self.assertEqual(net.num_bounded,net.num_vars)
 
@@ -3665,7 +3716,7 @@ class TestConstraints(unittest.TestCase):
                         self.assertEqual(shunt.sens_b_u_bound[t], mu[shunt.index_b[t]])
                         self.assertEqual(shunt.sens_b_l_bound[t], pi[shunt.index_b[t]])
 
-    def test_constr_LBOUND_with_outages(self):
+    def test_constr_BOUND_with_outages(self):
 
         # Multiperiod
         for case in test_cases.CASES:
@@ -3798,7 +3849,7 @@ class TestConstraints(unittest.TestCase):
 
         # Multiperiod
         for case in test_cases.CASES:
-
+            
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
             self.assertEqual(net.num_vars,0)
@@ -3917,6 +3968,25 @@ class TestConstraints(unittest.TestCase):
                             x[g.index_P[t]] = 10.
             self.assertGreater(norm(x),0)
             self.assertTrue(norm(A*x-b) < 1e-10)
+
+            # With outages
+            for gen in net.generators:
+                gen.in_service = False
+            constr.analyze()
+            constr.eval(x0)
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
 
     def test_constr_PAR_GEN_P_with_outages(self):
 
@@ -4148,6 +4218,39 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(A.shape[0], m*self.T)
             self.assertEqual(A.nnz, nnz*self.T)
 
+            # With outages
+            net.clear_flags()
+            net.set_flags('bus',
+                          'variable',
+                          'regulated by generator',
+                          'voltage magnitude')
+            net.set_flags('generator',
+                          'variable',
+                          'slack',
+                          ['active power','reactive power'])
+            net.set_flags('generator',
+                          'variable',
+                          'regulator',
+                          'reactive power')
+            self.assertGreater(net.num_vars, 0)
+            for gen in net.generators:
+                gen.in_service = False
+            constr.analyze()
+            constr.eval(net.get_var_values())
+            self.assertEqual(constr.A.nnz, 0)
+            self.assertEqual(constr.A.shape[0], 0)
+            self.assertEqual(constr.b.size, 0)
+            self.assertTrue(np.all(constr.b == 0))
+            self.assertEqual(constr.J.nnz, 0)
+            self.assertEqual(constr.J.shape[0], 0)
+            self.assertEqual(constr.f.size, 0)
+            self.assertEqual(constr.G.nnz, 0)
+            self.assertEqual(constr.G.shape[0], 0)
+            self.assertEqual(constr.u.size, 0)
+            self.assertEqual(constr.l.size, 0)
+            self.assertEqual(constr.H_combined.nnz, 0)
+            self.assertTrue(np.all(constr.H_nnz == 0), 0)
+
     def test_constr_PVPQ_SWITCHING_with_outages(self):
 
         # Multiperiod
@@ -4202,7 +4305,7 @@ class TestConstraints(unittest.TestCase):
                 if bus.is_regulated_by_gen():
                     for gen in bus.reg_generators:
                         gen.in_service = False
-                    self.assertFalse(bus.is_regulated_by_gen())
+                    self.assertFalse(bus.is_regulated_by_gen(only_in_service=True))
 
             self.assertNotEqual(net.get_num_generators_out_of_service(), 0)
 

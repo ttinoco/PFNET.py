@@ -2195,7 +2195,7 @@ class TestFunctions(unittest.TestCase):
             ceps = 1e-4
             f_manual = 0
             for bus in net.buses:
-                if bus.is_regulated_by_gen():
+                if bus.is_regulated_by_gen(only_in_service=True):
                     self.assertTrue(bus.has_flags('variable','voltage magnitude'))
                     val = x0[bus.index_v_mag]
                     val0 = bus.v_set

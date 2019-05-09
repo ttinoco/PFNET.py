@@ -216,9 +216,10 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(facts.reg_bus is not None)
                     self.assertTrue(facts.index in [f.index for f in facts.reg_bus.reg_facts])
                     if all([not f.is_in_service() for f in facts.reg_bus.reg_facts]):
-                        self.assertFalse(facts.reg_bus.is_regulated_by_facts())
+                        self.assertFalse(facts.reg_bus.is_regulated_by_facts(only_in_service=True))
                     else:
-                        self.assertTrue(facts.reg_bus.is_regulated_by_facts())
+                        self.assertTrue(facts.reg_bus.is_regulated_by_facts(only_in_service=True))
+                    self.assertTrue(facts.reg_bus.is_regulated_by_facts())
 
             # csc
             for conv in net.csc_converters:
@@ -240,9 +241,10 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(conv.reg_bus is not None)
                     self.assertTrue(conv.index in [c.index for c in conv.reg_bus.reg_vsc_converters])
                     if all([not c.is_in_service() for c in conv.reg_bus.reg_vsc_converters]):
-                        self.assertFalse(conv.reg_bus.is_regulated_by_vsc_converter())
+                        self.assertFalse(conv.reg_bus.is_regulated_by_vsc_converter(only_in_service=True))
                     else:
-                        self.assertTrue(conv.reg_bus.is_regulated_by_vsc_converter())
+                        self.assertTrue(conv.reg_bus.is_regulated_by_vsc_converter(only_in_service=True))
+                    self.assertTrue(conv.reg_bus.is_regulated_by_vsc_converter())
 
             # shunts
             for shunt in net.shunts:
@@ -262,9 +264,10 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(shunt.reg_bus is not None)
                     self.assertTrue(shunt.index in [s.index for s in shunt.reg_bus.reg_shunts])
                     if all([not s.is_in_service() for s in shunt.reg_bus.reg_shunts]):
-                        self.assertFalse(shunt.reg_bus.is_regulated_by_shunt())
+                        self.assertFalse(shunt.reg_bus.is_regulated_by_shunt(only_in_service=True))
                     else:
-                        self.assertTrue(shunt.reg_bus.is_regulated_by_shunt())
+                        self.assertTrue(shunt.reg_bus.is_regulated_by_shunt(only_in_service=True))
+                    self.assertTrue(shunt.reg_bus.is_regulated_by_shunt())
 
             # vargens
             for gen in net.var_generators:
@@ -328,9 +331,10 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(gen.reg_bus is not None)
                     self.assertTrue(gen.index in [g.index for g in gen.reg_bus.reg_generators])
                     if all([not g.is_in_service() for g in gen.reg_bus.reg_generators]):
-                        self.assertFalse(gen.reg_bus.is_regulated_by_gen())
+                        self.assertFalse(gen.reg_bus.is_regulated_by_gen(only_in_service=True))
                     else:
-                        self.assertTrue(gen.reg_bus.is_regulated_by_gen())
+                        self.assertTrue(gen.reg_bus.is_regulated_by_gen(only_in_service=True))
+                    self.assertTrue(gen.reg_bus.is_regulated_by_gen())
 
                 # slack
                 if slack:
@@ -388,9 +392,10 @@ class TestInOutService(unittest.TestCase):
                     self.assertTrue(branch.index in [br.index for br in branch.reg_bus.reg_trans])
 
                     if all([not br.is_in_service() for br in branch.reg_bus.reg_trans]):
-                        self.assertFalse(branch.reg_bus.is_regulated_by_tran())
+                        self.assertFalse(branch.reg_bus.is_regulated_by_tran(only_in_service=True))
                     else:
-                        self.assertTrue(branch.reg_bus.is_regulated_by_tran())
+                        self.assertTrue(branch.reg_bus.is_regulated_by_tran(only_in_service=True))
+                    self.assertTrue(branch.reg_bus.is_regulated_by_tran())
 
                 # clear
                 branch.in_service = True
@@ -443,12 +448,20 @@ class TestInOutService(unittest.TestCase):
                 self.assertEqual(bus.is_star(), star)
                 
                 # reg 
-                self.assertFalse(bus.is_regulated_by_gen())
-                self.assertFalse(bus.is_regulated_by_tran())
-                self.assertFalse(bus.is_regulated_by_shunt())
-                self.assertFalse(bus.is_v_set_regulated())
-                self.assertFalse(bus.is_regulated_by_vsc_converter())
-                self.assertFalse(bus.is_regulated_by_facts())            
+                self.assertEqual(bus.is_regulated_by_gen(only_in_service=True),
+                                 any([x for x in bus.reg_generators if x.in_service]))
+                self.assertEqual(bus.is_regulated_by_tran(only_in_service=True),
+                                 any([x for x in bus.reg_trans if x.in_service]))
+                self.assertEqual(bus.is_regulated_by_shunt(only_in_service=True),
+                                 any([x for x in bus.reg_shunts if x.in_service]))
+                self.assertEqual(bus.is_v_set_regulated(only_in_service=True),
+                                 (bus.is_regulated_by_gen(only_in_service=True) or
+                                  bus.is_regulated_by_shunt(only_in_service=True) or
+                                  bus.is_regulated_by_facts(only_in_service=True)))
+                self.assertEqual(bus.is_regulated_by_vsc_converter(only_in_service=True),
+                                 any([x for x in bus.reg_vsc_converters if x.in_service]))
+                self.assertEqual(bus.is_regulated_by_facts(only_in_service=True),
+                                 any([x for x in bus.reg_facts if x.in_service]))
 
                 for gen in bus.generators:
                     self.assertFalse(gen.in_service)
@@ -561,19 +574,26 @@ class TestInOutService(unittest.TestCase):
             self.assertEqual(net.get_num_branches(False), net.num_branches)
             self.assertEqual(net.get_num_branches_out_of_service(), net.num_branches)
             self.assertEqual(net.get_num_fixed_trans(only_in_service=True), 0)
-            self.assertEqual(net.get_num_fixed_trans(only_in_service=False), len([br for br in net.branches if br.is_fixed_tran()]))
+            self.assertEqual(net.get_num_fixed_trans(only_in_service=False),
+                             len([br for br in net.branches if br.is_fixed_tran()]))
             self.assertEqual(net.get_num_lines(only_in_service=True), 0)
-            self.assertEqual(net.get_num_lines(only_in_service=False), len([br for br in net.branches if br.is_line()]))
+            self.assertEqual(net.get_num_lines(only_in_service=False),
+                             len([br for br in net.branches if br.is_line()]))
             self.assertEqual(net.get_num_zero_impedance_lines(only_in_service=True), 0)
-            self.assertEqual(net.get_num_zero_impedance_lines(only_in_service=False), len([br for br in net.branches if br.is_zero_impedance_line()]))
+            self.assertEqual(net.get_num_zero_impedance_lines(only_in_service=False),
+                             len([br for br in net.branches if br.is_zero_impedance_line()]))
             self.assertEqual(net.get_num_phase_shifters(only_in_service=True), 0)
-            self.assertEqual(net.get_num_phase_shifters(only_in_service=False), len([br for br in net.branches if br.is_phase_shifter()]))
+            self.assertEqual(net.get_num_phase_shifters(only_in_service=False),
+                             len([br for br in net.branches if br.is_phase_shifter()]))
             self.assertEqual(net.get_num_tap_changers(only_in_service=True), 0)
-            self.assertEqual(net.get_num_tap_changers(only_in_service=False), len([br for br in net.branches if br.is_tap_changer()]))
+            self.assertEqual(net.get_num_tap_changers(only_in_service=False),
+                             len([br for br in net.branches if br.is_tap_changer()]))
             self.assertEqual(net.get_num_tap_changers_v(only_in_service=True), 0)
-            self.assertEqual(net.get_num_tap_changers_v(only_in_service=False), len([br for br in net.branches if br.is_tap_changer_v()]))
+            self.assertEqual(net.get_num_tap_changers_v(only_in_service=False),
+                             len([br for br in net.branches if br.is_tap_changer_v()]))
             self.assertEqual(net.get_num_tap_changers_Q(only_in_service=True), 0)
-            self.assertEqual(net.get_num_tap_changers_Q(only_in_service=False), len([br for br in net.branches if br.is_tap_changer_Q()]))
+            self.assertEqual(net.get_num_tap_changers_Q(only_in_service=False),
+                             len([br for br in net.branches if br.is_tap_changer_Q()]))
 
             self.assertEqual(net.get_num_generators(only_in_service=True), 0)
             self.assertEqual(net.get_num_generators(only_in_service=False), net.num_generators)
@@ -593,12 +613,18 @@ class TestInOutService(unittest.TestCase):
             self.assertEqual(net.get_num_buses_reg_by_shunt(only_in_service=True), 0)
             self.assertEqual(net.get_num_buses_reg_by_facts(only_in_service=True), 0)
             self.assertEqual(net.get_num_buses_reg_by_vsc_converter(only_in_service=True), 0)
-            self.assertEqual(net.get_num_slack_buses(only_in_service=False), len([b for b in net.buses if b.is_slack()]))
-            self.assertEqual(net.get_num_star_buses(only_in_service=False), len([b for b in net.buses if b.is_star()]))
-            self.assertEqual(net.get_num_buses_reg_by_gen(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_gen()]))
-            self.assertEqual(net.get_num_buses_reg_by_tran(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_tran()]))
-            self.assertEqual(net.get_num_buses_reg_by_shunt(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_shunt()]))
-            self.assertEqual(net.get_num_buses_reg_by_facts(only_in_service=False), len([b for b in net.buses if b.is_regulated_by_facts()]))
+            self.assertEqual(net.get_num_slack_buses(only_in_service=False),
+                             len([b for b in net.buses if b.is_slack()]))
+            self.assertEqual(net.get_num_star_buses(only_in_service=False),
+                             len([b for b in net.buses if b.is_star()]))
+            self.assertEqual(net.get_num_buses_reg_by_gen(only_in_service=False),
+                             len([b for b in net.buses if b.is_regulated_by_gen()]))
+            self.assertEqual(net.get_num_buses_reg_by_tran(only_in_service=False),
+                             len([b for b in net.buses if b.is_regulated_by_tran()]))
+            self.assertEqual(net.get_num_buses_reg_by_shunt(only_in_service=False),
+                             len([b for b in net.buses if b.is_regulated_by_shunt()]))
+            self.assertEqual(net.get_num_buses_reg_by_facts(only_in_service=False),
+                             len([b for b in net.buses if b.is_regulated_by_facts()]))
             self.assertEqual(net.get_num_buses_reg_by_vsc_converter(only_in_service=False),
                              len([b for b in net.buses if b.is_regulated_by_vsc_converter()]))
             
@@ -612,11 +638,14 @@ class TestInOutService(unittest.TestCase):
             self.assertEqual(net.get_num_shunts(only_in_service=False), net.num_shunts)
             self.assertEqual(net.get_num_shunts_out_of_service(), net.num_shunts)
             self.assertEqual(net.get_num_fixed_shunts(only_in_service=True), 0)
-            self.assertEqual(net.get_num_fixed_shunts(only_in_service=False), len([s for s in net.shunts if s.is_fixed()]))
+            self.assertEqual(net.get_num_fixed_shunts(only_in_service=False),
+                             len([s for s in net.shunts if s.is_fixed()]))
             self.assertEqual(net.get_num_switched_shunts(only_in_service=True), 0)
-            self.assertEqual(net.get_num_switched_shunts(only_in_service=False), len([s for s in net.shunts if s.is_switched()]))
+            self.assertEqual(net.get_num_switched_shunts(only_in_service=False),
+                             len([s for s in net.shunts if s.is_switched()]))
             self.assertEqual(net.get_num_switched_v_shunts(only_in_service=True), 0)
-            self.assertEqual(net.get_num_switched_v_shunts(only_in_service=False), len([s for s in net.shunts if s.is_switched_v()]))            
+            self.assertEqual(net.get_num_switched_v_shunts(only_in_service=False),
+                             len([s for s in net.shunts if s.is_switched_v()]))            
 
             self.assertEqual(net.get_num_batteries(only_in_service=True), 0)
             self.assertEqual(net.get_num_batteries(only_in_service=False), net.num_batteries)
@@ -821,7 +850,8 @@ class TestInOutService(unittest.TestCase):
                     self.assertLess(np.abs(net.tran_v_vio-15.), 1e-8)
                     for branch in bus.reg_trans:
                         branch.in_service = False
-                    self.assertFalse(bus.is_regulated_by_tran())
+                    self.assertTrue(bus.is_regulated_by_tran())
+                    self.assertFalse(bus.is_regulated_by_tran(only_in_service=True))
                     net.update_properties()
                     self.assertGreater(np.abs(net.tran_v_vio-15.), 1e-8)
                     break
@@ -835,7 +865,8 @@ class TestInOutService(unittest.TestCase):
                     self.assertLess(np.abs(net.gen_v_dev-33.), 1e-8)
                     for gen in bus.reg_generators:
                         gen.in_service = False
-                    self.assertFalse(bus.is_regulated_by_gen())
+                    self.assertTrue(bus.is_regulated_by_gen())
+                    self.assertFalse(bus.is_regulated_by_gen(only_in_service=True))
                     net.update_properties()
                     self.assertGreater(np.abs(net.gen_v_dev-33.), 1e-8)
                     break
