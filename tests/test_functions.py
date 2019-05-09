@@ -25,7 +25,7 @@ class TestFunctions(unittest.TestCase):
         self.T = 4
 
         # Random
-        np.random.seed(1)
+        np.random.seed(1)            
 
     def test_func_FACTS_PSET(self):
 
@@ -93,6 +93,16 @@ class TestFunctions(unittest.TestCase):
                                                   EPS,
                                                   h)
 
+            # With outages
+            for facts in net.facts:
+                facts.in_service = False        
+            f.analyze()
+            f.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(f.phi, 0.)
+            self.assertEqual(f.gphi.size, net.num_vars)
+            self.assertTrue(np.all(f.gphi == 0.))
+            self.assertEqual(f.Hphi.nnz, 0.)
+
     def test_func_FACTS_QSET(self):
 
         # Constants
@@ -158,6 +168,16 @@ class TestFunctions(unittest.TestCase):
                                                   TOL,
                                                   EPS,
                                                   h)
+
+            # With outages
+            for facts in net.facts:
+                facts.in_service = False
+            f.analyze()
+            f.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(f.phi, 0.)
+            self.assertEqual(f.gphi.size, net.num_vars)
+            self.assertTrue(np.all(f.gphi == 0.))
+            self.assertEqual(f.Hphi.nnz, 0.)
 
     def test_func_VSC_DC_PSET(self):
 
@@ -225,6 +245,16 @@ class TestFunctions(unittest.TestCase):
                                                   EPS,
                                                   h)
 
+            # With outages
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            f.analyze()
+            f.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(f.phi, 0.)
+            self.assertEqual(f.gphi.size, net.num_vars)
+            self.assertTrue(np.all(f.gphi == 0.))
+            self.assertEqual(f.Hphi.nnz, 0.)
+
     def test_func_CSC_DC_PSET(self):
 
         # Constants
@@ -291,6 +321,16 @@ class TestFunctions(unittest.TestCase):
                                                   EPS,
                                                   h)
 
+            # With outages
+            for conv in net.csc_converters:
+                conv.in_service = False
+            f.analyze()
+            f.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(f.phi, 0.)
+            self.assertEqual(f.gphi.size, net.num_vars)
+            self.assertTrue(np.all(f.gphi == 0.))
+            self.assertEqual(f.Hphi.nnz, 0.)
+
     def test_func_CSC_DC_ISET(self):
 
         # Constants
@@ -356,6 +396,16 @@ class TestFunctions(unittest.TestCase):
                                                   TOL,
                                                   EPS,
                                                   h)
+
+            # With outages
+            for conv in net.csc_converters:
+                conv.in_service = False
+            f.analyze()
+            f.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(f.phi, 0.)
+            self.assertEqual(f.gphi.size, net.num_vars)
+            self.assertTrue(np.all(f.gphi == 0.))
+            self.assertEqual(f.Hphi.nnz, 0.)
 
     def test_func_REG_VMAG(self):
 
@@ -470,6 +520,16 @@ class TestFunctions(unittest.TestCase):
                     phi += 0.5*(((bus.v_mag[t]-bus.v_set[t])/dv)**2.)
             self.assertLess(np.abs(func.phi-phi),1e-10*(func.phi+1))
 
+            # With outages
+            for bus in net.buses:
+                bus.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
+
     def test_func_REG_VMAG_with_outages(self):
 
         # Constants
@@ -575,6 +635,32 @@ class TestFunctions(unittest.TestCase):
                           'variable',
                           'any',
                           'all')
+
+            # Outages have no effect
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for branch in net.dc_branches:
+                branch.in_service = False
+            for conv in net.csc_converters:
+                conv.in_service = False
+            for conv in net.vsc_converters:
+                conv.in_service = False
+            for facts in net.facts:
+                facts.in_service = False
+            for bat in net.batteries:
+                bat.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
             
             self.assertEqual(net.num_vars,
                              (net.num_buses*2+
@@ -901,6 +987,21 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             func.eval(np.zeros(0))
             self.assertEqual(func.phi, 0.)
+
+            # With outages
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          'active power')
+            self.assertEqual(net.num_vars,net.num_generators*self.T)
+            for gen in net.generators:
+                gen.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
             
     def test_func_REG_PQ(self):
 
@@ -1016,6 +1117,21 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             func.eval(np.zeros(0))
             self.assertLess(np.abs(func.phi-phi),1e-10*(func.phi+1.))
+
+            # With outages
+            net.set_flags('generator',
+                          'variable',
+                          'any',
+                          ['active power', 'reactive power'])
+            self.assertEqual(net.num_vars,2*net.num_generators*self.T)
+            for gen in net.generators:
+                gen.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_REG_PQ_with_outages(self):
 
@@ -1176,6 +1292,21 @@ class TestFunctions(unittest.TestCase):
             func.analyze()
             func.eval(np.zeros(0))
             self.assertLess(np.abs(func.phi-phi),1e-10*(phi+1.))
+
+            # With outages
+            net.set_flags('bus',
+                          'variable',
+                          'any',
+                          'voltage angle')
+            self.assertEqual(net.num_vars,net.num_buses*self.T)
+            for bus in net.buses:
+                bus.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_REG_VANG_with_outages(self):
 
@@ -1342,6 +1473,16 @@ class TestFunctions(unittest.TestCase):
                                                   EPS,
                                                   h)
 
+            # With outages
+            for branch in net.branches:
+                branch.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
+
     def test_func_REG_RATIO_with_outages(self):
 
         # Constants
@@ -1476,6 +1617,16 @@ class TestFunctions(unittest.TestCase):
                                                   EPS,
                                                   h)
 
+            # With outages
+            for shunt in net.shunts:
+                shunt.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)            
+
     def test_func_REG_SUSC_with_outages(self):
 
         # Constants
@@ -1523,7 +1674,7 @@ class TestFunctions(unittest.TestCase):
 
             net = pf.Parser(case).parse(case)
             self.assertEqual(net.num_periods,1)
-
+            
             # Vars
             net.set_flags('generator',
                           'variable',
@@ -1627,7 +1778,7 @@ class TestFunctions(unittest.TestCase):
 
             net = pf.Parser(case).parse(case,self.T)
             self.assertEqual(net.num_periods,self.T)
-
+            
             # Gen curves
             data = {}
             for gen in net.generators:
@@ -1736,6 +1887,16 @@ class TestFunctions(unittest.TestCase):
                             gen.cost_coeff_Q1*gen.P[t] +
                             gen.cost_coeff_Q2*(gen.P[t]**2.))
             self.assertLess(np.abs(val-func.phi),1e-10*np.abs(func.phi))
+
+            # With outages
+            for gen in net.generators:
+                gen.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_GEN_COST_with_outages(self):
 
@@ -1948,6 +2109,20 @@ class TestFunctions(unittest.TestCase):
                                                   TOL,
                                                   EPS,
                                                   1e-6)
+
+            # With outages
+            for gen in net.generators:
+                gen.in_service = False
+            for branch in net.branches:
+                branch.in_service = False
+            for shunt in net.shunts:
+                shunt.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_SP_CONTROLS_with_outages(self):
 
@@ -2162,6 +2337,16 @@ class TestFunctions(unittest.TestCase):
                                                   TOL,
                                                   EPS,
                                                   h)
+
+            # With outages
+            for bus in net.buses:
+                bus.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
             
     def test_func_SLIM_VMAG_with_outages(self):
 
@@ -2308,6 +2493,16 @@ class TestFunctions(unittest.TestCase):
                                                   TOL,
                                                   EPS,
                                                   h)
+
+            # With outages
+            for branch in net.branches:
+                branch.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_REG_PHASE_with_outages(self):
 
@@ -2566,6 +2761,16 @@ class TestFunctions(unittest.TestCase):
                             load.util_coeff_Q1*load.P[t] +
                             load.util_coeff_Q2*(load.P[t]**2.))
             self.assertLess(np.abs(val-func.phi),1e-10*np.abs(func.phi))
+
+            # With outages
+            for load in net.loads:
+                load.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def test_func_LOAD_UTIL_with_outages(self):
 
@@ -2938,6 +3143,30 @@ class TestFunctions(unittest.TestCase):
                         val -= bus.price[t]*vargen.P[t]
             self.assertLess(np.abs(val-func.phi),1e-10*np.abs(f))
 
+            # With outages
+            for gen in net.generators:
+                gen.in_service = False
+            for load in net.loads:
+                load.in_service = False
+            for gen in net.var_generators:
+                gen.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
+
+            net.make_all_in_service()
+            for bus in net.buses:
+                bus.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
+
     def test_func_NETCON_COST_with_outages(self):
 
         # Multi period
@@ -3125,6 +3354,25 @@ class TestFunctions(unittest.TestCase):
             self.assertTrue(any([f.phi > 0 for f in functions]))
             self.assertTrue(any([f.Hphi.nnz > 0 for f in functions]))
 
+    def test_network_state_tag(self):
+
+        for case in test_cases.CASES:
+
+            net = pf.Parser(case).parse(case, self.T)
+
+            x = np.zeros(0)
+
+            f = pf.Function('generation cost',1.,net)
+            f.analyze()
+
+            f.eval(x)
+
+            # load
+            for load in net.loads:
+                load.in_service = False
+
+            self.assertRaises(pf.FunctionError, f.eval, x)
+            
     def test_robustness_with_outages(self):
         
         for case in test_cases.CASES:
@@ -3132,6 +3380,7 @@ class TestFunctions(unittest.TestCase):
             net = pf.Parser(case).parse(case, self.T)
 
             functions = [pf.Function('generation cost',1.,net),
+                         pf.Function('generation redispatch penalty',1.,net),
                          pf.Function('phase shift regularization',1.,net),
                          pf.Function('generator powers regularization',1.,net),
                          pf.Function('tap ratio regularization',1.,net),
@@ -3322,6 +3571,16 @@ class TestFunctions(unittest.TestCase):
             self.assertEqual(p.num_extra_vars, 1)
             self.assertEqual(p.l[0], 0.)
             self.assertEqual(p.u[0], 1e8)
+
+            # With outages
+            for bus in net.buses:
+                bus.in_service = False
+            func.analyze()
+            func.eval(net.get_var_values()+np.random.randn(net.num_vars))
+            self.assertEqual(func.phi, 0.)
+            self.assertEqual(func.gphi.size, net.num_vars)
+            self.assertTrue(np.all(func.gphi == 0.))
+            self.assertEqual(func.Hphi.nnz, 0.)
 
     def tearDown(self):
 
