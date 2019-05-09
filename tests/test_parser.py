@@ -18,6 +18,34 @@ class TestParser(unittest.TestCase):
         
         pass
 
+    def test_parserraw_keep_all_lossless(self):
+
+        try:
+            
+            for case in test_cases.CASES:
+                
+                if os.path.splitext(case)[-1] != '.raw':
+                    continue
+                
+                parser = pf.ParserRAW()
+                parser.set('keep_all_out_of_service', 1)
+
+                net1 = parser.parse(case)
+                
+                parser = pf.ParserRAW()
+                parser.write(net1, 'foo.raw')
+
+                parser = pf.ParserRAW()
+                parser.set('keep_all_out_of_service', 1)
+
+                net2 = parser.parse('foo.raw')
+
+                pf.tests.utils.compare_networks(self, net1, net2, eps=1e-9)
+        finally:
+
+            if os.path.isfile('foo.raw'):
+                os.remove('foo.raw')            
+
     def test_parserraw_in_out(self):
         
         case = os.path.join('data', 'psse_sample_case_oos.raw')
