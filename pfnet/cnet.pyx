@@ -1655,6 +1655,21 @@ cdef class Network:
 
         return cnet.NET_get_num_lines(self._c_net, only_in_service)
 
+    def get_num_ZI_lines(self, only_in_service=False):
+        """
+        Gets number of zero impedance lines in the network.
+
+        Parameters
+        ----------
+        only_in_service: |TrueFalse|
+
+        Returns
+        -------
+        num : int
+        """
+
+        return cnet.NET_get_num_zero_impedance_lines(self._c_net, only_in_service)
+
     def get_num_zero_impedance_lines(self, only_in_service=False):
         """
         Gets number of zero impedance lines in the network.

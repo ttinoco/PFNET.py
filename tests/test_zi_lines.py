@@ -102,6 +102,7 @@ class TestZILines(unittest.TestCase):
         self.assertEqual(net1.num_buses, 2495)
         self.assertEqual(net1.num_branches, 2823)
         self.assertEqual(net1.get_num_zero_impedance_lines(), 42)
+        self.assertEqual(net1.get_num_ZI_lines(), 42)
 
         net2 = net1.get_copy(merge_buses=True)
         net2.update_properties()
