@@ -6,17 +6,45 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
+import os
 import unittest
 import numpy as np
 import pfnet as pf
 from . import test_cases
 
 class TestHeuristics(unittest.TestCase):
-    
+
+    def test_PVPQ_switching_robustness(self):
+        
+        T = 2
+        
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case, T)
+
+            net.set_flags('bus', 'variable', 'any', 'voltage magnitude')
+            
+            c1 = pf.Constraint('AC power balance', net)
+            c2 = pf.Constraint('PVPQ switching', net)
+            c1.analyze()
+            c2.analyze()
+            
+            h = pf.Heuristic('PVPQ switching', net)
+            self.assertRaises(pf.HeuristicError, h.apply, [c1, c2], np.zeros(0))
+            
+            h.apply([c1, c2], np.zeros(net.num_vars))
+            
+            p = pf.Problem(net)
+            p.add_heuristic(h)
+            p.add_constraint(c1)
+            p.add_constraint(c2)
+            p.analyze()
+            p.apply_heuristics(p.x)
+        
     def test_PVPQ_switching(self):
 
         T = 2
-
+        
         for case in test_cases.CASES:
             
             net = pf.Parser(case).parse(case, T)
