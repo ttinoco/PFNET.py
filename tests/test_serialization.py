@@ -28,6 +28,11 @@ class TestSerialization(unittest.TestCase):
 
             # Load network
             net1 = pf.Parser(case).parse(case)
+
+            c1 = pf.Constraint('AC power balance', net1)
+            c1.analyze()
+            c2 = pf.Constraint('HVDC power balance', net1)
+            c2.analyze()
             
             # Some modifications
             for gen in net1.generators:
@@ -36,7 +41,7 @@ class TestSerialization(unittest.TestCase):
             # Testing json string
             json_net_string = json.dumps(net1, cls=pf.NetworkJSONEncoder)
             net2 = json.loads(json_net_string, cls=pf.NetworkJSONDecoder)            
-            pf.tests.utils.compare_networks(self, net1, net2)
+            pf.tests.utils.compare_networks(self, net1, net2, True)
 
             # Testing pickle with file
             with tempfile.TemporaryFile(mode='r+') as json_net_file:
@@ -44,7 +49,7 @@ class TestSerialization(unittest.TestCase):
                 json_net_file.seek(0)
                 net3 = json.load(json_net_file, cls=pf.NetworkJSONDecoder)
                 json_net_file.close()
-                pf.tests.utils.compare_networks(self, net1, net3)
+                pf.tests.utils.compare_networks(self, net1, net3, True)
 
     def test_network_pickle(self):
 

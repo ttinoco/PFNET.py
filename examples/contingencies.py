@@ -14,17 +14,15 @@ import pfnet
 
 net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1])
 
-net.clear_outages()
-
 gen = net.get_generator(3)
 branch = net.get_branch(2)
 
-gen.outage = True
-branch.outage = True
+gen.in_service = False
+branch.in_service = False
 
-print(net.get_num_generators_on_outage(), net.get_num_branches_on_outage())
+print(net.get_num_generators_out_of_service(), net.get_num_branches_out_of_service())
 
-net.clear_outages()
+net.make_all_in_service()
 
 gen = net.get_generator(3)
 branch = net.get_branch(2)
@@ -35,12 +33,12 @@ print(c1.num_generator_outages, c1.num_branch_outages)
 
 print(c1.outages)
 
-print(gen.is_on_outage(), branch.is_on_outage())
+print(gen.is_in_service(), branch.is_in_service())
 
 c1.apply(net)
 
-print(gen.is_on_outage(), branch.is_on_outage())
+print(gen.is_in_service(), branch.is_in_service())
 
 c1.clear(net)
 
-print(gen.is_on_outage(), branch.is_on_outage())
+print(gen.is_in_service(), branch.is_in_service())

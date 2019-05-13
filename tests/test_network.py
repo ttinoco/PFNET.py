@@ -4489,6 +4489,11 @@ class TestNetwork(unittest.TestCase):
                            ['variable','fixed','bounded','sparse'],
                            'any',
                            ['charging power', 'energy level'])
+
+            c1 = pf.Constraint('AC power balance', net1)
+            c1.analyze()
+            c2 = pf.Constraint('HVDC power balance', net1)
+            c2.analyze()
             
             net2 = net1.get_copy()
 

@@ -44,7 +44,7 @@ print(np.linalg.norm(f,np.inf))
 
 bus = net.get_bus(5)
 
-Hi = constr.get_H_single(bus.index_P)
+Hi = constr.get_H_single(bus.dP_index)
 
 print(type(Hi), Hi.shape, Hi.nnz)
 

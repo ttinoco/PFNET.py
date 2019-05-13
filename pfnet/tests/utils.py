@@ -319,6 +319,8 @@ def compare_buses(test, bus1, bus2, check_internals=False, check_indices=True, e
         test.assertEqual(bus1.flags_fixed,bus2.flags_fixed)
         test.assertEqual(bus1.flags_bounded,bus2.flags_bounded)
         test.assertEqual(bus1.flags_sparse,bus2.flags_sparse)
+        test.assertLess(norminf(bus1.dP_index-bus2.dP_index), eps)
+        test.assertLess(norminf(bus1.dQ_index-bus2.dQ_index), eps)
 
 def compare_generators(test, gen1, gen2, check_internals=False, eps=1e-10):
     """
@@ -553,6 +555,7 @@ def compare_dc_buses(test, bus1, bus2, check_internals=False, check_indices=True
         test.assertEqual(set([o.index for o in bus1.branches_m]),
                          set([o.index for o in bus2.branches_m]))
     if check_internals:
+        test.assertLess(norminf(bus1.di_index-bus2.di_index), eps)
         test.assertLess(norminf(bus1.index_v-bus2.index_v),eps)
         test.assertEqual(bus1.flags_vars,bus2.flags_vars)
         test.assertEqual(bus1.flags_fixed,bus2.flags_fixed)
