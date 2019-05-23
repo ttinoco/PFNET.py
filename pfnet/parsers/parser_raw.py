@@ -103,7 +103,7 @@ class PyParserRAW(object):
         # PFNET buses
         raw_buses = []
         for raw_bus in case.buses:
-            if raw_bus.ide != self.BUS_TYPE_IS or self.keep_all_oos:
+            if self.keep_all_oos or raw_bus.ide != self.BUS_TYPE_IS:
                 raw_buses.append(raw_bus)
         net.set_bus_array(len(raw_buses)) # allocate PFNET bus array
         for index, raw_bus in enumerate(reversed(raw_buses)):
@@ -125,7 +125,29 @@ class PyParserRAW(object):
         net.update_hash_tables()
 
         # PFNET loads
-
+        raw_loads = []
+        for raw_load in case.loads:
+            if self.keep_all_oos or (raw_load.status > 0 and num2rawbus[raw_load.i].ide != self.BUS_TYPE_IS):
+                raw_loads.append(raw_load)
+        net.set_load_array(len(raw_loads)) # allocate PFNET load array
+        for index, raw_load in enumerate(reversed(raw_loads)):
+            load = net.get_load(index)
+            load.bus = net.get_bus_from_number(raw_load.i)
+            load.name = raw_load.id
+            load.in_service = raw_load.status > 0 and num2rawbus[raw_load.i].ide != self.BUS_TYPE_IS
+            load.P = (raw_load.pl+raw_load.ip+raw_load.yp)/net.base_power
+            load.Q = (raw_load.ql+raw_load.iq+raw_load.yq)/net.base_power
+            load.P_max = load.P
+            load.P_min = load.P
+            load.Q_max = load.Q
+            load.Q_min = load.Q
+            load.comp_cp = raw_load.pl/net.base_power
+            load.comp_cq = raw_load.ql/net.base_power
+            load.comp_ci = raw_load.ip/net.base_power
+            load.comp_cj = raw_load.iq/net.base_power
+            load.comp_cg = raw_load.yp/net.base_power
+            load.comp_cb = raw_load.yq/net.base_power
+            
         # PFNET generators
 
         # PFNET branches
@@ -133,6 +155,7 @@ class PyParserRAW(object):
         # PFNET shunts
 
         # PFNET DC buses
+
 
         # PFNET DC branches
 
