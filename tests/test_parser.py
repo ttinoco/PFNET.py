@@ -18,6 +18,29 @@ class TestParser(unittest.TestCase):
         
         pass
 
+    def test_pyparserraw_read(self):
+        
+        case = os.path.join('data', 'ACTIVSg10k.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('raw file not available')
+        
+        parser = pf.PyParserRAW()
+        net = parser.parse(case)
+        net.show_components(output_level=2)
+
+        # Check with C parser
+        #parser = pf.ParserRAW()
+        #net = parser.parse(case)
+        #net.show_components(output_level=2)
+
+    def test_pyparserraw_write(self):
+        
+        case = os.path.join('data', 'ACTIVSg10k.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('raw file not available')
+        
+        # TEST HERE
+
     def test_parserraw_keep_all_lossless(self):
 
         try:

@@ -13,7 +13,8 @@ Unreleased
 * Branch __str__ and __repr__.
 * Network method for clipping switched shunt b.
 * Network JSON encoder and decoder.
-* Support for net components being in or out of service.  
+* Support for net components being in or out of service.
+* Added PyParserRAW that uses grg-pssedata and can parse and write .raw files v33.    
 
 Version 1.3.4
 -------------

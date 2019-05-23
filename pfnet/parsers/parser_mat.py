@@ -44,7 +44,7 @@ class PyParserMAT(object):
         -------
         net : |Network|
         """
-
+        
         import grg_mpdata as mp
 
         if os.path.splitext(filename)[-1][1:] != 'm':
