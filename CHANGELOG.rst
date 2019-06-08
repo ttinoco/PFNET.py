@@ -14,7 +14,8 @@ Unreleased
 * Network method for clipping switched shunt b.
 * Network JSON encoder and decoder.
 * Support for net components being in or out of service.  
-
+* Added "v_set_refrence" boolean parameter to voltage magnitude regularization function.
+  
 Version 1.3.4
 -------------
 * Linked with appveyor.

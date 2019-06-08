@@ -3,7 +3,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2019, Tomas Tinoco De Rubira.       #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -147,14 +147,20 @@ cdef class FunctionBase:
 
         cdef void* cvalue = NULL
         cdef np.ndarray[double, mode='c'] a
+        cdef int flag
         key = key.encode('UTF-8')
+
+        # bool
+        if isinstance(value, bool):
+            flag = int(value)
+            cvalue = <void*>&flag
 
         # int
 
         # float
 
         # ndarray
-        if issubclass(type(value), np.ndarray):
+        elif issubclass(type(value), np.ndarray):
             a = value
             cvalue = <void*>a.data
 
