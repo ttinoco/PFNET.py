@@ -12,5 +12,6 @@ from . import constraints
 from . import parsers
 from . import tests
 from .parsers import PyParserMAT
+from .parsers import PyParserRAW
 
 from .version import __version__
