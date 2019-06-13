@@ -176,20 +176,69 @@ class PyParserRAW(object):
 
         # PFNET shunts
         
-        # FIXED
         raw_shunts = []
+        fix_shunt_ind=0
         for raw_shunt in case.fixed_shunts:
             if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
-        net.set_shunt_array(len(raw_shunts)) # allocate PFNET gen array
+                fix_shunt_ind+=1
+                
+        for raw_shunt in case.switched_shunts:
+            if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
+                raw_shunts.append(raw_shunt)
+                
+        net.set_shunt_array(len(raw_shunts)) # allocate PFNET shunt array
         for index, raw_shunt in enumerate(reversed(raw_shunts)):
             
-            shunt = net.get_shunt(index)           
-            shunt.bus=net.get_bus_from_number(raw_gen.i)
-            shunt.b=raw_shunt.bl/net.base_power
-            shunt.g=raw_shunt.gl/net.base_power
-              
+            if index<fix_shunt_ind:
+                #Fixed Shunt
+                shunt = net.get_shunt(index)           
+                shunt.bus=net.get_bus_from_number(raw_shunt.i)
+                shunt.b=raw_shunt.bl/net.base_power
+                shunt.g=raw_shunt.gl/net.base_power
+                shunt.set_as_fixed()
+                
+            else:
+                #Switched Shunt
+                shunt=net.get_shunt(index)
+                shunt.bus=net.get_bus_from_number(raw_shunt.i)
+                
+                shunt.b_values=[raw_shunt.binit,raw_shunt.b1,raw_shunt.b2,raw_shunt.b3,raw_shunt.b4,raw_shunt.b5,raw_shunt.b6,raw_shunt.b7,raw_shunt.b8]
+                
+                
+                if raw_shunt.modsw==0:
+                    shunt.set_as_fixed()
                     
+                elif raw_shunt.modsw==1:
+                    shunt.set_as_switched_v()
+                    shunt.set_as_discrete()
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
+                    
+                elif raw_shunt.modsw==2:
+                    shunt.set_as_switched_v()
+                    shunt.set_as_continuous()
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
+                    
+                elif raw_shunt.modsw==3:
+                    shunt.set_as_discrete()
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.)
+                
+                elif raw_shunt.modsw==4:
+                    shunt.set_as_discrete()
+                
+                elif raw_shunt.modsw==5:
+                    shunt.set_as_discrete()
+                
+                elif raw_shunt.modsw==6:
+                    shunt.set_as_discrete()
+                
+                
+                #DUDAS:
+                '''No estoy entendiendo la relacion de WMODSW con los datos del
+                PFNET en los casos 3,4,5,6'''
+                
+            
+      
                          
 
 
