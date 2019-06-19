@@ -15,6 +15,213 @@ from . import test_cases
 
 class TestInOutService(unittest.TestCase):
 
+    def test_bus_effects(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+
+            net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)
+            net.add_batteries_from_parameters(net.get_generator_buses(),20.,50.)
+            
+            net.make_all_in_service()
+
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertTrue(gen.in_service)
+            for branch in net.branches:
+                self.assertTrue(branch.in_service)
+            for facts in net.facts:
+                self.assertTrue(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertTrue(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertTrue(conv.in_service)
+            for load in net.loads:
+                self.assertTrue(load.in_service)
+            for branch in net.dc_branches:
+                self.assertTrue(branch.in_service)
+            for shunt in net.shunts:
+                self.assertTrue(shunt.in_service)
+            for bat in net.batteries:
+                self.assertTrue(bat.in_service)
+            for gen in net.var_generators:
+                self.assertTrue(gen.in_service)
+
+            for bus in net.buses:
+                bus.in_service = False
+
+            for bus in net.buses:
+                self.assertFalse(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertFalse(gen.in_service)
+            for branch in net.branches:
+                self.assertFalse(branch.in_service)
+            for facts in net.facts:
+                self.assertFalse(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in net.loads:
+                self.assertFalse(load.in_service)
+            for branch in net.dc_branches:
+                self.assertTrue(branch.in_service)
+            for shunt in net.shunts:
+                self.assertFalse(shunt.in_service)
+            for bat in net.batteries:
+                self.assertFalse(bat.in_service)
+            for gen in net.var_generators:
+                self.assertFalse(gen.in_service)
+
+            for gen in net.generators:
+                gen.in_service = True
+            for branch in net.branches:
+                branch.in_service = True
+            for load in net.loads:
+                load.in_service = True
+            for conv in net.csc_converters:
+                conv.in_service = True
+            for conv in net.vsc_converters:
+                conv.in_service = True
+            for facts in net.facts:
+                facts.in_service = True
+            for bat in net.batteries:
+                bat.in_service = True
+            for gen in net.var_generators:
+                gen.in_service = True
+            for shunt in net.shunts:
+                shunt.in_service = True
+
+            for bus in net.buses:
+                bus.in_service = True
+
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertFalse(gen.in_service)
+            for branch in net.branches:
+                self.assertFalse(branch.in_service)
+            for facts in net.facts:
+                self.assertFalse(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in net.loads:
+                self.assertFalse(load.in_service)
+            for branch in net.dc_branches:
+                self.assertTrue(branch.in_service)
+            for shunt in net.shunts:
+                self.assertFalse(shunt.in_service)
+            for bat in net.batteries:
+                self.assertFalse(bat.in_service)
+            for gen in net.var_generators:
+                self.assertFalse(gen.in_service)
+
+    def test_dc_bus_effects(self):
+
+        for case in test_cases.CASES:
+            
+            net = pf.Parser(case).parse(case)
+
+            net.make_all_in_service()
+
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertTrue(gen.in_service)
+            for branch in net.branches:
+                self.assertTrue(branch.in_service)
+            for facts in net.facts:
+                self.assertTrue(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertTrue(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertTrue(conv.in_service)
+            for load in net.loads:
+                self.assertTrue(load.in_service)
+            for branch in net.dc_branches:
+                self.assertTrue(branch.in_service)
+            for shunt in net.shunts:
+                self.assertTrue(shunt.in_service)
+            for bat in net.batteries:
+                self.assertTrue(bat.in_service)
+            for gen in net.var_generators:
+                self.assertTrue(gen.in_service)
+
+            for bus in net.dc_buses:
+                bus.in_service = False
+
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertFalse(bus.in_service)
+            for gen in net.generators:
+                self.assertTrue(gen.in_service)
+            for branch in net.branches:
+                self.assertTrue(branch.in_service)
+            for facts in net.facts:
+                self.assertTrue(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in net.loads:
+                self.assertTrue(load.in_service)
+            for branch in net.dc_branches:
+                self.assertFalse(branch.in_service)
+            for shunt in net.shunts:
+                self.assertTrue(shunt.in_service)
+            for bat in net.batteries:
+                self.assertTrue(bat.in_service)
+            for gen in net.var_generators:
+                self.assertTrue(gen.in_service)
+
+            for branch in net.dc_branches:
+                branch.in_service = True
+            for conv in net.csc_converters:
+                conv.in_service = True
+            for conv in net.vsc_converters:
+                conv.in_service = True
+                
+            for bus in net.dc_buses:
+                bus.in_service = True
+
+            for bus in net.buses:
+                self.assertTrue(bus.in_service)
+            for bus in net.dc_buses:
+                self.assertTrue(bus.in_service)
+            for gen in net.generators:
+                self.assertTrue(gen.in_service)
+            for branch in net.branches:
+                self.assertTrue(branch.in_service)
+            for facts in net.facts:
+                self.assertTrue(facts.in_service)
+            for conv in net.csc_converters:
+                self.assertFalse(conv.in_service)
+            for conv in net.vsc_converters:
+                self.assertFalse(conv.in_service)
+            for load in net.loads:
+                self.assertTrue(load.in_service)
+            for branch in net.dc_branches:
+                self.assertFalse(branch.in_service)
+            for shunt in net.shunts:
+                self.assertTrue(shunt.in_service)
+            for bat in net.batteries:
+                self.assertTrue(bat.in_service)
+            for gen in net.var_generators:
+                self.assertTrue(gen.in_service)
+
     def test_json(self):
 
         for case in test_cases.CASES:
