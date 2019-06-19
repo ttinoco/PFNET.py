@@ -173,6 +173,37 @@ class PyParserRAW(object):
                 
 
         # PFNET branches
+        
+        #Lines
+        
+        raw_lines = []
+        for raw_line in case.branches:
+            if self.keep_all_oos or (raw_line.st > 0):
+                raw_lines.append(raw_line)
+        net.set_branch_array(len(raw_lines)) # allocate PFNET gen array
+        for index, raw_line in enumerate(reversed(raw_lines)):
+            
+            line=net.get_branch(index)
+            line.set_as_line()
+            line.name="%d" %(raw_line.index)
+            
+            line.bus_k=net.get_bus_from_number(raw_line.i)
+            line.bus_m=net.get_bus_from_number(raw_line.j)
+            
+            line.b_k=raw_line.bi
+            line.b_m=raw_line.bj
+            line.g_k=raw_line.gi
+            line.g_m=raw_line.bj
+            
+            line.b=-raw_line.x/(raw_line.r**2+raw_line.x**2)
+            line.g= raw_line.r/(raw_line.r**2+raw_line.x**2)
+            
+            line.ratingA=raw_line.ratea
+            line.ratingB=raw_line.rateb
+            line.ratingC=raw_line.ratec
+            
+        
+        
 
         # PFNET shunts
         
@@ -221,7 +252,7 @@ class PyParserRAW(object):
                     
                 elif raw_shunt.modsw==3:
                     shunt.set_as_discrete()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.)
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
                 
                 elif raw_shunt.modsw==4:
                     shunt.set_as_discrete()
