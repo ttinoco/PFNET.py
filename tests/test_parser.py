@@ -18,6 +18,21 @@ class TestParser(unittest.TestCase):
         
         pass
 
+    def test_parserepc(self):
+
+        case = os.path.join('data', 'sample.epc')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('epc file not available')
+
+        parser = pf.ParserEPC()
+        parser.set('output_level', 3)
+
+        net = parser.parse(case)
+
+        parser.show()
+
+        net.show_components(output_level=3)
+
     def test_parserraw_keep_all_lossless(self):
 
         try:

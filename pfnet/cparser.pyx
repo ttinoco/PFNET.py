@@ -133,6 +133,8 @@ cdef class CParser(ParserBase):
             self._c_parser = cparser.ART_PARSER_new()
         elif ext == 'raw':
             self._c_parser = cparser.RAW_PARSER_new()
+        elif ext == 'epc':
+            self._c_parser = cparser.EPC_PARSER_new()
         elif ext == 'json':
             self._c_parser = cparser.JSON_PARSER_new()
         else:
@@ -152,6 +154,20 @@ cdef class ParserRAW(ParserBase):
     def __cinit__(self):
         
         self._c_parser = cparser.RAW_PARSER_new()
+        self._alloc = True
+
+cdef class ParserEPC(ParserBase):
+
+    def __init__(self):
+        """
+        EPC parser class.
+        """
+    
+        pass
+        
+    def __cinit__(self):
+        
+        self._c_parser = cparser.EPC_PARSER_new()
         self._alloc = True
 
 cdef class ParserMAT(ParserBase):
