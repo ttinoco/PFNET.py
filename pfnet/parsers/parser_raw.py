@@ -49,7 +49,8 @@ class PyParserRAW(object):
         -------
         net : |Network|
         """
-
+        
+        
         import grg_pssedata as pd
 
         # Check extension
@@ -107,7 +108,7 @@ class PyParserRAW(object):
         for index, raw_bus in enumerate(reversed(raw_buses)):
             bus = net.get_bus(index)
             bus.number = raw_bus.i
-           # bus.in_service = raw_bus.ide != self.BUS_TYPE_IS
+            bus.in_service = raw_bus.ide != self.BUS_TYPE_IS
             bus.area = raw_bus.area
             bus.zone = raw_bus.zone
             bus.name = raw_bus.name
@@ -180,7 +181,7 @@ class PyParserRAW(object):
         for raw_line in case.branches:
             if self.keep_all_oos or (raw_line.st > 0):
                 raw_lines.append(raw_line)
-        net.set_branch_array(len(raw_lines)) # allocate PFNET gen array
+        net.set_branch_array(len(raw_lines)) # allocate PFNET line array
         for index, raw_line in enumerate(reversed(raw_lines)):
             
             line=net.get_branch(index)
@@ -202,6 +203,25 @@ class PyParserRAW(object):
             line.ratingB=raw_line.rateb
             line.ratingC=raw_line.ratec
             
+        #2 Windings Transformers
+        
+        raw_trafos_2w=[]
+        for raw_trafo_2w in case.transformers:
+            if self.keep_all_oos or (raw_trafo_2w.p1.stat > 0):
+                raw_trafos_2w.append(raw_trafo_2w)
+                
+        
+        for index, raw_trafo in enumerate(reversed(raw_trafos_2w)):
+          
+            trafo=net.get_branch(index)
+            
+        
+       
+        #print (dir(case.transformers[0].p2))
+        #print(raw_trafos_2w)
+        
+        
+        
         
         
 
