@@ -49,7 +49,7 @@ class PyParserRAW(object):
         -------
         net : |Network|
         """
-        
+        print('ESte')
         
         import grg_pssedata as pd
 
@@ -164,9 +164,12 @@ class PyParserRAW(object):
             gen.P_min = raw_gen.pb/raw_gen.mbase
             gen.Q = raw_gen.qg/raw_gen.mbase
             gen.Q_max = raw_gen.qt/raw_gen.mbase
-            gen.Q_min = raw_gen.qb/raw_gen.mbase            
+            gen.Q_min = raw_gen.qb/raw_gen.mbase   
+            
+            #bus=gen.bus.
             
             
+            #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
                 gen.reg_bus = bus
                 assert(gen.index in [g.index for g in bus.reg_generators])
@@ -205,8 +208,8 @@ class PyParserRAW(object):
             
         #2 Windings Transformers
         
-        raw_trafos_2w=[]
-        for raw_trafo_2w in case.transformers:
+       #raw_trafos_2w=[]
+        '''for raw_trafo_2w in case.transformers:
             if self.keep_all_oos or (raw_trafo_2w.p1.stat > 0):
                 raw_trafos_2w.append(raw_trafo_2w)
                 
@@ -218,7 +221,7 @@ class PyParserRAW(object):
         
        
         #print (dir(case.transformers[0].p2))
-        #print(raw_trafos_2w)
+        #print(raw_trafos_2w)'''
         
         
         
@@ -229,6 +232,7 @@ class PyParserRAW(object):
         
         raw_shunts = []
         fix_shunt_ind=0
+        
         for raw_shunt in case.fixed_shunts:
             if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
@@ -246,6 +250,8 @@ class PyParserRAW(object):
                 shunt = net.get_shunt(index)           
                 shunt.bus=net.get_bus_from_number(raw_shunt.i)
                 shunt.b=raw_shunt.bl/net.base_power
+                shunt.b_max=raw_shunt.bl/net.base_power
+                shunt.b_min=raw_shunt.bl/net.base_power
                 shunt.g=raw_shunt.gl/net.base_power
                 shunt.set_as_fixed()
                 
@@ -253,26 +259,39 @@ class PyParserRAW(object):
                 #Switched Shunt
                 shunt=net.get_shunt(index)
                 shunt.bus=net.get_bus_from_number(raw_shunt.i)
+                shunt.g=raw_shunt.gl
                 
-                shunt.b_values=[raw_shunt.binit,raw_shunt.b1,raw_shunt.b2,raw_shunt.b3,raw_shunt.b4,raw_shunt.b5,raw_shunt.b6,raw_shunt.b7,raw_shunt.b8]
+                b_values=[raw_shunt.binit,raw_shunt.b1,raw_shunt.b2,raw_shunt.b3,raw_shunt.b4,raw_shunt.b5,raw_shunt.b6,raw_shunt.b7,raw_shunt.b8]
+                shunt.b_values=[B/net.base_power for B in b_values]
+                
+                shunt.b_max=raw_shunt.binit/net.base_power
+                shunt.b_min=raw_shunt.b8/net.base_power
                 
                 
                 if raw_shunt.modsw==0:
-                    shunt.set_as_fixed()
+                    shunt.set_as_switched()
+                    shunt.lock()  #Ver Si El Metodo Es El Adecuado
                     
                 elif raw_shunt.modsw==1:
                     shunt.set_as_switched_v()
                     shunt.set_as_discrete()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+                    
+                    bus=shunt.reg_bus().add_reg_shunt(shunt)
                     
                 elif raw_shunt.modsw==2:
                     shunt.set_as_switched_v()
                     shunt.set_as_continuous()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+                    
+                    bus=shunt.reg_bus().add_reg_shunt(shunt)
                     
                 elif raw_shunt.modsw==3:
+                    shunt.set_as_swithed()
                     shunt.set_as_discrete()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.i)
+                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+                    
+                    bus=shunt.reg_bus().add_reg_shunt(shunt)
                 
                 elif raw_shunt.modsw==4:
                     shunt.set_as_discrete()
@@ -284,9 +303,12 @@ class PyParserRAW(object):
                     shunt.set_as_discrete()
                 
                 
-                #DUDAS:
-                '''No estoy entendiendo la relacion de WMODSW con los datos del
-                PFNET en los casos 3,4,5,6'''
+                #Para Hacer:
+                '''Una vez pasadas las VSC-DC y los FACTS se podria terminar mejor 4,6
+                   Igualmente hay que terminar MODSW=5
+                   discrete adjustment, controlling the admittance setting of the switched shunt at bus 
+                   SWREM
+                '''
                 
             
       
