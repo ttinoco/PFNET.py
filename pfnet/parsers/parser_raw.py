@@ -49,8 +49,7 @@ class PyParserRAW(object):
         -------
         net : |Network|
         """
-        print('ESte')
-        
+      
         import grg_pssedata as pd
 
         # Check extension
@@ -108,7 +107,7 @@ class PyParserRAW(object):
         for index, raw_bus in enumerate(reversed(raw_buses)):
             bus = net.get_bus(index)
             bus.number = raw_bus.i
-            bus.in_service = raw_bus.ide != self.BUS_TYPE_IS
+            #bus.in_service =raw_bus.ide != self.BUS_TYPE_IS
             bus.area = raw_bus.area
             bus.zone = raw_bus.zone
             bus.name = raw_bus.name
@@ -166,7 +165,7 @@ class PyParserRAW(object):
             gen.Q_max = raw_gen.qt/raw_gen.mbase
             gen.Q_min = raw_gen.qb/raw_gen.mbase   
             
-            #bus=gen.bus.
+          
             
             
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
@@ -178,51 +177,71 @@ class PyParserRAW(object):
 
         # PFNET branches
         
+        raw_branches = []
+        
         #Lines
         
-        raw_lines = []
         for raw_line in case.branches:
             if self.keep_all_oos or (raw_line.st > 0):
-                raw_lines.append(raw_line)
-        net.set_branch_array(len(raw_lines)) # allocate PFNET line array
-        for index, raw_line in enumerate(reversed(raw_lines)):
-            
-            line=net.get_branch(index)
-            line.set_as_line()
-            line.name="%d" %(raw_line.index)
-            
-            line.bus_k=net.get_bus_from_number(raw_line.i)
-            line.bus_m=net.get_bus_from_number(raw_line.j)
-            
-            line.b_k=raw_line.bi
-            line.b_m=raw_line.bj
-            line.g_k=raw_line.gi
-            line.g_m=raw_line.bj
-            
-            line.b=-raw_line.x/(raw_line.r**2+raw_line.x**2)
-            line.g= raw_line.r/(raw_line.r**2+raw_line.x**2)
-            
-            line.ratingA=raw_line.ratea
-            line.ratingB=raw_line.rateb
-            line.ratingC=raw_line.ratec
-            
-        #2 Windings Transformers
-        
-       #raw_trafos_2w=[]
-        '''for raw_trafo_2w in case.transformers:
-            if self.keep_all_oos or (raw_trafo_2w.p1.stat > 0):
-                raw_trafos_2w.append(raw_trafo_2w)
+                raw_branches.append(raw_line)
                 
+        #2W transformer
+    
+        for raw_2w_trafo in case.transformers:
+            if self.keep_all_oos or (raw_2w_trafo.p1.stat > 0):
+                raw_branches.append(raw_2w_trafo)
         
-        for index, raw_trafo in enumerate(reversed(raw_trafos_2w)):
-          
-            trafo=net.get_branch(index)
+        #3W transformer
+        '''Falta pasarlos'''
+                
+                
+        net.set_branch_array(len(raw_branches)) # allocate PFNET branch array
+        for index, raw_branch in enumerate(reversed(raw_branches)):
             
-        
-       
-        #print (dir(case.transformers[0].p2))
-        #print(raw_trafos_2w)'''
-        
+            if type(raw_branch)==pd.struct.Branch:
+            
+                line=net.get_branch(index)
+                line.set_as_line()
+                line.name="%d" %(raw_line.index)
+                
+                line.bus_k=net.get_bus_from_number(raw_branch.i)
+                line.bus_m=net.get_bus_from_number(raw_branch.j)
+                
+                line.b_k=raw_branch.bi
+                line.b_m=raw_branch.bj
+                line.g_k=raw_branch.gi
+                line.g_m=raw_branch.bj
+                
+                line.b=-raw_branch.x/(raw_line.r**2+raw_line.x**2)
+                line.g= raw_branch.r/(raw_line.r**2+raw_line.x**2)
+                
+                line.ratingA=raw_branch.ratea
+                line.ratingB=raw_branch.rateb
+                line.ratingC=raw_branch.ratec
+                
+            elif type(raw_branch)==pd.struct.TwoWindingTransformer:
+                
+                trafo_2w=net.get_branch(index)
+                trafo_2w.set_as_fixed_tran()
+                
+                trafo_2w.name="%d" %(raw_branch.index)
+                
+                trafo_2w.bus_k=net.get_bus_from_number(raw_branch.p1.i)
+                trafo_2w.bus_m=net.get_bus_from_number(raw_branch.p1.j)
+                
+                trafo_2w.b_k=0
+                trafo_2w.b_m=0
+                trafo_2w.g_k=0
+                trafo_2w.g_m=0
+                
+                trafo_2w.b=0
+                trafo_2w.g=0
+                
+                trafo_2w.ratingA=0
+                trafo_2w.ratingB=0
+                trafo_2w.ratingC=0
+            
+      
         
         
         
@@ -231,24 +250,26 @@ class PyParserRAW(object):
         # PFNET shunts
         
         raw_shunts = []
-        fix_shunt_ind=0
         
         for raw_shunt in case.fixed_shunts:
             if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
-                fix_shunt_ind+=1
-                
+                            
         for raw_shunt in case.switched_shunts:
             if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
                 
         net.set_shunt_array(len(raw_shunts)) # allocate PFNET shunt array
+        
+   
+        
         for index, raw_shunt in enumerate(reversed(raw_shunts)):
             
-            if index<fix_shunt_ind:
+            if type(raw_shunt)==pd.struct.FixedShunt:
                 #Fixed Shunt
                 shunt = net.get_shunt(index)           
                 shunt.bus=net.get_bus_from_number(raw_shunt.i)
+                
                 shunt.b=raw_shunt.bl/net.base_power
                 shunt.b_max=raw_shunt.bl/net.base_power
                 shunt.b_min=raw_shunt.bl/net.base_power
