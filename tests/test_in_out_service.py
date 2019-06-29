@@ -20,7 +20,7 @@ class TestInOutService(unittest.TestCase):
         for case in test_cases.CASES:
             
             net = pf.Parser(case).parse(case)
-
+            
             net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)
             net.add_batteries_from_parameters(net.get_generator_buses(),20.,50.)
             
@@ -79,52 +79,55 @@ class TestInOutService(unittest.TestCase):
             for gen in net.var_generators:
                 self.assertFalse(gen.in_service)
 
+            # Changes have no effect on comps
+            # connected to out of service buses
             for gen in net.generators:
-                gen.in_service = True
+                gen.in_service = False
             for branch in net.branches:
-                branch.in_service = True
+                branch.in_service = False
             for load in net.loads:
-                load.in_service = True
+                load.in_service = False
             for conv in net.csc_converters:
-                conv.in_service = True
+                conv.in_service = False
             for conv in net.vsc_converters:
-                conv.in_service = True
+                conv.in_service = False
             for facts in net.facts:
-                facts.in_service = True
+                facts.in_service = False
             for bat in net.batteries:
-                bat.in_service = True
+                bat.in_service = False
             for gen in net.var_generators:
-                gen.in_service = True
+                gen.in_service = False
             for shunt in net.shunts:
-                shunt.in_service = True
+                shunt.in_service = False
 
             for bus in net.buses:
                 bus.in_service = True
 
+            # Previous state remembered
             for bus in net.buses:
                 self.assertTrue(bus.in_service)
             for bus in net.dc_buses:
                 self.assertTrue(bus.in_service)
             for gen in net.generators:
-                self.assertFalse(gen.in_service)
+                self.assertTrue(gen.in_service)
             for branch in net.branches:
-                self.assertFalse(branch.in_service)
+                self.assertTrue(branch.in_service)
             for facts in net.facts:
-                self.assertFalse(facts.in_service)
+                self.assertTrue(facts.in_service)
             for conv in net.csc_converters:
-                self.assertFalse(conv.in_service)
+                self.assertTrue(conv.in_service)
             for conv in net.vsc_converters:
-                self.assertFalse(conv.in_service)
+                self.assertTrue(conv.in_service)
             for load in net.loads:
-                self.assertFalse(load.in_service)
+                self.assertTrue(load.in_service)
             for branch in net.dc_branches:
                 self.assertTrue(branch.in_service)
             for shunt in net.shunts:
-                self.assertFalse(shunt.in_service)
+                self.assertTrue(shunt.in_service)
             for bat in net.batteries:
-                self.assertFalse(bat.in_service)
+                self.assertTrue(bat.in_service)
             for gen in net.var_generators:
-                self.assertFalse(gen.in_service)
+                self.assertTrue(gen.in_service)
 
     def test_dc_bus_effects(self):
 
@@ -187,16 +190,18 @@ class TestInOutService(unittest.TestCase):
             for gen in net.var_generators:
                 self.assertTrue(gen.in_service)
 
+            # Changes have no effect
             for branch in net.dc_branches:
-                branch.in_service = True
+                branch.in_service = False
             for conv in net.csc_converters:
-                conv.in_service = True
+                conv.in_service = False
             for conv in net.vsc_converters:
-                conv.in_service = True
+                conv.in_service = False
                 
             for bus in net.dc_buses:
                 bus.in_service = True
 
+            # Previous state remembered
             for bus in net.buses:
                 self.assertTrue(bus.in_service)
             for bus in net.dc_buses:
@@ -208,13 +213,13 @@ class TestInOutService(unittest.TestCase):
             for facts in net.facts:
                 self.assertTrue(facts.in_service)
             for conv in net.csc_converters:
-                self.assertFalse(conv.in_service)
+                self.assertTrue(conv.in_service)
             for conv in net.vsc_converters:
-                self.assertFalse(conv.in_service)
+                self.assertTrue(conv.in_service)
             for load in net.loads:
                 self.assertTrue(load.in_service)
             for branch in net.dc_branches:
-                self.assertFalse(branch.in_service)
+                self.assertTrue(branch.in_service)
             for shunt in net.shunts:
                 self.assertTrue(shunt.in_service)
             for bat in net.batteries:
@@ -354,12 +359,8 @@ class TestInOutService(unittest.TestCase):
                 gen.in_service = False
             for branch in net.branches:
                 branch.in_service = False
-            for bus in net.buses:
-                bus.in_service = False
             for load in net.loads:
                 load.in_service = False
-            for bus in net.dc_buses:
-                bus.in_service = False
             for branch in net.dc_branches:
                 branch.in_service = False
             for conv in net.csc_converters:
@@ -374,6 +375,10 @@ class TestInOutService(unittest.TestCase):
                 gen.in_service = False
             for shunt in net.shunts:
                 shunt.in_service = False
+            for bus in net.dc_buses:
+                bus.in_service = False
+            for bus in net.buses:
+                bus.in_service = False
 
             self.assertEqual(net.state_tag,
                              (net.num_generators+
