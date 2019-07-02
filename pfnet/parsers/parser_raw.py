@@ -156,7 +156,11 @@ class PyParserRAW(object):
         for index, raw_gen in enumerate(reversed(raw_gens)):
             
             gen = net.get_generator(index)           
-            gen.bus=net.get_bus_from_number(raw_gen.i)
+            
+            bus = net.get_bus_from_number(raw_gen.i)
+            bus.add_generator(gen)
+            gen.bus=bus
+            
             gen.name = "%d" %gen.index
             gen.P = raw_gen.pg/raw_gen.mbase
             gen.P_max = raw_gen.pt/raw_gen.mbase
@@ -164,6 +168,7 @@ class PyParserRAW(object):
             gen.Q = raw_gen.qg/raw_gen.mbase
             gen.Q_max = raw_gen.qt/raw_gen.mbase
             gen.Q_min = raw_gen.qb/raw_gen.mbase   
+            
             
           
             
