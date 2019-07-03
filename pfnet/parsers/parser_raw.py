@@ -203,8 +203,11 @@ class PyParserRAW(object):
         net.set_branch_array(len(raw_branches)) # allocate PFNET branch array
         for index, raw_branch in enumerate(reversed(raw_branches)):
             
-            if type(raw_branch)==pd.struct.Branch:
+         
             
+            if type(raw_branch)==pd.struct.Branch:
+                
+              
                 line=net.get_branch(index)
                 line.set_as_line()
                 line.name="%d" %(raw_line.index)
@@ -215,7 +218,7 @@ class PyParserRAW(object):
                 line.b_k=raw_branch.bi
                 line.b_m=raw_branch.bj
                 line.g_k=raw_branch.gi
-                line.g_m=raw_branch.bj
+                line.g_m=raw_branch.gj
                 
                 line.b=-raw_branch.x/(raw_line.r**2+raw_line.x**2)
                 line.g= raw_branch.r/(raw_line.r**2+raw_line.x**2)
@@ -226,6 +229,8 @@ class PyParserRAW(object):
                 
             elif type(raw_branch)==pd.struct.TwoWindingTransformer:
                 
+                               
+                
                 trafo_2w=net.get_branch(index)
                 trafo_2w.set_as_fixed_tran()
                 
@@ -234,13 +239,36 @@ class PyParserRAW(object):
                 trafo_2w.bus_k=net.get_bus_from_number(raw_branch.p1.i)
                 trafo_2w.bus_m=net.get_bus_from_number(raw_branch.p1.j)
                 
-                trafo_2w.b_k=0
-                trafo_2w.b_m=0
-                trafo_2w.g_k=0
-                trafo_2w.g_m=0
+                #Shunt parameters
                 
-                trafo_2w.b=0
-                trafo_2w.g=0
+                if raw_branch.p1.cm==2:
+                    #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
+                    trafo_2w.g_m=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2)
+                    trafo_2w.b_m=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
+                    
+                else:
+                    #In system base P.U.
+                    trafo_2w.g_m=raw_branch.p1.mag1
+                    trafo_2w.b_m=raw_branch.p1.mag2
+               
+                trafo_2w.b_k=0
+                trafo_2w.g_k=0 
+                
+                #Series parameters 
+                        
+                if raw_branch.p1.cz==1:
+                     trafo_2w.b=-raw_branch.p2.x12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)
+                     trafo_2w.g= raw_branch.p2.r12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)
+                    
+                elif raw_branch.p1.cz==2:
+                     trafo_2w.b=-raw_branch.p2.x12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)*(raw_branch.p2.sbase12/case.sbase)
+                     trafo_2w.g= raw_branch.p2.r12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)*(raw_branch.p2.sbase12/case.sbase)
+                                       
+                elif raw_branch.p1.cz==3:
+                     '''Por el momento no lo hice
+                     es r12 en watts y z12 en PU con baseMVA del trafo'''
+                     
+                 
                 
                 trafo_2w.ratingA=0
                 trafo_2w.ratingB=0
@@ -281,7 +309,7 @@ class PyParserRAW(object):
                 shunt.g=raw_shunt.gl/net.base_power
                 shunt.set_as_fixed()
                 
-            else:
+            elif type(raw_shunt)==pd.struct.SwitchedShunt:
                 #Switched Shunt
                 shunt=net.get_shunt(index)
                 shunt.bus=net.get_bus_from_number(raw_shunt.i)
