@@ -11,6 +11,7 @@ from . import functions
 from . import constraints
 from . import parsers
 from . import tests
+from . import utils
 from .parsers import PyParserMAT
 from .json_utils import NetworkJSONEncoder, NetworkJSONDecoder
 
