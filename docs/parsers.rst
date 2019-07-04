@@ -36,6 +36,7 @@ For creating, visualizing, or modifying these JSON network files, online editors
 
 * `<http://jsoneditoronline.org>`_
 * `<http://www.cleancss.com/json-editor>`_
+* `<https://extendsclass.com/json-validator.html>`_
 
 In the top-level object of the JSON data, *i.e.*, the network, the field ``version`` indicates the PFNET version associated with the data.
   
