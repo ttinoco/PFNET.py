@@ -6,7 +6,8 @@ from scipy.sparse.linalg import spsolve
 def make_PTDF(net):
     """
     Constructs matrix of DC participation factors.
-
+    Handles in- and out-of-service buses and branches.
+    
     Parameters
     ----------
     net : |Network|
@@ -35,6 +36,9 @@ def make_PTDF(net):
     A = bmat([[c1.A], [c2.A], [c3.A]], format='csc')
     I = eye(c1.A.shape[0], net.get_num_buses(True))
     O = coo_matrix((c2.A.shape[0]+c3.A.shape[0], net.get_num_buses(True)))
+    P = coo_matrix((np.ones(net.get_num_buses(True)),
+                    (zip(*[(bus.dP_index, bus.index) for bus in net.buses if bus.is_in_service()]))),
+                   shape=(net.get_num_buses(True), net.get_num_buses(False)))
     Ibar = bmat([[I], [O]], format='csc')
 
     Erows = []
@@ -44,13 +48,10 @@ def make_PTDF(net):
         if branch.is_in_service():
             Erows.extend([branch.index, branch.index])
             Ecols.extend([branch.bus_k.index_v_ang, branch.bus_m.index_v_ang])
-            Edata.extend([-branch.b, branch.b])
+            Edata.extend([branch.b, -branch.b])
     E = coo_matrix((Edata, (Erows, Ecols)), shape=(net.get_num_branches(False), net.num_vars))
     
-    PTDF = E*spsolve(A, Ibar)
+    PTDF = (E*spsolve(A, Ibar)*P).toarray()
 
-    # Almost there, just need to make it accessible from the right
-    # by any bus regardless of in service status
-    # Then compare with matpower
-    
+    return PTDF
     
