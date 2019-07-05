@@ -229,7 +229,13 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('file not available')
 
-        net = pf.ParserRAW().parse(case)
+        parser = pf.ParserRAW()
+        
+        self.assertRaises(pf.ParserError, parser.set, 'foo', 5)
+        
+        parser.set('round_tap_ratios', False)
+
+        net = parser.parse(case)
         
         self.assertEqual(net.num_buses,25)
         

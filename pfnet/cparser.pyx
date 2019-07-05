@@ -66,7 +66,9 @@ cdef class ParserBase:
         filename = filename.encode('UTF-8')
         cdef cparser.Net* net = cparser.PARSER_parse(self._c_parser, filename, num_periods)
         if cparser.PARSER_has_error(self._c_parser):
-            raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
+            error_str = cparser.PARSER_get_error_string(self._c_parser).decode('UTF-8')
+            cparser.PARSER_clear_error(self._c_parser)
+            raise ParserError(error_str)
         cdef Network pnet = new_Network(net)
         pnet.alloc = True
         return pnet
@@ -85,7 +87,9 @@ cdef class ParserBase:
         key = key.encode('UTF-8')
         cparser.PARSER_set(self._c_parser,key,v)
         if cparser.PARSER_has_error(self._c_parser):
-            raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
+            error_str = cparser.PARSER_get_error_string(self._c_parser).decode('UTF-8')
+            cparser.PARSER_clear_error(self._c_parser)
+            raise ParserError(error_str)
 
     def show(self):
         """
