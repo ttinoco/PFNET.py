@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import pfnet
 import numpy as np
@@ -162,16 +163,13 @@ class PyParserRAW(object):
             gen.bus=bus
             
             gen.name = "%d" %gen.index
-            gen.P = raw_gen.pg/raw_gen.mbase
-            gen.P_max = raw_gen.pt/raw_gen.mbase
-            gen.P_min = raw_gen.pb/raw_gen.mbase
-            gen.Q = raw_gen.qg/raw_gen.mbase
-            gen.Q_max = raw_gen.qt/raw_gen.mbase
-            gen.Q_min = raw_gen.qb/raw_gen.mbase   
-            
-            
-          
-            
+            gen.P     = float(raw_gen.pg)/raw_gen.mbase
+            gen.P_max = float(raw_gen.pt)/raw_gen.mbase
+            gen.P_min = float(raw_gen.pb)/raw_gen.mbase
+            gen.Q     = float(raw_gen.qg)/raw_gen.mbase
+            gen.Q_max = float(raw_gen.qt)/raw_gen.mbase
+            gen.Q_min = float(raw_gen.qb)/raw_gen.mbase   
+                        
             
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
@@ -219,17 +217,18 @@ class PyParserRAW(object):
                 line.b_m=raw_branch.bj
                 line.g_k=raw_branch.gi
                 line.g_m=raw_branch.gj
+                              
+                z=raw_branch.r+raw_branch.x*1j
                 
-                line.b=-raw_branch.x/(raw_line.r**2+raw_line.x**2)
-                line.g= raw_branch.r/(raw_line.r**2+raw_line.x**2)
-                
+                line.b=(1/z).imag
+                line.g=(1/z).real
+            
                 line.ratingA=raw_branch.ratea
                 line.ratingB=raw_branch.rateb
                 line.ratingC=raw_branch.ratec
                 
             elif type(raw_branch)==pd.struct.TwoWindingTransformer:
                 
-                               
                 
                 trafo_2w=net.get_branch(index)
                 trafo_2w.set_as_fixed_tran()
@@ -243,7 +242,7 @@ class PyParserRAW(object):
                 
                 if raw_branch.p1.cm==2:
                     #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
-                    trafo_2w.g_m=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2)
+                    trafo_2w.g_m=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
                     trafo_2w.b_m=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
                     
                 else:
@@ -255,21 +254,29 @@ class PyParserRAW(object):
                 trafo_2w.g_k=0 
                 
                 #Series parameters 
+                
+                x12=raw_branch.p2.x12
+                r12=raw_branch.p2.r12
+                tbase=raw_branch.p2.sbase12
                         
                 if raw_branch.p1.cz==1:
-                     trafo_2w.b=-raw_branch.p2.x12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)
-                     trafo_2w.g= raw_branch.p2.r12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)
+                    # In system PU
+                    trafo_2w.g= r12/(r12**2+x12**2)  
+                    trafo_2w.b=-x12/(r12**2+x12**2)
+                     
                     
                 elif raw_branch.p1.cz==2:
-                     trafo_2w.b=-raw_branch.p2.x12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)*(raw_branch.p2.sbase12/case.sbase)
-                     trafo_2w.g= raw_branch.p2.r12/(raw_branch.p2.r12**2+raw_branch.p2.x12**2)*(raw_branch.p2.sbase12/case.sbase)
+                    # In transformer PU
+                    trafo_2w.g= r12/(r12**2+x12**2)*(tbase/case.sbase)
+                    trafo_2w.b=-x12/(r12**2+x12**2)*(tbase/case.sbase)
+                     
                                        
                 elif raw_branch.p1.cz==3:
-                     '''Por el momento no lo hice
-                     es r12 en watts y z12 en PU con baseMVA del trafo'''
+                    # r12 in watts & z12 in sbase PU
+                    trafo_2w.g=case.sbase/(r12/3)
+                    trafo_2w.b=-1/np.sqrt((x12*tbase/case.sbase)**2-(trafo_2w.g)**2)
                      
-                 
-                
+                    
                 trafo_2w.ratingA=0
                 trafo_2w.ratingB=0
                 trafo_2w.ratingC=0
