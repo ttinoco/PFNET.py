@@ -52,7 +52,9 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
 
-        net = pf.ParserRAW().parse(case)
+        parser = pf.ParserRAW()
+
+        net = parser.parse(case)
 
         parser = pf.ParserRAW()
         parser.set('keep_all_out_of_service', True)
@@ -222,6 +224,36 @@ class TestParser(unittest.TestCase):
             tested = True
         if not tested:
             raise unittest.SkipTest("no .m files")
+
+    def test_ACTIVSg10k_raw(self):
+
+        case = os.path.join('data', 'ACTIVSg10k.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
+
+        parser = pf.ParserRAW()
+
+        net = parser.parse(case)
+
+        results = []
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                results.append(any(shunt.b == shunt.b_values))
+
+        self.assertGreater(len(results), 0)
+        self.assertTrue(all(results))
+
+        parser.set('round_switched_shunts', False)
+
+        net = parser.parse(case)
+
+        results = []
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                results.append(any(shunt.b == shunt.b_values))
+
+        self.assertGreater(len(results), 0)
+        self.assertFalse(all(results))
 
     def test_ieee25_raw(self):
 
