@@ -22,7 +22,7 @@ class TestFunctions(unittest.TestCase):
     def setUp(self):
 
         # Network
-        self.T = 4
+        self.T = 3
 
         # Random
         np.random.seed(1)            
@@ -3090,7 +3090,7 @@ class TestFunctions(unittest.TestCase):
             f = func.phi
             g = func.gphi
             H = func.Hphi
-
+            
             # After
             self.assertTrue(type(f) is float)
             self.assertNotEqual(f,0.)

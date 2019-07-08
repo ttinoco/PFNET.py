@@ -15,6 +15,7 @@ Unreleased
 * Network JSON encoder and decoder.
 * Support for net components being in or out of service.  
 * Added "v_set_refrence" boolean parameter to voltage magnitude regularization function.
+* Added utils submodule with routine to create PTDFs.    
 * EPC parser support: pfnet module has_epc_parser method, and ParserEPC class.    
   
 Version 1.3.4
