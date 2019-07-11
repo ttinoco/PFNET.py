@@ -227,8 +227,10 @@ class PyParserRAW(object):
                 line.ratingB=raw_branch.rateb
                 line.ratingC=raw_branch.ratec
                 
-            elif type(raw_branch)==pd.struct.TwoWindingTransformer:
                 
+                
+            elif type(raw_branch)==pd.struct.TwoWindingTransformer:
+                #2w_transformer
                 
                 trafo_2w=net.get_branch(index)
                 trafo_2w.set_as_fixed_tran()
@@ -237,6 +239,29 @@ class PyParserRAW(object):
                 
                 trafo_2w.bus_k=net.get_bus_from_number(raw_branch.p1.i)
                 trafo_2w.bus_m=net.get_bus_from_number(raw_branch.p1.j)
+                
+                trafo_2w.ratingA=raw_branch.w1.rata/case.sbase
+                trafo_2w.ratingB=raw_branch.w1.ratb/case.sbase
+                trafo_2w.ratingC=raw_branch.w1.ratc/case.sbase
+                
+                trafo_2w.phase=raw_branch.w1.ang*np.pi/180
+                #trafo_2w.phase_max=
+                #trafo_2w.phase_min=
+                
+                #Control Modes
+                if raw_branch.w1.cod==0:
+                    trafo_2w.set_as_fixed_tran
+                elif raw_branch.w1.cod==1:
+                    trafo_2w.set_as_tap_changer_v()
+                elif raw_branch.w1.cod==2:
+                    trafo_2w.set_as_tap_changer_Q()
+                elif raw_branch.w1.cod==3:
+                    trafo_2w.set_as_phase_shifter()
+                elif raw_branch.w1.cod==4:
+                    pass #DC-Line Control
+                elif raw_branch.w1.cod==4:
+                    pass #Asymetric PF
+                
                 
                 #Shunt parameters
                 
@@ -257,29 +282,36 @@ class PyParserRAW(object):
                 
                 x12=raw_branch.p2.x12
                 r12=raw_branch.p2.r12
+                
+                z=r12+x12*1j
+                
                 tbase=raw_branch.p2.sbase12
                         
                 if raw_branch.p1.cz==1:
                     # In system PU
-                    trafo_2w.g= r12/(r12**2+x12**2)  
-                    trafo_2w.b=-x12/(r12**2+x12**2)
+                    trafo_2w.g= (1/z).real 
+                    trafo_2w.b= (1/z).imag 
                      
                     
                 elif raw_branch.p1.cz==2:
                     # In transformer PU
-                    trafo_2w.g= r12/(r12**2+x12**2)*(tbase/case.sbase)
-                    trafo_2w.b=-x12/(r12**2+x12**2)*(tbase/case.sbase)
+                    trafo_2w.g= ((1/z).real)*(tbase/case.sbase)
+                    trafo_2w.b= ((1/z).imag)*(tbase/case.sbase)
                      
                                        
                 elif raw_branch.p1.cz==3:
                     # r12 in watts & z12 in sbase PU
                     trafo_2w.g=case.sbase/(r12/3)
                     trafo_2w.b=-1/np.sqrt((x12*tbase/case.sbase)**2-(trafo_2w.g)**2)
+                    
+                
+                '''Faltaria poner el trafo t_mk debido a que no hace esa correccion en tension'''
                      
                     
-                trafo_2w.ratingA=0
-                trafo_2w.ratingB=0
-                trafo_2w.ratingC=0
+               
+                
+                
+
             
       
         
@@ -310,10 +342,10 @@ class PyParserRAW(object):
                 shunt = net.get_shunt(index)           
                 shunt.bus=net.get_bus_from_number(raw_shunt.i)
                 
-                shunt.b=raw_shunt.bl/net.base_power
-                shunt.b_max=raw_shunt.bl/net.base_power
-                shunt.b_min=raw_shunt.bl/net.base_power
-                shunt.g=raw_shunt.gl/net.base_power
+                shunt.b    =float(raw_shunt.bl)/net.base_power
+                shunt.b_max=float(raw_shunt.bl)/net.base_power
+                shunt.b_min=float(raw_shunt.bl)/net.base_power
+                shunt.g    =float(raw_shunt.gl)/net.base_power
                 shunt.set_as_fixed()
                 
             elif type(raw_shunt)==pd.struct.SwitchedShunt:
