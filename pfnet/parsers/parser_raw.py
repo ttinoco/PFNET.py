@@ -188,27 +188,22 @@ class PyParserRAW(object):
             if self.keep_all_oos or (raw_line.st > 0):
                 raw_branches.append(raw_line)
                 
-        #2W transformer
+        #Transformer
     
-        for raw_2w_trafo in case.transformers:
-            if self.keep_all_oos or (raw_2w_trafo.p1.stat > 0):
-                raw_branches.append(raw_2w_trafo)
-        
-        #3W transformer
-        '''Falta pasarlos'''
-                
-                
+        for raw_trafo in case.transformers:
+            if self.keep_all_oos or (raw_trafo.p1.stat > 0):
+                raw_branches.append(raw_trafo)
+                    
         net.set_branch_array(len(raw_branches)) # allocate PFNET branch array
         for index, raw_branch in enumerate(reversed(raw_branches)):
             
-         
             
             if type(raw_branch)==pd.struct.Branch:
+                #Lines
                 
-              
                 line=net.get_branch(index)
                 line.set_as_line()
-                line.name="%d" %(raw_line.index)
+                line.name="%d" %(raw_branch.index)
                 
                 line.bus_k=net.get_bus_from_number(raw_branch.i)
                 line.bus_m=net.get_bus_from_number(raw_branch.j)
@@ -227,15 +222,25 @@ class PyParserRAW(object):
                 line.ratingB=raw_branch.rateb
                 line.ratingC=raw_branch.ratec
                 
+                if raw_branch.st==1:
+                    line.outage=False
+                elif raw_branch.st==0:
+                    line.outage=True
+                
                 
                 
             elif type(raw_branch)==pd.struct.TwoWindingTransformer:
                 #2w_transformer
                 
-                trafo_2w=net.get_branch(index)
-                trafo_2w.set_as_fixed_tran()
                 
-                trafo_2w.name="%d" %(raw_branch.index)
+                trafo_2w=net.get_branch(index)
+                
+                if raw_branch.p1.stat==1:
+                    trafo_2w.outage=False
+                elif raw_branch.p1.stat==0:
+                    trafo_2w.outage=True
+                    
+                trafo_2w.name=raw_branch.p1.name
                 
                 trafo_2w.bus_k=net.get_bus_from_number(raw_branch.p1.i)
                 trafo_2w.bus_m=net.get_bus_from_number(raw_branch.p1.j)
@@ -244,13 +249,14 @@ class PyParserRAW(object):
                 trafo_2w.ratingB=raw_branch.w1.ratb/case.sbase
                 trafo_2w.ratingC=raw_branch.w1.ratc/case.sbase
                 
-                trafo_2w.phase=raw_branch.w1.ang*np.pi/180
+                trafo_2w.phase=(raw_branch.w1.ang)*np.pi/180
                 #trafo_2w.phase_max=
                 #trafo_2w.phase_min=
+                        
                 
                 #Control Modes
                 if raw_branch.w1.cod==0:
-                    trafo_2w.set_as_fixed_tran
+                    trafo_2w.set_as_fixed_tran()
                 elif raw_branch.w1.cod==1:
                     trafo_2w.set_as_tap_changer_v()
                 elif raw_branch.w1.cod==2:
@@ -267,16 +273,27 @@ class PyParserRAW(object):
                 
                 if raw_branch.p1.cm==2:
                     #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
-                    trafo_2w.g_m=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                    trafo_2w.b_m=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
+                    g_shunt=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                    b_shunt=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
                     
                 else:
                     #In system base P.U.
-                    trafo_2w.g_m=raw_branch.p1.mag1
-                    trafo_2w.b_m=raw_branch.p1.mag2
+                    g_shunt=raw_branch.p1.mag1
+                    b_shunt=raw_branch.p1.mag2
                
-                trafo_2w.b_k=0
-                trafo_2w.g_k=0 
+                # Side of metered
+                
+                if raw_branch.p1.nmetr==2:
+                    trafo_2w.g_m=g_shunt
+                    trafo_2w.b_m=b_shunt               
+                    trafo_2w.g_k=0
+                    trafo_2w.b_k=0 
+                    
+                else:
+                    trafo_2w.g_m=0
+                    trafo_2w.b_m=0               
+                    trafo_2w.g_k=g_shunt
+                    trafo_2w.b_k=b_shunt
                 
                 #Series parameters 
                 
@@ -306,9 +323,13 @@ class PyParserRAW(object):
                     
                 
                 '''Faltaria poner el trafo t_mk debido a que no hace esa correccion en tension'''
-                     
+                
+            elif type(raw_branch)==pd.struct.ThreeWindingTransformer:
+                # 3 Windings Transformers
+                
                     
-               
+               '''Pasarlos es similar a los trafos 2w salvo que se tiene que ver entre que barras conectar
+               y realizar lo de los trafos_2w 3 veces'''
                 
                 
 
@@ -440,4 +461,36 @@ class PyParserRAW(object):
         filename : string
         """
 
-        pass
+        import grg_pssedata as pd
+        
+        '''Se pierde demasiada informacion en pasar PSSE ==> PFNET
+        lo cual no sabria como hacer el camino inverso PFNET ==> PSSE'''
+        
+        case_name= ""
+        case_version = '\'2\''
+        case_sbase = net.base_power
+        case_rev=0
+        xfrrat= 0
+        nxfrat= 0
+        basfrq = 60
+        record1= ""
+        record2= ""
+        buses=[]
+        loads=[]
+        fixed_shunts=[]
+        generators=[]
+        branches=[]
+        transformers=[]
+        areas=[] 
+        tt_dc_lines=[]
+        vsc_dc_lines=[]
+        transformer_corrections=[]
+        mt_dc_lines=[] 
+        line_groupings=[]
+        zones=[]
+        transfers=[]
+        owners=[]
+        facts=[]
+        switched_shunts=[] 
+        gnes=[]
+        induction_machines=[]
