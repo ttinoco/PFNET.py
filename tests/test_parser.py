@@ -18,6 +18,32 @@ class TestParser(unittest.TestCase):
         
         pass
 
+    def test_parserraw_star_bus_area_zone(self):
+        
+        case = os.path.join('data', 'psse_sample_case.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('raw file not available')
+
+        parser = pf.ParserRAW()
+        parser.set('keep_all_out_of_service', True)
+        net = parser.parse(case)
+
+        counter = 0
+        for bus in net.buses:
+            if bus.is_star():
+                neighbors = []
+                for br in bus.branches:
+                    if bus.index == br.bus_k.index:
+                        neighbors.append(br.bus_m)
+                    else:
+                        neighbors.append(br.bus_k)
+                self.assertEqual(len(neighbors), 3)
+                for b in neighbors:
+                    self.assertEqual(b.area, bus.area)
+                    self.assertEqual(b.zone, bus.zone)
+                counter += 1
+        self.assertGreaterEqual(counter, 1)
+
     def test_parserraw_keep_all_lossless(self):
 
         try:
@@ -25,7 +51,7 @@ class TestParser(unittest.TestCase):
             for case in test_cases.CASES:
                 
                 if os.path.splitext(case)[-1] != '.raw':
-                    continue
+                    continue                
                 
                 parser = pf.ParserRAW()
                 parser.set('keep_all_out_of_service', 1)
