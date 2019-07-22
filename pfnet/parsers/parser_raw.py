@@ -158,9 +158,8 @@ class PyParserRAW(object):
             
             gen = net.get_generator(index)           
             
-            bus = net.get_bus_from_number(raw_gen.i)
-            bus.add_generator(gen)
-            gen.bus=bus
+            gen.bus = net.get_bus_from_number(raw_gen.i)
+            gen.bus.add_generator(gen)
             
             gen.name = "%d" %gen.index
             gen.P     = float(raw_gen.pg)/raw_gen.mbase
@@ -173,10 +172,11 @@ class PyParserRAW(object):
             
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
-                gen.reg_bus = bus
-                assert(gen.index in [g.index for g in bus.reg_generators])
+                gen.reg_bus = gen.bus
+                #assert(gen.index in [g.index for g in bus.reg_generators])
                 bus.v_set = raw_gen.vs
                 
+
 
         # PFNET branches
         
@@ -192,9 +192,56 @@ class PyParserRAW(object):
     
         for raw_trafo in case.transformers:
             if self.keep_all_oos or (raw_trafo.p1.stat > 0):
-                raw_branches.append(raw_trafo)
+                if type(raw_trafo) == pd.struct.TwoWindingTransformer:
+                    raw_branches.append(raw_trafo)
+                elif type(raw_trafo) == pd.struct.ThreeWindingTransformer:      #3 Times because star-bus
+                    raw_branches.append(raw_trafo)      
+                    raw_branches.append(raw_trafo)
+                    raw_branches.append(raw_trafo)
+
+
                     
         net.set_branch_array(len(raw_branches)) # allocate PFNET branch array
+       
+        
+        star_bus_index=[]
+        for bus in net.buses:
+           if bus.is_star() == True:
+               star_bus_index.append(bus.index)
+               
+        star_index = 0          # Index to determine on which bus is connected
+        trafo_3w_count = 0      # Index to move in diferent star buses
+        
+        
+        '''Functions for transformers'''
+        
+        def series_parameters(x,r,cz,tbase,sbase):
+                                          
+            if cz == 1:
+                # In system PU 
+                z=r+x*1j
+                    
+                g = (1/z).real
+                b = (1/z).imag
+                    
+            elif cz == 2:
+                # In transformer PU
+                z=r+x*1j
+                        
+                g = ((1/z).real)*(tbase/sbase)
+                b = ((1/z).imag)*(tbase/sbase)
+                     
+            elif raw_branch.p1.cz == 3:
+                # r12 in watts & z12 in sbase PU
+                       
+                g = sbase/(r/3)
+                b = -1/np.sqrt((x*tbase/sbase)**2-(g)**2)
+                       
+            return g-b*1j
+   
+        
+        '''Parser Branch'''
+        
         for index, raw_branch in enumerate(reversed(raw_branches)):
             
             
@@ -303,36 +350,117 @@ class PyParserRAW(object):
                 z=r12+x12*1j
                 
                 tbase=raw_branch.p2.sbase12
-                        
-                if raw_branch.p1.cz==1:
-                    # In system PU
-                    trafo_2w.g= (1/z).real 
-                    trafo_2w.b= (1/z).imag 
-                     
-                    
-                elif raw_branch.p1.cz==2:
-                    # In transformer PU
-                    trafo_2w.g= ((1/z).real)*(tbase/case.sbase)
-                    trafo_2w.b= ((1/z).imag)*(tbase/case.sbase)
-                     
-                                       
-                elif raw_branch.p1.cz==3:
-                    # r12 in watts & z12 in sbase PU
-                    trafo_2w.g=case.sbase/(r12/3)
-                    trafo_2w.b=-1/np.sqrt((x12*tbase/case.sbase)**2-(trafo_2w.g)**2)
-                    
+
+                Y=series_parameters(x12,r12,raw_branch.p1.cz,tbase,case.sbase)
+                
+                trafo_2w.b = Y.imag
+                trafo_2w.g = Y.real
+             
                 
                 '''Faltaria poner el trafo t_mk debido a que no hace esa correccion en tension'''
                 
             elif type(raw_branch)==pd.struct.ThreeWindingTransformer:
                 # 3 Windings Transformers
                 
-                    
                '''Pasarlos es similar a los trafos 2w salvo que se tiene que ver entre que barras conectar
-               y realizar lo de los trafos_2w 3 veces'''
-                
-                
+               y realizar lo de los trafos_2w 3 veces'''   
+               
+               
+               '''Seria util armar funciones segun el tipo de cw, cz, cv, para determinar los parametros en PFNET'''
+               
+               
+               trafo_3w = net.get_branch(index)
+               
+               #Series parameters
+               
+               Y12 = series_parameters(raw_branch.p2.x12,raw_branch.p2.r12,raw_branch.p1.cz,raw_branch.p2.sbase12,case.sbase)
+               Y23 = series_parameters(raw_branch.p2.x23,raw_branch.p2.r23,raw_branch.p1.cz,raw_branch.p2.sbase23,case.sbase)
+               Y31 = series_parameters(raw_branch.p2.x31,raw_branch.p2.r31,raw_branch.p1.cz,raw_branch.p2.sbase31,case.sbase)
 
+               #Shunt parameters
+              
+               g_shunt=raw_branch.p1.mag1
+               b_shunt=raw_branch.p1.mag2
+
+
+
+               #i section of transformer
+               if index % 3 == 0:
+              
+                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.i)
+                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   
+                   #Series parameters
+                   
+                   Y = ((1/Y12)+(1/Y31)-(1/Y23))/2
+                   
+                   trafo_3w.g = Y.real
+                   trafo_3w.b = Y.imag
+                   
+                   if raw_branch.p1.nmetr == 1:
+                   
+                       if raw_branch.p1.cm == 2: 
+                   
+                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
+                            
+                       else:
+                            
+                            trafo_3w.g_m=g_shunt
+                            trafo_3w.b_m=-b_shunt               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
+                   
+                   
+                   
+                   '''Desarrollo'''
+                   
+               
+               #j section of transformer
+               elif index % 3 == 1:
+               
+                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.j)
+                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   
+                   #Series parameters
+                   
+                   Y = ((1/Y12)+(1/Y23)-(1/Y31))/2
+                   
+                   trafo_3w.g = Y.real
+                   trafo_3w.b = Y.imag
+               
+                   '''desarrollo'''
+                   
+               #k section of transformer
+               elif index % 3 == 2:
+               
+                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.k)
+                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   
+                   #Series parameters
+                   
+                   Y = ((1/Y31)+(1/Y23)-(1/Y12))/2
+                   
+                   trafo_3w.g = Y.real
+                   trafo_3w.b = Y.imag
+               
+                   '''desarollo'''
+               
+              
+            trafo_3w_count += 1
+            star_index += int(trafo_3w_count/3)
+            
+            
+               
+              
+               
+               
+              
+   
+               
+               
             
       
         
