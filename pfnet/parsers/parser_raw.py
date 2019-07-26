@@ -162,12 +162,12 @@ class PyParserRAW(object):
             gen.bus.add_generator(gen)
             
             gen.name = "%d" %gen.index
-            gen.P     = float(raw_gen.pg)/raw_gen.mbase
-            gen.P_max = float(raw_gen.pt)/raw_gen.mbase
-            gen.P_min = float(raw_gen.pb)/raw_gen.mbase
-            gen.Q     = float(raw_gen.qg)/raw_gen.mbase
-            gen.Q_max = float(raw_gen.qt)/raw_gen.mbase
-            gen.Q_min = float(raw_gen.qb)/raw_gen.mbase   
+            gen.P     = float(raw_gen.pg)/net.base_power
+            gen.P_max = float(raw_gen.pt)/net.base_power
+            gen.P_min = float(raw_gen.pb)/net.base_power
+            gen.Q     = float(raw_gen.qg)/net.base_power
+            gen.Q_max = float(raw_gen.qt)/net.base_power
+            gen.Q_min = float(raw_gen.qb)/net.base_power   
                         
             
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
@@ -278,7 +278,7 @@ class PyParserRAW(object):
                 
             elif type(raw_branch)==pd.struct.TwoWindingTransformer:
                 #2w_transformer
-                
+                '''Falta reg_bus'''
                 
                 trafo_2w=net.get_branch(index)
                 
@@ -302,17 +302,18 @@ class PyParserRAW(object):
                         
                 
                 #Control Modes
-                if raw_branch.w1.cod==0:
+                if raw_branch.w1.cod == 0:
                     trafo_2w.set_as_fixed_tran()
-                elif raw_branch.w1.cod==1:
+                elif raw_branch.w1.cod == 1:
                     trafo_2w.set_as_tap_changer_v()
-                elif raw_branch.w1.cod==2:
+                elif raw_branch.w1.cod == 2:
                     trafo_2w.set_as_tap_changer_Q()
-                elif raw_branch.w1.cod==3:
+                    trafo_2w.reg_bus = net.get_bus_from_number(raw_branch.w1.cont)
+                elif raw_branch.w1.cod == 3:
                     trafo_2w.set_as_phase_shifter()
-                elif raw_branch.w1.cod==4:
+                elif raw_branch.w1.cod == 4:
                     pass #DC-Line Control
-                elif raw_branch.w1.cod==4:
+                elif raw_branch.w1.cod == 5:
                     pass #Asymetric PF
                 
                 
@@ -355,9 +356,14 @@ class PyParserRAW(object):
                 
                 trafo_2w.b = Y.imag
                 trafo_2w.g = Y.real
+                
              
                 
-                '''Faltaria poner el trafo t_mk debido a que no hace esa correccion en tension'''
+                trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w1.windv
+                trafo_2w.ratio_max = raw_branch.w2.windv/raw_branch.w1.rmi
+                trafo_2w.ratio_min = raw_branch.w2.windv/raw_branch.w1.rma             
+                
+                
                 
             elif type(raw_branch)==pd.struct.ThreeWindingTransformer:
                 # 3 Windings Transformers
@@ -397,6 +403,8 @@ class PyParserRAW(object):
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
                    
+                   #Shunt parameters
+                   
                    if raw_branch.p1.nmetr == 1:
                    
                        if raw_branch.p1.cm == 2: 
@@ -412,10 +420,12 @@ class PyParserRAW(object):
                             trafo_3w.b_m=-b_shunt               
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
+                            
+                    
                    
                    
                    
-                   '''Desarrollo'''
+                   '''Falta Desarrollo'''
                    
                
                #j section of transformer
@@ -430,8 +440,24 @@ class PyParserRAW(object):
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
+                   
+                   if raw_branch.p1.nmetr == 2:
+                   
+                       if raw_branch.p1.cm == 2: 
+                   
+                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
+                            
+                       else:
+                            
+                            trafo_3w.g_m=g_shunt
+                            trafo_3w.b_m=-b_shunt               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
                
-                   '''desarrollo'''
+                   '''Falta desarrollo'''
                    
                #k section of transformer
                elif index % 3 == 2:
@@ -445,8 +471,24 @@ class PyParserRAW(object):
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
+                   
+                   if raw_branch.p1.nmetr == 3:
+                   
+                       if raw_branch.p1.cm == 2: 
+                   
+                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
+                            
+                       else:
+                            
+                            trafo_3w.g_m=g_shunt
+                            trafo_3w.b_m=-b_shunt               
+                            trafo_3w.g_k=0
+                            trafo_3w.b_k=0
                
-                   '''desarollo'''
+                   '''Falta desarollo'''
                
               
             trafo_3w_count += 1
