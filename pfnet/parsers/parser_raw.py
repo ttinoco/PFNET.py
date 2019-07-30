@@ -173,7 +173,6 @@ class PyParserRAW(object):
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
                 gen.reg_bus = gen.bus
-                #assert(gen.index in [g.index for g in bus.reg_generators])
                 bus.v_set = raw_gen.vs
                 
 
@@ -194,7 +193,7 @@ class PyParserRAW(object):
             if self.keep_all_oos or (raw_trafo.p1.stat > 0):
                 if type(raw_trafo) == pd.struct.TwoWindingTransformer:
                     raw_branches.append(raw_trafo)
-                elif type(raw_trafo) == pd.struct.ThreeWindingTransformer:      #3 Times because star-bus
+                elif type(raw_trafo) == pd.struct.ThreeWindingTransformer:      #3 Times because 3w
                     raw_branches.append(raw_trafo)      
                     raw_branches.append(raw_trafo)
                     raw_branches.append(raw_trafo)
@@ -398,7 +397,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = ((1/Y12)+(1/Y31)-(1/Y23))/2
+                   Y = 1/((1/Y12)+(1/Y31)-(1/Y23))/2
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -421,11 +420,8 @@ class PyParserRAW(object):
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
                             
-                    
-                   
-                   
-                   
-                   '''Falta Desarrollo'''
+                  
+                
                    
                
                #j section of transformer
@@ -436,7 +432,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = ((1/Y12)+(1/Y23)-(1/Y31))/2
+                   Y = 1/((1/Y12)+(1/Y23)-(1/Y31))/2
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -446,7 +442,7 @@ class PyParserRAW(object):
                        if raw_branch.p1.cm == 2: 
                    
                             trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase23/case.sbase)               
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
                             
@@ -456,6 +452,7 @@ class PyParserRAW(object):
                             trafo_3w.b_m=-b_shunt               
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
+              
                
                    '''Falta desarrollo'''
                    
@@ -467,7 +464,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = ((1/Y31)+(1/Y23)-(1/Y12))/2
+                   Y = 1/((1/Y31)+(1/Y23)-(1/Y12))/2
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -477,7 +474,7 @@ class PyParserRAW(object):
                        if raw_branch.p1.cm == 2: 
                    
                             trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase31/case.sbase)               
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
                             
@@ -487,9 +484,27 @@ class PyParserRAW(object):
                             trafo_3w.b_m=-b_shunt               
                             trafo_3w.g_k=0
                             trafo_3w.b_k=0
+  
                
                    '''Falta desarollo'''
                
+            
+            
+                #Control Modes
+                   if raw_branch.w1.cod == 0:
+                       trafo_3w.set_as_fixed_tran()
+                   elif raw_branch.w1.cod == 1:
+                       trafo_3w.set_as_tap_changer_v()
+                   elif raw_branch.w1.cod == 2:
+                       trafo_3w.set_as_tap_changer_Q()
+                       trafo_3w.reg_bus = net.get_bus_from_number(raw_branch.w1.cont)
+                   elif raw_branch.w1.cod == 3:
+                       trafo_3w.set_as_phase_shifter()
+                   elif raw_branch.w1.cod == 4:
+                       pass #DC-Line Control
+                   elif raw_branch.w1.cod == 5:
+                       pass #Asymetric PF
+            
               
             trafo_3w_count += 1
             star_index += int(trafo_3w_count/3)
