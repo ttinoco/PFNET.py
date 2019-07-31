@@ -300,6 +300,7 @@ class PyParserRAW(object):
                 #trafo_2w.phase_min=
                         
                 
+                
                 #Control Modes
                 if raw_branch.w1.cod == 0:
                     trafo_2w.set_as_fixed_tran()
@@ -356,8 +357,7 @@ class PyParserRAW(object):
                 trafo_2w.b = Y.imag
                 trafo_2w.g = Y.real
                 
-             
-                
+                               
                 trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w1.windv
                 trafo_2w.ratio_max = raw_branch.w2.windv/raw_branch.w1.rmi
                 trafo_2w.ratio_min = raw_branch.w2.windv/raw_branch.w1.rma             
@@ -392,8 +392,10 @@ class PyParserRAW(object):
                #i section of transformer
                if index % 3 == 0:
               
-                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.i)
-                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.i)
+                   trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
+                   
+                   trafo_3w.name = raw_branch.p1.name + '-I'
                    
                    #Series parameters
                    
@@ -407,28 +409,38 @@ class PyParserRAW(object):
                    if raw_branch.p1.nmetr == 1:
                    
                        if raw_branch.p1.cm == 2: 
-                   
-                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase12/case.sbase)               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            
+                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0 
                             
                        else:
                             
-                            trafo_3w.g_m=g_shunt
-                            trafo_3w.b_m=-b_shunt               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            trafo_3w.g_k = g_shunt
+                            trafo_3w.b_k = -b_shunt
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0   
                             
-                  
+                   trafo_3w.ratio     = raw_branch.w1.windv
+                   trafo_3w.ratio_max = raw_branch.w1.rmi
+                   trafo_3w.ratio_min = raw_branch.w1.rma  
+                   
+                   trafo_3w.phase = (raw_branch.w1.ang)*np.pi/180
+                   
+                   
+                   
+                   
                 
                    
                
                #j section of transformer
                elif index % 3 == 1:
                
-                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.j)
-                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.j)
+                   trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
+                   
+                   trafo_3w.name = raw_branch.p1.name + '-J'
                    
                    #Series parameters
                    
@@ -441,26 +453,35 @@ class PyParserRAW(object):
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase23/case.sbase)               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase23/case.sbase)               
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0
                             
                        else:
                             
-                            trafo_3w.g_m=g_shunt
-                            trafo_3w.b_m=-b_shunt               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            trafo_3w.g_k = g_shunt
+                            trafo_3w.b_k = -b_shunt               
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0
               
-               
+                   trafo_3w.ratio     = raw_branch.w2.windv
+                   trafo_3w.ratio_max = raw_branch.w2.rmi
+                   trafo_3w.ratio_min = raw_branch.w2.rma  
+                   
+                   trafo_3w.phase = (raw_branch.w2.ang)*np.pi/180
+                   
+                 
+                   
                    '''Falta desarrollo'''
                    
                #k section of transformer
                elif index % 3 == 2:
                
-                   trafo_3w.bus_m = net.get_bus_from_number(raw_branch.p1.k)
-                   trafo_3w.bus_k = net.get_bus(star_bus_index[star_index])
+                   trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.k)
+                   trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
+                   
+                   trafo_3w.name = raw_branch.p1.name + '-K'
                    
                    #Series parameters
                    
@@ -473,23 +494,31 @@ class PyParserRAW(object):
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_m=g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_m=-b_shunt*(raw_branch.p2.sbase31/case.sbase)               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase31/case.sbase)               
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0
                             
                        else:
                             
-                            trafo_3w.g_m=g_shunt
-                            trafo_3w.b_m=-b_shunt               
-                            trafo_3w.g_k=0
-                            trafo_3w.b_k=0
+                            trafo_3w.g_k = g_shunt
+                            trafo_3w.b_k = -b_shunt               
+                            trafo_3w.g_m = 0
+                            trafo_3w.b_m = 0
+                            
+                            
+                   trafo_3w.ratio     = raw_branch.w3.windv
+                   trafo_3w.ratio_max = raw_branch.w3.rmi
+                   trafo_3w.ratio_min = raw_branch.w3.rma  
   
+                   trafo_3w.phase = (raw_branch.w3.ang)*np.pi/180
+                   
+                   
                
                    '''Falta desarollo'''
                
             
-            
+            '''
                 #Control Modes
                    if raw_branch.w1.cod == 0:
                        trafo_3w.set_as_fixed_tran()
@@ -503,7 +532,7 @@ class PyParserRAW(object):
                    elif raw_branch.w1.cod == 4:
                        pass #DC-Line Control
                    elif raw_branch.w1.cod == 5:
-                       pass #Asymetric PF
+                       pass #Asymetric PF'''
             
               
             trafo_3w_count += 1
