@@ -173,7 +173,7 @@ class PyParserRAW(object):
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
                 gen.reg_bus = gen.bus
-                bus.v_set = raw_gen.vs
+                gen.bus.v_set = raw_gen.vs
                 
 
 
@@ -230,13 +230,13 @@ class PyParserRAW(object):
                 g = ((1/z).real)*(tbase/sbase)
                 b = ((1/z).imag)*(tbase/sbase)
                      
-            elif raw_branch.p1.cz == 3:
+            elif cz == 3:
                 # r12 in watts & z12 in sbase PU
                        
                 g = sbase/(r/3)
                 b = -1/np.sqrt((x*tbase/sbase)**2-(g)**2)
                        
-            return g-b*1j
+            return g+b*1j
    
         
         '''Parser Branch'''
