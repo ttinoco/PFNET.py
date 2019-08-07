@@ -2,6 +2,8 @@ from __future__ import division
 import os
 import pfnet
 import numpy as np
+from itertools import combinations
+
 
 class PyParserRAW(object):
     """
@@ -563,7 +565,7 @@ class PyParserRAW(object):
                 raw_shunts.append(raw_shunt)
                             
         for raw_shunt in case.switched_shunts:
-            if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
+            if self.keep_all_oos or (raw_shunt.stat > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
                 
         net.set_shunt_array(len(raw_shunts)) # allocate PFNET shunt array
@@ -585,20 +587,39 @@ class PyParserRAW(object):
                 
             elif type(raw_shunt)==pd.struct.SwitchedShunt:
                 #Switched Shunt
-                shunt=net.get_shunt(index)
-                shunt.bus=net.get_bus_from_number(raw_shunt.i)
-                shunt.g=raw_shunt.gl
+                shunt = net.get_shunt(index)
+                shunt.bus = net.get_bus_from_number(raw_shunt.i)
+                shunt.g = 0
                 
-                b_values=[raw_shunt.binit,raw_shunt.b1,raw_shunt.b2,raw_shunt.b3,raw_shunt.b4,raw_shunt.b5,raw_shunt.b6,raw_shunt.b7,raw_shunt.b8]
-                shunt.b_values=[B/net.base_power for B in b_values]
+                def get_b_values(b,n,my_list):
+                    if n is not None:
+                        b_val = np.linspace(b,b*n,n)
+                        my_list.append(b_val)
+                    
+                b=[]
                 
-                shunt.b_max=raw_shunt.binit/net.base_power
-                shunt.b_min=raw_shunt.b8/net.base_power
+                get_b_values(raw_shunt.b1,raw_shunt.n1,b)
+                get_b_values(raw_shunt.b2,raw_shunt.n2,b)
+                get_b_values(raw_shunt.b3,raw_shunt.n3,b)
+                get_b_values(raw_shunt.b4,raw_shunt.n4,b)
+                get_b_values(raw_shunt.b5,raw_shunt.n5,b)
+                get_b_values(raw_shunt.b6,raw_shunt.n6,b)
+                get_b_values(raw_shunt.b7,raw_shunt.n7,b)
+                get_b_values(raw_shunt.b8,raw_shunt.n8,b)
+                
+                b = np.concatenate(b)
+                
+                b = sum([list(map(list, combinations(b, i))) for i in range(len(b) + 1)], [])
+                b = np.array([sum(x) for x in b])
+                
+                b=np.ndarray((len(b),), buffer=b)
+                
+                shunt.b_values = b
+                
                 
                 
                 if raw_shunt.modsw==0:
-                    shunt.set_as_switched()
-                    shunt.lock()  #Ver Si El Metodo Es El Adecuado
+                    shunt.set_as_fixed()
                     
                 elif raw_shunt.modsw==1:
                     shunt.set_as_switched_v()
