@@ -265,7 +265,7 @@ class PyParserRAW(object):
                 
                 line.b=(1/z).imag
                 line.g=(1/z).real
-            
+                            
                 line.ratingA=raw_branch.ratea
                 line.ratingB=raw_branch.rateb
                 line.ratingC=raw_branch.ratec
@@ -323,7 +323,7 @@ class PyParserRAW(object):
                 
                 if raw_branch.p1.cm==2:
                     #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
-                    g_shunt=raw_branch.p1.mag1*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
+                    g_shunt=raw_branch.p1.mag1/case.sbase*raw_branch.w1.nomv**2
                     b_shunt=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
                     
                 else:
@@ -392,7 +392,9 @@ class PyParserRAW(object):
 
 
                #i section of transformer
-               if index % 3 == 0:
+               if trafo_3w_count % 3 == 0:
+                   
+                   trafo_3w_count += 1
               
                    trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.i)
                    trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
@@ -437,8 +439,10 @@ class PyParserRAW(object):
                    
                
                #j section of transformer
-               elif index % 3 == 1:
-               
+               elif trafo_3w_count % 3 == 1:
+                   
+                   trafo_3w_count += 1
+
                    trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.j)
                    trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
                    
@@ -478,7 +482,9 @@ class PyParserRAW(object):
                    '''Falta desarrollo'''
                    
                #k section of transformer
-               elif index % 3 == 2:
+               elif trafo_3w_count % 3 == 2:
+                   
+                   trafo_3w_count += 1
                
                    trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.k)
                    trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
@@ -537,8 +543,9 @@ class PyParserRAW(object):
                        pass #Asymetric PF'''
             
               
-            trafo_3w_count += 1
-            star_index += int(trafo_3w_count/3)
+           
+            star_index = trafo_3w_count//3
+            
             
             
                
@@ -612,35 +619,39 @@ class PyParserRAW(object):
                 b = sum([list(map(list, combinations(b, i))) for i in range(len(b) + 1)], [])
                 b = np.array([sum(x) for x in b])
                 
-                b=np.ndarray((len(b),), buffer=b)
-                
-                shunt.b_values = b
-                
+                #shunt.b_max = 0
+                #shunt.b_min = 0
                 
                 
+                # Falta ponerles valores 
+                
+                #ValueError: could not broadcast input array from shape () into shape (0)
+                
+                shunt.b = raw_shunt.binit/case.sbase   
+                shunt.set_as_fixed()
+                
+                '''
                 if raw_shunt.modsw==0:
                     shunt.set_as_fixed()
                     
                 elif raw_shunt.modsw==1:
                     shunt.set_as_switched_v()
                     shunt.set_as_discrete()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+#                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
                     
-                    bus=shunt.reg_bus().add_reg_shunt(shunt)
-                    
+#                   
                 elif raw_shunt.modsw==2:
                     shunt.set_as_switched_v()
                     shunt.set_as_continuous()
-                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+#                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
                     
-                    bus=shunt.reg_bus().add_reg_shunt(shunt)
                     
                 elif raw_shunt.modsw==3:
                     shunt.set_as_swithed()
                     shunt.set_as_discrete()
                     shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
                     
-                    bus=shunt.reg_bus().add_reg_shunt(shunt)
+                    
                 
                 elif raw_shunt.modsw==4:
                     shunt.set_as_discrete()
@@ -650,10 +661,10 @@ class PyParserRAW(object):
                 
                 elif raw_shunt.modsw==6:
                     shunt.set_as_discrete()
-                
-                
+                '''
+                '''
                 #Para Hacer:
-                '''Una vez pasadas las VSC-DC y los FACTS se podria terminar mejor 4,6
+                Una vez pasadas las VSC-DC y los FACTS se podria terminar mejor 4,6
                    Igualmente hay que terminar MODSW=5
                    discrete adjustment, controlling the admittance setting of the switched shunt at bus 
                    SWREM
