@@ -323,8 +323,10 @@ class PyParserRAW(object):
                 
                 if raw_branch.p1.cm==2:
                     #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
-                    g_shunt=raw_branch.p1.mag1/case.sbase*raw_branch.w1.nomv**2
-                    b_shunt=raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase)
+                    
+                    g_shunt=raw_branch.p1.mag1/case.sbase
+                    b_shunt=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)
+                    
                     
                 else:
                     #In system base P.U.
@@ -384,12 +386,7 @@ class PyParserRAW(object):
                Y23 = series_parameters(raw_branch.p2.x23,raw_branch.p2.r23,raw_branch.p1.cz,raw_branch.p2.sbase23,case.sbase)
                Y31 = series_parameters(raw_branch.p2.x31,raw_branch.p2.r31,raw_branch.p1.cz,raw_branch.p2.sbase31,case.sbase)
 
-               #Shunt parameters
-              
-               g_shunt=raw_branch.p1.mag1
-               b_shunt=raw_branch.p1.mag2
-
-
+               
 
                #i section of transformer
                if trafo_3w_count % 3 == 0:
@@ -413,12 +410,12 @@ class PyParserRAW(object):
                    if raw_branch.p1.nmetr == 1:
                    
                        if raw_branch.p1.cm == 2: 
-                            
-                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase12/case.sbase)               
+    
+                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
+                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)    
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0 
-                            
+                      
                        else:
                             
                             trafo_3w.g_k = g_shunt
@@ -455,19 +452,21 @@ class PyParserRAW(object):
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
                    
+                   #Shunt parameters
+                   
                    if raw_branch.p1.nmetr == 2:
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase23/case.sbase)               
+                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
+                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)               
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
                        else:
                             
-                            trafo_3w.g_k = g_shunt
-                            trafo_3w.b_k = -b_shunt               
+                            trafo_3w.g_k = raw_branch.p1.mag1
+                            trafo_3w.b_k = raw_branch.p1.mag2            
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
               
@@ -498,12 +497,14 @@ class PyParserRAW(object):
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
                    
+                   #Shunt parameters
+                   
                    if raw_branch.p1.nmetr == 3:
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_k = g_shunt/3*(case.sbase/raw_branch.w1.nomv**2) #ver con taps
-                            trafo_3w.b_k = -b_shunt*(raw_branch.p2.sbase31/case.sbase)               
+                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
+                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)             
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
@@ -671,21 +672,21 @@ class PyParserRAW(object):
                 '''
                 
             
-      
-                         
-
-
 
         # PFNET DC buses
 
 
         # PFNET DC branches
 
+
         # PFNET CSC HVDC
+
 
         # PFNET VSC HVDC
 
+
         # PFNET Facts
+
 
         # Update properties
         net.update_properties()
