@@ -16,7 +16,9 @@ parser=pfnet.PyParserRAW()
 #net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\IEEE 118 bus.raw')
 #net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\ver1718pid.raw')
 #net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\Texas2000_June2016.raw')
-net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\SouthCarolina500.raw')
+#net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\SouthCarolina500.raw')
+#net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\SyntheticUSA.raw')
+#net=parser.parse('C:\\Users\\Barberia Juan Luis\\Desktop\\PFNET_Archives\\ACTIVSg10K.raw')
 
 from numpy import hstack
 from numpy.linalg import norm
@@ -60,6 +62,7 @@ def NRsolve(net):
     
     x = p.get_init_point()
     p.eval(x)
+    
 
     residual = lambda x: hstack((p.A*x-p.b, p.f))
 
@@ -78,7 +81,7 @@ result_p = [GEN.P*net.base_power for GEN in net.generators]
 P_max = [GEN.P_max*net.base_power for GEN in net.generators]
 P_min = [GEN.P_min*net.base_power for GEN in net.generators]
 result_q = [GEN.Q*net.base_power for GEN in net.generators]
-result_v_mag = [BUS.v_mag for BUS in net.buses]
+result_v_mag = [[BUS.v_mag,BUS.v_ang*180/3.14,str(BUS.name)] for BUS in net.buses]
 result_v_ang = [BUS.v_ang*180/np.pi for BUS in net.buses]
 B_shunt=[SHUNT.b*net.base_power for SHUNT in net.shunts]
 P_km   =[BRANCH.P_km for BRANCH in net.branches]
