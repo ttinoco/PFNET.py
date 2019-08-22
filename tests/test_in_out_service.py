@@ -648,9 +648,6 @@ class TestInOutService(unittest.TestCase):
                 self.assertEqual(bus.get_total_gen_Q(), 0.)
                 self.assertEqual(bus.get_total_gen_Q_min(), 0.)
                 self.assertEqual(bus.get_total_gen_Q_max(), 0.)
-                self.assertEqual(bus.get_total_reg_gen_Q(), 0.)
-                self.assertEqual(bus.get_total_reg_gen_Q_min(), 0.)
-                self.assertEqual(bus.get_total_reg_gen_Q_max(), 0.)
                 self.assertEqual(bus.get_total_load_P(), 0.)
                 self.assertEqual(bus.get_total_load_Q(), 0.)
                 self.assertEqual(bus.get_total_shunt_g(), 0.)
@@ -1046,11 +1043,11 @@ class TestInOutService(unittest.TestCase):
             self.assertLess(np.abs(p_mis-(bus.P_mismatch + 
                                           sum([g.P for g in bus.generators]) -
                                           sum([br.P_km for br in bus.branches_k]) -
-                                          sum([br.P_mk for br in bus.branches_m]))), 1e-8)
+                                          sum([br.P_mk for br in bus.branches_m]))), 1e-4)
             self.assertLess(np.abs(q_mis-(bus.Q_mismatch +
                                           sum([g.Q for g in bus.generators]) -
                                           sum([br.Q_km for br in bus.branches_k]) -
-                                          sum([br.Q_mk for br in bus.branches_m]))), 1e-8)
+                                          sum([br.Q_mk for br in bus.branches_m]))), 1e-4)
             
             # v reg limit violations
             net.make_all_in_service()
@@ -1096,7 +1093,7 @@ class TestInOutService(unittest.TestCase):
             # gen Q vio
             net.make_all_in_service()
             for gen in net.generators:
-                if gen.is_regulator():
+                if gen.is_regulator() and not gen.is_slack():
                     gen.Q = gen.Q_max + 340.
                     net.update_properties()
                     self.assertLess(np.abs(net.gen_Q_vio-340.*net.base_power), 1e-8)

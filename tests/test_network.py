@@ -820,7 +820,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertNotEqual(gen.obj_type,'unknown')
 
                 # name
-                if not case.endswith('raw'):
+                if not case.endswith('raw') and not case.endswith('epc'):
                     self.assertEqual(gen.name, '%d' %gen.index)
                 gen.name = 'some name'
                 self.assertEqual(gen.name, 'some name')
@@ -984,7 +984,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertNotEqual(branch.obj_type,'unknown')
 
                 # Name
-                if not case.endswith('raw'):
+                if not case.endswith('raw') and not case.endswith("epc"):
                     self.assertEqual(branch.name, '%d' %branch.index)
                 branch.name = 'some name'
                 self.assertEqual(branch.name, 'some name')
@@ -1254,7 +1254,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertNotEqual(shunt.obj_type,'unknown')
 
                 # name
-                if not case.endswith('raw'):
+                if not case.endswith('raw') and not case.endswith('epc'):
                     self.assertEqual(shunt.name, '%d' %shunt.index)
                 shunt.name = 'some name'
                 self.assertEqual(shunt.name, 'some name')
@@ -1370,7 +1370,7 @@ class TestNetwork(unittest.TestCase):
                 self.assertNotEqual(load.obj_type,'unknown')
 
                 # name
-                if not case.endswith('raw'):
+                if not case.endswith('raw') and not case.endswith('epc'):
                     self.assertEqual(load.name, '%d' %load.index)
                 load.name = 'some name'
                 self.assertEqual(load.name, 'some name')
@@ -2390,13 +2390,13 @@ class TestNetwork(unittest.TestCase):
             rvio = 0.
             pvio = 0.
             for branch in net.branches:
-                if branch.is_tap_changer():
+                if branch.is_tap_changer() and branch.is_in_service():
                     dr = np.max([branch.ratio-branch.ratio_max,
                                  branch.ratio_min-branch.ratio,
                                  0])
                     if dr > rvio:
                         rvio = dr
-                if branch.is_phase_shifter():
+                if branch.is_phase_shifter() and branch.is_in_service():
                     dp = np.max([branch.phase-branch.phase_max,
                                  branch.phase_min-branch.phase,
                                  0])
