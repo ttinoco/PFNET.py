@@ -56,7 +56,7 @@ class PyParserRAW(object):
         import grg_pssedata as pd
 
         # Check extension
-        if os.path.splitext(filename)[-1][1:] != 'raw':
+        if os.path.splitext(filename)[-1][1:].lower() != 'raw':
             raise pfnet.ParserError('invalid file extension')
 
         # Get grg-pssedata case
