@@ -161,9 +161,8 @@ class PyParserRAW(object):
             gen = net.get_generator(index)           
             
             gen.bus = net.get_bus_from_number(raw_gen.i)
-            gen.bus.add_generator(gen)
-            
-            gen.name = "%d" %gen.index
+                      
+            gen.name =  raw_gen.id
             gen.P     = float(raw_gen.pg)/net.base_power
             gen.P_max = float(raw_gen.pt)/net.base_power
             gen.P_min = float(raw_gen.pb)/net.base_power
@@ -173,7 +172,7 @@ class PyParserRAW(object):
                         
             
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
-            if gen.bus.is_slack() or gen.Q_max > gen.Q_min:
+            if gen.bus.is_slack() or raw_gen.ireg == 0:
                 gen.reg_bus = gen.bus
                 gen.bus.v_set = raw_gen.vs
                 
@@ -256,11 +255,12 @@ class PyParserRAW(object):
                 line.bus_k=net.get_bus_from_number(raw_branch.i)
                 line.bus_m=net.get_bus_from_number(raw_branch.j)
                 
-                line.b_k=raw_branch.bi
-                line.b_m=raw_branch.bj
+                line.b_k=raw_branch.bi+raw_branch.b/2
+                line.b_m=raw_branch.bj+raw_branch.b/2
                 line.g_k=raw_branch.gi
                 line.g_m=raw_branch.gj
-                              
+    
+    
                 z=raw_branch.r+raw_branch.x*1j
                 
                 line.b=(1/z).imag
@@ -298,8 +298,8 @@ class PyParserRAW(object):
                 trafo_2w.ratingC=raw_branch.w1.ratc/case.sbase
                 
                 trafo_2w.phase=(raw_branch.w1.ang)*np.pi/180
-                #trafo_2w.phase_max=
-                #trafo_2w.phase_min=
+                trafo_2w.phase_max=(raw_branch.w1.ang)*np.pi/180
+                trafo_2w.phase_min=(raw_branch.w1.ang)*np.pi/180
                         
                 
                 
@@ -330,6 +330,7 @@ class PyParserRAW(object):
                     
                 else:
                     #In system base P.U.
+                                        
                     g_shunt=raw_branch.p1.mag1
                     b_shunt=raw_branch.p1.mag2
                
@@ -362,9 +363,9 @@ class PyParserRAW(object):
                 trafo_2w.g = Y.real
                 
                                
-                trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w1.windv
+                trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w2.windv
                 trafo_2w.ratio_max = raw_branch.w2.windv/raw_branch.w1.rmi
-                trafo_2w.ratio_min = raw_branch.w2.windv/raw_branch.w1.rma             
+                trafo_2w.ratio_min = raw_branch.w2.windv/raw_branch.w1.rma          
                 
                 
                 
