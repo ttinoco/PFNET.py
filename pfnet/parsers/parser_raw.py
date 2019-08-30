@@ -174,7 +174,7 @@ class PyParserRAW(object):
             #El parser de MATPOWER toma una consideracion similar en cuanto al Slack Bus
             if gen.bus.is_slack() or raw_gen.ireg == 0:
                 gen.reg_bus = gen.bus
-                gen.bus.v_set = raw_gen.vs
+                gen.reg_bus.v_set = raw_gen.vs
                 
 
 
@@ -714,31 +714,135 @@ class PyParserRAW(object):
         '''Se pierde demasiada informacion en pasar PSSE ==> PFNET
         lo cual no sabria como hacer el camino inverso PFNET ==> PSSE'''
         
-        case_name= ""
-        case_version = '\'2\''
-        case_sbase = net.base_power
-        case_rev=0
-        xfrrat= 0
-        nxfrat= 0
-        basfrq = 60
-        record1= ""
-        record2= ""
-        buses=[]
-        loads=[]
-        fixed_shunts=[]
-        generators=[]
-        branches=[]
-        transformers=[]
-        areas=[] 
-        tt_dc_lines=[]
-        vsc_dc_lines=[]
-        transformer_corrections=[]
-        mt_dc_lines=[] 
-        line_groupings=[]
-        zones=[]
-        transfers=[]
-        owners=[]
-        facts=[]
-        switched_shunts=[] 
-        gnes=[]
-        induction_machines=[]
+        case = pd.struct.Case(ic = 0,
+                       sbase = net.base_power,
+                       rev = 0,
+                       xfrrat = 0,
+                       nxfrat = 0,
+                       basfrq = 50,
+                       record1 = '',
+                       record2 = '',
+                       buses = [],
+                       loads = [],
+                       fixed_shunts = [],
+                       generators = [],
+                       branches = [],
+                       transformers = [],
+                       areas = [],
+                       tt_dc_lines = [],
+                       vsc_dc_lines = [],
+                       transformer_corrections = [],
+                       mt_dc_lines = [],
+                       line_groupings = [],
+                       zones = [],
+                       transfers = [],
+                       owners = [],
+                       facts = [],
+                       switched_shunts = [],
+                       gnes = [],
+                       induction_machines = [])
+        
+        
+        # PSSE Buses
+        
+        for bus in reversed(net.buses):
+            
+            def get_ide(bus):
+                
+                if bus.is_slack():
+                    return 3
+                elif bus.reg_generators != []:
+                    return 2
+                elif bus.reg_generators == []:
+                    return 1
+                else: 
+                    return 4
+                
+            
+            if not(bus.is_star):
+            
+                i      =  int(bus.number)
+                name   =  str(bus.name)
+                basekv =  float(bus.v_base)
+                ide    =  get_ide(bus)
+                area   =  int(bus.area)
+                zone   =  int(bus.zone)
+                owner  =  1
+                vm     =  float(bus.v_mag)
+                va     =  float(bus.v_ang)
+                nvhi   =  float(bus.v_max_norm)
+                nvlo   =  float(bus.v_min_norm)
+                evhi   =  float(bus.v_max_emer)
+                evlo   =  float(bus.v_max_emer)
+                
+                
+                case.bus.append(pd.struct.Bus(i, name, basekv, ide, area, zone, owner, vm, va, nvhi, nvlo, evhi, evlo))   
+        
+        
+        # PSSE Loads
+        
+        for load in reversed(net.loads):
+            
+            index  = int(load.index) 
+            i      = int(load.bus.number)     
+            ID     = int(load.name)
+            status = int(load.in_service)
+            area   = int(load.bus.area)  
+            zone   = int(load.bus.zone) 
+            pl     = load.comp_cp * net.base_power
+            ql     = load.comp_cq * net.base_power 
+            ip     = load.comp_ci * net.base_power 
+            iq     = load.comp_cj * net.base_power 
+            yp     = load.comp_cg * net.base_power 
+            yq     = load.comp_cb * net.base_power 
+            owner  = 1
+            scale  = 1
+            intrpt = 0
+
+            case.loads.append(pd.struct.Load(index, i, ID, status, area, zone, pl, ql, ip, iq, yp, yq, owner, scale, intrpt))
+            
+            
+        # PSSE Generators
+        
+        for gen in reversed(net.generators):
+            
+            index = int(gen.index)
+            i     = int(gen.bus.number)
+            ID    = int(gen.name)
+            pg    = gen.P * net.base_power
+            qg    = gen.Q * net.base_power
+            qt    = gen.Q_max * net.base_power
+            qb    = gen.Q_min * net.base_power
+            vs    = gen.reg_bus.v_set
+            ireg  = int(gen.reg_bus.number)
+            mbase = net.base_power
+            zr    = 0.
+            zx    = 0.
+            rt    = 0.
+            xt    = 0.
+            gtap  = 0.
+            stat  = int(not(gen.outage))
+            rmpct = 0.
+            pt    = gen.P_max * net.base_power
+            pb    = gen.P_min * net.base_power
+            o1    = 1
+            f1    = 1.
+            o2    = 0
+            f2    = 1.
+            o3    = 0
+            f3    = 1.
+            o4    = 0
+            f4    = 1.
+            wmod  = 0
+            wpf   = 0
+            
+            case.generators.append(pd.struct.Generator(index, i, id, pg, qg, qt, qb, vs, ireg, mbase, zr, zx, rt, xt, gtap, stat, rmpct, pt, pb, o1, f1, o2, f2, o3, f3, o4, f4, wmod, wpf))
+            
+            
+            
+        f = open(filename, 'w')
+        f.write(case.to_psse())
+        f.close()
+            
+            
+            
