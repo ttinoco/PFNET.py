@@ -629,23 +629,23 @@ class PyParserRAW(object):
                 
                 #ValueError: could not broadcast input array from shape () into shape (0)
                 
-                shunt.b = raw_shunt.binit/case.sbase   
-                shunt.set_as_fixed()
+                shunt.b = raw_shunt.binit / case.sbase   
                 
-                '''
+                
+                
                 if raw_shunt.modsw==0:
                     shunt.set_as_fixed()
                     
                 elif raw_shunt.modsw==1:
                     shunt.set_as_switched_v()
                     shunt.set_as_discrete()
-#                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+                    shunt.reg_bus=shunt.bus
                     
 #                   
                 elif raw_shunt.modsw==2:
                     shunt.set_as_switched_v()
                     shunt.set_as_continuous()
-#                    shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
+                    shunt.reg_bus=shunt.bus
                     
                     
                 elif raw_shunt.modsw==3:
@@ -653,8 +653,6 @@ class PyParserRAW(object):
                     shunt.set_as_discrete()
                     shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
                     
-                    
-                
                 elif raw_shunt.modsw==4:
                     shunt.set_as_discrete()
                 
@@ -663,7 +661,7 @@ class PyParserRAW(object):
                 
                 elif raw_shunt.modsw==6:
                     shunt.set_as_discrete()
-                '''
+                
                 '''
                 #Para Hacer:
                 Una vez pasadas las VSC-DC y los FACTS se podria terminar mejor 4,6
@@ -804,11 +802,11 @@ class PyParserRAW(object):
             
         # PSSE Generators
         
-        for gen in reversed(net.generators):
+        for gen in net.generators:
             
             index = int(gen.index)
             i     = int(gen.bus.number)
-            ID    = int(gen.name)
+            ID    = str(gen.name)
             pg    = gen.P * net.base_power
             qg    = gen.Q * net.base_power
             qt    = gen.Q_max * net.base_power
@@ -838,7 +836,41 @@ class PyParserRAW(object):
             
             case.generators.append(pd.struct.Generator(index, i, id, pg, qg, qt, qb, vs, ireg, mbase, zr, zx, rt, xt, gtap, stat, rmpct, pt, pb, o1, f1, o2, f2, o3, f3, o4, f4, wmod, wpf))
             
+        # PSSE Lines
+        
+        for line in reversed(net.branches):
             
+            if line.is_line() == True:
+                
+               index = line.index
+               i     = line.bus_k.number
+               j     = line.bus_m.number
+               ckt   = '1 '
+               den   = line.g**2 + line.b**2
+               r     = line.g/den
+               x     = -line.b/den
+               b     = line.b_m + line.b_k
+               ratea = line.ratingA
+               rateb = line.ratingB
+               ratec = line.ratingC
+               gi    = line.g_k
+               bi    = 0.  
+               gj    = line.g_m
+               bj    = 0.
+               st    = int(line.outage)
+               met   = -1
+               length= 0.
+               o1    = 1
+               f1    = 1.
+               o2    = 0
+               f2    = 1.
+               o3    = 0
+               f3    = 1.
+               o4    = 0
+               f4    = 1.         
+               
+               case.branches.append(pd.struct.Branch(index, i, j, ckt, r, x, b, ratea, rateb, ratec, gi, bi, gj, bj, st, met, length, o1, f1, o2, f2, o3, f3, o4, f4))
+               
             
         f = open(filename, 'w')
         f.write(case.to_psse())
