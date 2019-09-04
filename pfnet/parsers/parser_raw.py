@@ -5,6 +5,7 @@ import numpy as np
 from itertools import combinations
 
 
+
 class PyParserRAW(object):
     """
     Class for parsing .raw files.
@@ -113,7 +114,7 @@ class PyParserRAW(object):
             #bus.in_service =raw_bus.ide != self.BUS_TYPE_IS
             bus.area = raw_bus.area
             bus.zone = raw_bus.zone
-            bus.name = raw_bus.name
+            bus.name = raw_bus.name.decode('utf-8', 'ignore')
             bus.v_mag = raw_bus.vm
             bus.v_ang = raw_bus.va*np.pi/180.
             bus.v_base = raw_bus.basekv
@@ -485,7 +486,7 @@ class PyParserRAW(object):
                elif trafo_3w_count % 3 == 2:
                    
                    trafo_3w_count += 1
-               
+                   
                    trafo_3w.bus_k = net.get_bus_from_number(raw_branch.p1.k)
                    trafo_3w.bus_m = net.get_bus(star_bus_index[star_index])
                    
@@ -618,8 +619,8 @@ class PyParserRAW(object):
                 
                 b = np.concatenate(b)
                 
-                b = sum([list(map(list, combinations(b, i))) for i in range(len(b) + 1)], [])
-                b = np.array([sum(x) for x in b])
+                #b = sum([list(map(list, combinations(b, i))) for i in range(len(b) + 1)], [])
+                #b = np.array([sum(x) for x in b])
                 
                 #shunt.b_max = 0
                 #shunt.b_min = 0
