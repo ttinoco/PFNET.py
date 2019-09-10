@@ -2,7 +2,6 @@ from __future__ import division
 import os
 import pfnet
 import numpy as np
-from itertools import combinations
 
 
 
@@ -63,7 +62,7 @@ class PyParserRAW(object):
         # Get grg-pssedata case
         case = pd.io.parse_psse_case_file(filename)
         self.case = case
-
+        
         if num_periods is None:
             num_periods = 1
         
@@ -325,16 +324,15 @@ class PyParserRAW(object):
                 if raw_branch.p1.cm==2:
                     #No load loss in watts/ Exciting current in P.U. at nominal voltage w1
                     
-                    g_shunt=raw_branch.p1.mag1/case.sbase
-                    b_shunt=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)
-                    
+                    g_shunt=raw_branch.p1.mag1/(case.sbase * 10**6)
+                    b_shunt=-1. * np.sqrt((raw_branch.p1.mag2*raw_branch.p2.sbase12/case.sbase)**2 - g_shunt**2)
                     
                 else:
                     #In system base P.U.
                                         
                     g_shunt=raw_branch.p1.mag1
-                    b_shunt=raw_branch.p1.mag2
-               
+                    b_shunt=-1. *raw_branch.p1.mag2
+
                 # Side of metered
                 
                 if raw_branch.p1.nmetr==2:
@@ -650,7 +648,7 @@ class PyParserRAW(object):
                     
                     
                 elif raw_shunt.modsw==3:
-                    shunt.set_as_swithed()
+                    shunt.set_as_switched()
                     shunt.set_as_discrete()
                     shunt.reg_bus=net.get_bus_from_number(raw_shunt.swrem)
                     
