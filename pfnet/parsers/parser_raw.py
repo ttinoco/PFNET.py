@@ -226,17 +226,19 @@ class PyParserRAW(object):
                     
             elif cz == 2:
                 # In transformer PU
-                z=r+x*1j
+                z=(r+x*1j)*tbase/sbase
                         
-                g = ((1/z).real)*(tbase/sbase)
-                b = ((1/z).imag)*(tbase/sbase)
+                g = ((1/z).real)
+                b = ((1/z).imag)
                      
             elif cz == 3:
-                # r12 in watts & z12 in sbase PU
-                       
-                g = sbase/(r/3)
-                b = -1/np.sqrt((x*tbase/sbase)**2-(g)**2)
-                       
+                # r in watts & x in specified z MVA base
+                rcc = r/(sbase*10**6)
+                xcc = np.sqrt((x*tbase/sbase)**2 - rcc**2)
+                
+                g = rcc/(rcc**2+xcc**2)  
+                b = -xcc/((rcc**2+xcc**2))
+                
             return g+b*1j
    
         
@@ -380,6 +382,11 @@ class PyParserRAW(object):
                
                trafo_3w = net.get_branch(index)
                
+               if raw_branch.p1.stat==1:
+                    trafo_3w.outage=False
+               elif raw_branch.p1.stat==0:
+                    trafo_3w.outage=True
+               
                #Series parameters
                
                Y12 = series_parameters(raw_branch.p2.x12,raw_branch.p2.r12,raw_branch.p1.cz,raw_branch.p2.sbase12,case.sbase)
@@ -400,7 +407,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y12)+(1/Y31)-(1/Y23))/2
+                   Y = 1/((1/Y12)+(1/Y31)-(1/Y23)/2)
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -411,8 +418,8 @@ class PyParserRAW(object):
                    
                        if raw_branch.p1.cm == 2: 
     
-                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
-                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)    
+                            trafo_3w.g_k=raw_branch.p1.mag1/(case.sbase * 10**6)
+                            trafo_3w.b_k=-1. * np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2 - raw_branch.p1.mag2**2)  
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0 
                       
@@ -447,7 +454,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y12)+(1/Y23)-(1/Y31))/2
+                   Y = 1/((1/Y12)+(1/Y23)-(1/Y31)/2)
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -458,15 +465,15 @@ class PyParserRAW(object):
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
-                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)               
+                            trafo_3w.g_k=raw_branch.p1.mag1/(case.sbase * 10**6)
+                            trafo_3w.b_k=-1. * np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase23/case.sbase))**2 - raw_branch.p1.mag2**2)               
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
                        else:
                             
                             trafo_3w.g_k = raw_branch.p1.mag1
-                            trafo_3w.b_k = raw_branch.p1.mag2            
+                            trafo_3w.b_k = -1. * raw_branch.p1.mag2            
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
               
@@ -492,7 +499,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y31)+(1/Y23)-(1/Y12))/2
+                   Y = 1/((1/Y31)+(1/Y23)-(1/Y12)/2)
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -503,8 +510,8 @@ class PyParserRAW(object):
                    
                        if raw_branch.p1.cm == 2: 
                    
-                            trafo_3w.g_k=raw_branch.p1.mag1/case.sbase
-                            trafo_3w.b_k=np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase12/case.sbase))**2-g_shunt**2)             
+                            trafo_3w.g_k=raw_branch.p1.mag1/(case.sbase * 10**6)
+                            trafo_3w.b_k=-1. * np.sqrt((raw_branch.p1.mag2*(raw_branch.p2.sbase31/case.sbase))**2 - raw_branch.p1.mag2**2)            
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
@@ -527,7 +534,7 @@ class PyParserRAW(object):
                    '''Falta desarollo'''
                
             
-            '''
+            
                 #Control Modes
                    if raw_branch.w1.cod == 0:
                        trafo_3w.set_as_fixed_tran()
@@ -541,7 +548,7 @@ class PyParserRAW(object):
                    elif raw_branch.w1.cod == 4:
                        pass #DC-Line Control
                    elif raw_branch.w1.cod == 5:
-                       pass #Asymetric PF'''
+                       pass #Asymetric PF
             
               
            
