@@ -238,7 +238,8 @@ class PyParserRAW(object):
                 
                 g = rcc/(rcc**2+xcc**2)  
                 b = -xcc/((rcc**2+xcc**2))
-                
+              
+
             return g+b*1j
    
         
@@ -283,8 +284,10 @@ class PyParserRAW(object):
                 #2w_transformer
                 '''Falta reg_bus'''
                 
+                                
                 trafo_2w=net.get_branch(index)
                 
+                                
                 if raw_branch.p1.stat==1:
                     trafo_2w.outage=False
                 elif raw_branch.p1.stat==0:
@@ -363,8 +366,8 @@ class PyParserRAW(object):
                 trafo_2w.b = Y.imag
                 trafo_2w.g = Y.real
                 
-                               
-                trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w2.windv
+                  
+                trafo_2w.ratio = raw_branch.w2.windv/raw_branch.w1.windv
                 trafo_2w.ratio_max = raw_branch.w2.windv/raw_branch.w1.rmi
                 trafo_2w.ratio_min = raw_branch.w2.windv/raw_branch.w1.rma          
                 
@@ -393,6 +396,7 @@ class PyParserRAW(object):
                Y23 = series_parameters(raw_branch.p2.x23,raw_branch.p2.r23,raw_branch.p1.cz,raw_branch.p2.sbase23,case.sbase)
                Y31 = series_parameters(raw_branch.p2.x31,raw_branch.p2.r31,raw_branch.p1.cz,raw_branch.p2.sbase31,case.sbase)
 
+                
                
 
                #i section of transformer
@@ -430,6 +434,8 @@ class PyParserRAW(object):
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0   
                             
+                            
+                                               
                    trafo_3w.ratio     = raw_branch.w1.windv
                    trafo_3w.ratio_max = raw_branch.w1.rmi
                    trafo_3w.ratio_min = raw_branch.w1.rma  
@@ -679,10 +685,21 @@ class PyParserRAW(object):
             
 
         # PFNET DC buses
-
-
+        
+        '''raw_dc_buses = []
+        
+        for raw_dc_bus in case.
+            raw_dc_buses.append(raw_dc_bus)'''
+            
+            
         # PFNET DC branches
-
+        raw_dc_lines = []
+        
+        for raw_dc_line in case.tt_dc_lines:
+            raw_dc_lines.append(raw_dc_line)
+            
+        for index, raw_dc_line in enumerate(reversed(raw_dc_lines)):
+            pass
 
         # PFNET CSC HVDC
 
@@ -691,7 +708,22 @@ class PyParserRAW(object):
 
 
         # PFNET Facts
-
+        raw_facts = []
+        
+        for raw_fact in case.facts:
+            if self.keep_all_oos or raw_fact.mode != 0:
+                raw_facts.append(raw_fact)
+        
+        net.set_facts_array(len(raw_facts))
+        
+        for index, raw_fact in enumerate(reversed(raw_facts)):
+            
+            fact       = net.get_facts(index)
+            fact.bus_k = net.get_bus_from_number(raw_fact.i) 
+            fact.bus_m = net.get_bus_from_number(raw_fact.j)
+            
+            
+            
 
         # Update properties
         net.update_properties()
@@ -763,7 +795,7 @@ class PyParserRAW(object):
                     return 4
                 
             
-            if not(bus.is_star):
+            if not(bus.is_star()):
             
                 i      =  int(bus.number)
                 name   =  str(bus.name)
@@ -780,7 +812,7 @@ class PyParserRAW(object):
                 evlo   =  float(bus.v_max_emer)
                 
                 
-                case.bus.append(pd.struct.Bus(i, name, basekv, ide, area, zone, owner, vm, va, nvhi, nvlo, evhi, evlo))   
+                case.buses.append(pd.struct.Bus(i, name, basekv, ide, area, zone, owner, vm, va, nvhi, nvlo, evhi, evlo))   
         
         
         # PSSE Loads
@@ -812,7 +844,7 @@ class PyParserRAW(object):
             
             index = int(gen.index)
             i     = int(gen.bus.number)
-            ID    = str(gen.name)
+            ID    = gen.name
             pg    = gen.P * net.base_power
             qg    = gen.Q * net.base_power
             qt    = gen.Q_max * net.base_power
@@ -877,7 +909,98 @@ class PyParserRAW(object):
                
                case.branches.append(pd.struct.Branch(index, i, j, ckt, r, x, b, ratea, rateb, ratec, gi, bi, gj, bj, st, met, length, o1, f1, o2, f2, o3, f3, o4, f4))
                
+        # PSSE 2-Windings transformers
+        
+        for index, trafo_2w in enumerate(reversed(net.branches)):
             
+            if not(trafo_2w.is_line()) and not(trafo_2w.is_part_of_3_winding_transformer()):
+                
+                #p1
+                 i    = trafo_2w.bus_k.number
+                 j    = trafo_2w.bus_m.number
+                 k    = 0
+                 ckt  = 1
+                 cw   = 1
+                 cz   = 1
+                 cm   = 1
+                 mag1 = trafo_2w.g_m + trafo_2w.g_k
+                 mag2 = trafo_2w.b_m + trafo_2w.b_k
+                 nmetr= 0
+                 name = str(trafo_2w.name)
+                 stat = int(trafo_2w.outage)
+                 o1 = 1
+                 f1 = 1.
+                 o2 = 0 
+                 f2 = 0. 
+                 o3 = 0
+                 f3 = 0.
+                 o4 = 0
+                 f4 = 0.
+                 vecgrp= '            '
+                 
+                 p1 = pd.struct.TransformerParametersFirstLine(i,j,k,ckt,cw,cz,cm,mag1,mag2,nmetr,name,stat,o1,f1,o2,f2,o3,f3,o4,f4,vecgrp)
+                 
+                 #p2
+                 den = trafo_2w.g**2 + trafo_2w.b**2
+                 r12 =  trafo_2w.g / den
+                 x12 = -trafo_2w.b / den
+                 sbase12 = 0
+                
+                 p2 = pd.struct.TransformerParametersSecondLineShort(r12, x12, sbase12)
+                
+                 #w1
+                 
+                 index_w1 = 1 
+                 windv = 1.0
+                 nomv  = trafo_2w.bus_k.v_base
+                 ang   = trafo_2w.phase
+                 rata  = trafo_2w.ratingA
+                 ratb  = trafo_2w.ratingB
+                 ratc  = trafo_2w.ratingC
+                 
+                 if trafo_2w.is_fixed_tran():
+                     cod = 0
+                 elif trafo_2w.is_tap_changer_v():
+                     cod = 1
+                 elif trafo_2w.is_tap_changer_Q():
+                     cod = 2
+                 elif trafo_2w.is_phase_shifter():
+                     cod = 3
+                
+                    
+                 if trafo_2w.reg_bus == None:
+                     cont = 0
+                 else:
+                     cont = trafo_2w.reg_bus.number
+                 rma   = 1.0
+                 rmi   = 1.0
+                 
+                 #Faltan definir los de abajo
+                 
+                 vma   = 1.0
+                 vmi   = 1.0
+                 ntp   = 33
+                 tab   = 0
+                 cr    = 0
+                 cx    = 0
+                 cnxa  = 0.
+                
+                 w1 = pd.struct.TransformerWinding(index_w1, windv, nomv, ang, rata, ratb, ratc, cod, cont, rma, rmi, vma, vmi, ntp, tab, cr, cx, cnxa)
+                
+                 #w2
+                  
+                 index_w2 = 2 
+                 windv = trafo_2w.ratio
+                 nomv  = trafo_2w.bus_m.v_base
+          
+                 w2 = pd.struct.TransformerWindingShort(index_w2,windv,nomv)
+                 
+                 case.transformers.append(pd.struct.TwoWindingTransformer(index,p1,p2,w1,w2))
+                 
+                 
+                 
+        
+                 
         f = open(filename, 'w')
         f.write(case.to_psse())
         f.close()
