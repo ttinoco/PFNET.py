@@ -226,7 +226,7 @@ class PyParserRAW(object):
                     
             elif cz == 2:
                 # In transformer PU
-                z=(r+x*1j)*tbase/sbase
+                z=(r+x*1j)*sbase/tbase
                         
                 g = ((1/z).real)
                 b = ((1/z).imag)
@@ -234,7 +234,7 @@ class PyParserRAW(object):
             elif cz == 3:
                 # r in watts & x in specified z MVA base
                 rcc = r/(sbase*10**6)
-                xcc = np.sqrt((x*tbase/sbase)**2 - rcc**2)
+                xcc = np.sqrt((x*sbase/tbase)**2 - rcc**2)
                 
                 g = rcc/(rcc**2+xcc**2)  
                 b = -xcc/((rcc**2+xcc**2))
