@@ -429,8 +429,8 @@ class PyParserRAW(object):
                       
                        else:
                             
-                            trafo_3w.g_k = g_shunt
-                            trafo_3w.b_k = -b_shunt
+                            trafo_3w.g_k = raw_branch.p1.mag1
+                            trafo_3w.b_k = -1. * raw_branch.p1.mag2    
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0   
                             
@@ -523,8 +523,8 @@ class PyParserRAW(object):
                             
                        else:
                             
-                            trafo_3w.g_k = g_shunt
-                            trafo_3w.b_k = -b_shunt               
+                            trafo_3w.g_k = raw_branch.p1.mag1
+                            trafo_3w.b_k = -1. * raw_branch.p1.mag2            
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
