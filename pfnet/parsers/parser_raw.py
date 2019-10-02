@@ -226,7 +226,7 @@ class PyParserRAW(object):
                     
             elif cz == 2:
                 # In transformer PU
-                z=(r+x*1j)*sbase/tbase
+                z=(r+x*1j)*tbase/sbase
                         
                 g = ((1/z).real)
                 b = ((1/z).imag)
@@ -234,13 +234,42 @@ class PyParserRAW(object):
             elif cz == 3:
                 # r in watts & x in specified z MVA base
                 rcc = r/(sbase*10**6)
-                xcc = np.sqrt((x*sbase/tbase)**2 - rcc**2)
+                xcc = np.sqrt((x*tbase/sbase)**2 - rcc**2)
                 
                 g = rcc/(rcc**2+xcc**2)  
                 b = -xcc/((rcc**2+xcc**2))
               
-
             return g+b*1j
+        
+        
+        def Three_winding_admitance(y12,y23,y31,part):
+            
+            if part=="i":
+            
+                try:
+                    Y = 1/(1/y12+1/y31-1/y23)/2
+                except ZeroDivisionError:
+                    Y = -100000j
+                return Y
+                    
+            if part=="j":
+            
+                try:
+                    Y = 1/(1/y12+1/y23-1/y31)/2
+                except ZeroDivisionError:
+                    Y = -100000j
+                return Y
+            
+            if part=="k":
+            
+                try:
+                    Y = 1/(1/y31+1/y23-1/y12)/2
+                except ZeroDivisionError:
+                    Y = -100000j
+                return Y        
+                    
+                    
+                    
    
         
         '''Parser Branch'''
@@ -411,7 +440,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y12)+(1/Y31)-(1/Y23)/2)
+                   Y = Three_winding_admitance(Y12,Y23,Y31,"i")
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -429,8 +458,8 @@ class PyParserRAW(object):
                       
                        else:
                             
-                            trafo_3w.g_k = raw_branch.p1.mag1
-                            trafo_3w.b_k = -1. * raw_branch.p1.mag2    
+                            trafo_3w.g_k = g_shunt
+                            trafo_3w.b_k = -b_shunt
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0   
                             
@@ -460,7 +489,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y12)+(1/Y23)-(1/Y31)/2)
+                   Y = Three_winding_admitance(Y12,Y23,Y31,"j")
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -505,7 +534,7 @@ class PyParserRAW(object):
                    
                    #Series parameters
                    
-                   Y = 1/((1/Y31)+(1/Y23)-(1/Y12)/2)
+                   Y = Three_winding_admitance(Y12,Y23,Y31,"k")
                    
                    trafo_3w.g = Y.real
                    trafo_3w.b = Y.imag
@@ -523,8 +552,8 @@ class PyParserRAW(object):
                             
                        else:
                             
-                            trafo_3w.g_k = raw_branch.p1.mag1
-                            trafo_3w.b_k = -1. * raw_branch.p1.mag2            
+                            trafo_3w.g_k = g_shunt
+                            trafo_3w.b_k = -b_shunt               
                             trafo_3w.g_m = 0
                             trafo_3w.b_m = 0
                             
