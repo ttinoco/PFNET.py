@@ -7,11 +7,11 @@
 #***************************************************#
 
 from .cpfnet import *
-from . import functions
-from . import constraints
-from . import parsers
-from . import tests
-from . import examples
+#from . import functions
+#from . import constraints
+#from . import parsers
+#from . import tests
+#from . import examples
 from . import data
 from .parsers import PyParserMAT
 from .parsers import PyParserRAW
