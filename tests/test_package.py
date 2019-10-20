@@ -17,6 +17,11 @@ class TestPackage(unittest.TestCase):
         
         pass
 
+    def test_has_parsers(self):
+
+        self.assertTrue(hasattr(pf, 'has_raw_parser'))
+        self.assertTrue(hasattr(pf, 'has_epc_parser'))
+
     def test_version(self):
 
         self.assertTrue(hasattr(pf, '__version__'))

@@ -22,7 +22,7 @@ class TestFunctions(unittest.TestCase):
     def setUp(self):
 
         # Network
-        self.T = 4
+        self.T = 3
 
         # Random
         np.random.seed(1)            
@@ -441,7 +441,7 @@ class TestFunctions(unittest.TestCase):
             func = pf.Function('voltage magnitude regularization',1.,net)
 
             self.assertEqual(func.name,'voltage magnitude regularization')
-
+            
             self.assertTupleEqual(func.gphi.shape,(0,))
             self.assertTupleEqual(func.Hphi.shape,(0,0))
 
@@ -529,6 +529,38 @@ class TestFunctions(unittest.TestCase):
             self.assertEqual(func.gphi.size, net.num_vars)
             self.assertTrue(np.all(func.gphi == 0.))
             self.assertEqual(func.Hphi.nnz, 0.)
+
+            # Options
+            net.make_all_in_service()
+            net.set_flags('bus', 'variable', 'any', 'voltage magnitude')
+            x = net.get_var_values()+np.random.randn(net.num_vars)
+            func.analyze()
+            func.eval(x)
+            phi = 0.
+            for t in range(net.num_periods):
+                for bus in net.buses:
+                    phi += 0.5*((x[bus.index_v_mag[t]]-bus.v_set[t])/0.2)**2.
+            self.assertAlmostEqual(func.phi, phi)
+            self.assertRaises(pf.FunctionError, func.set_parameter, 'v_set_ref', True)
+            func.set_parameter('v_set_reference', False)
+            func.analyze()
+            func.eval(x)
+            phi = 0.
+            for t in range(net.num_periods):
+                for bus in net.buses:
+                    if bus.is_v_set_regulated():
+                        phi += 0.5*((x[bus.index_v_mag[t]]-bus.v_set[t])/0.2)**2.
+                    else:
+                        phi += 0.5*((x[bus.index_v_mag[t]]-bus.v_mag[t])/0.2)**2.
+            self.assertAlmostEqual(func.phi, phi)
+            func.set_parameter('v_set_reference', True)
+            func.analyze()
+            func.eval(x)
+            phi = 0.
+            for t in range(net.num_periods):
+                for bus in net.buses:
+                    phi += 0.5*((x[bus.index_v_mag[t]]-bus.v_set[t])/0.2)**2.
+            self.assertAlmostEqual(func.phi, phi)
 
     def test_func_REG_VMAG_with_outages(self):
 
@@ -3058,7 +3090,7 @@ class TestFunctions(unittest.TestCase):
             f = func.phi
             g = func.gphi
             H = func.Hphi
-
+            
             # After
             self.assertTrue(type(f) is float)
             self.assertNotEqual(f,0.)

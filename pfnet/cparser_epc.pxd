@@ -6,14 +6,6 @@
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
 
-from .cpfnet import *
-from . import functions
-from . import constraints
-from . import parsers
-from . import tests
-from . import utils
-from .parsers import PyParserMAT
-from .parsers import PyParserRAW
-from .json_utils import NetworkJSONEncoder, NetworkJSONDecoder
+cdef extern from "pfnet/parser_EPC.h":
 
-from .version import __version__
+    cdef char HAVE_EPC_PARSER

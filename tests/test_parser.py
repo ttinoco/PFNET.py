@@ -20,7 +20,7 @@ class TestParser(unittest.TestCase):
 
     def test_pyparserraw_read(self):
         
-        case = os.path.join('data', 'ACTIVSg10k.raw')
+        case = os.path.join('data', 'ACTIVSg500.raw')
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
         
@@ -28,18 +28,50 @@ class TestParser(unittest.TestCase):
         net = parser.parse(case)
         net.show_components(output_level=2)
 
-        # Check with C parser
-        #parser = pf.ParserRAW()
-        #net = parser.parse(case)
-        #net.show_components(output_level=2)
+        # Test here
 
     def test_pyparserraw_write(self):
         
-        case = os.path.join('data', 'ACTIVSg10k.raw')
+        raise unittest.SkipTest('test not available')
+        
+    def test_parserepc(self):
+        
+        case = os.path.join('data', 'sample.epc')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('epc file not available')
+
+        parser = pf.ParserEPC()
+        parser.set('output_level', 0)
+
+        net = parser.parse(case)
+
+        self.assertEqual(net.num_buses, 56)
+
+    def test_parserraw_star_bus_area_zone(self):
+        
+        case = os.path.join('data', 'psse_sample_case.raw')
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
-        
-        # TEST HERE
+
+        parser = pf.ParserRAW()
+        parser.set('keep_all_out_of_service', True)
+        net = parser.parse(case)
+
+        counter = 0
+        for bus in net.buses:
+            if bus.is_star():
+                neighbors = []
+                for br in bus.branches:
+                    if bus.index == br.bus_k.index:
+                        neighbors.append(br.bus_m)
+                    else:
+                        neighbors.append(br.bus_k)
+                self.assertEqual(len(neighbors), 3)
+                for b in neighbors:
+                    self.assertEqual(b.area, bus.area)
+                    self.assertEqual(b.zone, bus.zone)
+                counter += 1
+        self.assertGreaterEqual(counter, 1)
 
     def test_parserraw_keep_all_lossless(self):
 
@@ -48,7 +80,7 @@ class TestParser(unittest.TestCase):
             for case in test_cases.CASES:
                 
                 if os.path.splitext(case)[-1] != '.raw':
-                    continue
+                    continue                
                 
                 parser = pf.ParserRAW()
                 parser.set('keep_all_out_of_service', 1)
@@ -75,7 +107,9 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
 
-        net = pf.ParserRAW().parse(case)
+        parser = pf.ParserRAW()
+
+        net = parser.parse(case)
 
         parser = pf.ParserRAW()
         parser.set('keep_all_out_of_service', True)
@@ -246,13 +280,49 @@ class TestParser(unittest.TestCase):
         if not tested:
             raise unittest.SkipTest("no .m files")
 
+    def test_ACTIVSg10k_raw(self):
+
+        case = os.path.join('data', 'ACTIVSg10k.raw')
+        if not os.path.isfile(case):
+            raise unittest.SkipTest('file not available')
+
+        parser = pf.ParserRAW()
+
+        net = parser.parse(case)
+
+        results = []
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                results.append(any(shunt.b == shunt.b_values))
+
+        self.assertGreater(len(results), 0)
+        self.assertTrue(all(results))
+
+        parser.set('round_switched_shunts', False)
+
+        net = parser.parse(case)
+
+        results = []
+        for shunt in net.shunts:
+            if shunt.is_switched() and shunt.is_discrete():
+                results.append(any(shunt.b == shunt.b_values))
+
+        self.assertGreater(len(results), 0)
+        self.assertFalse(all(results))
+
     def test_ieee25_raw(self):
 
         case = os.path.join('data', 'ieee25.raw')
         if not os.path.isfile(case):
             raise unittest.SkipTest('file not available')
 
-        net = pf.ParserRAW().parse(case)
+        parser = pf.ParserRAW()
+        
+        self.assertRaises(pf.ParserError, parser.set, 'foo', 5)
+        
+        parser.set('round_tap_ratios', False)
+
+        net = parser.parse(case)
         
         self.assertEqual(net.num_buses,25)
         
