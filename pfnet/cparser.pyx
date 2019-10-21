@@ -10,6 +10,9 @@
 
 cimport cparser
 
+from .parsers import PyParserMAT
+from .parsers import PyParserRAW
+
 class ParserError(Exception):
     """
     Parser error exception.
@@ -222,8 +225,9 @@ class Parser(object):
         
         ext = ext.split('.')[-1]
         if ext == 'm':
-            from .parsers import PyParserMAT
             return PyParserMAT()
+        elif ext == 'raw':
+            return PyParserRAW()
         else:
             return CParser(ext)
         
