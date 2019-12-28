@@ -431,24 +431,22 @@ As explained above, once the network variables have been set, a vector with the 
 Outages and Contingencies
 =========================
 
-PFNET provides a way to specify outages of certain components and analyze network contingencies. In particular, branches and generators can be set to be on outage. This can be done by setting their :data:`outage <pfnet.Generator.outage>` attribute to ``True``, as the next example shows::
+PFNET provides a way to set components out of service and analyze network contingencies. This can be done by setting the ``in_service`` attribute to ``False``, as the next example shows::
 
   >>> net = pfnet.PyParserMAT().parse('ieee14.m')
-
-  >>> net.clear_outages()
 
   >>> gen = net.get_generator(3)
   >>> branch = net.get_branch(2)
 
-  >>> gen.outage = True
-  >>> branch.outage = True
+  >>> gen.in_service = False
+  >>> branch.in_service = False
 
-  >>> print net.get_num_generators_on_outage(), net.get_num_branches_on_outage()
+  >>> print net.get_num_generators_out_of_service(), net.get_num_branches_out_of_service()
   1 1
 
 A contingency is represented by an object of type :class:`Contingency <pfnet.Contingency>`, and is characterized by one or more :class:`generator <pfnet.Generator>` or :class:`branch <pfnet.Branch>` outages. The lists of generator and branch outages of a contingency can be specified at construction, or by using the class methods :func:`add_generator_outage() <pfnet.Contingency.add_generator_outage>` and :func:`add_branch_outage() <pfnet.Contingency.add_branch_outage>`, respectively. The following example shows how to construct a contingency::
 
-  >>> net.clear_outages()
+  >>> net.make_all_in_service()
   
   >>> gen = net.get_generator(3)
   >>> branch = net.get_branch(2)
@@ -463,18 +461,18 @@ A contingency is represented by an object of type :class:`Contingency <pfnet.Con
 
 Once a contingency has been constructed, it can be applied and later cleared. This is done using the class methods :func:`apply() <pfnet.Contingency.apply>` and :func:`clear() <pfnet.Contingency.clear>`. The :func:`apply() <pfnet.Contingency.apply>` method sets the specified generator and branches on outage. The :func:`clear() <pfnet.Contingency.clear>` method undoes the changes made by the :func:`apply() <pfnet.Contingency.apply>` method. The following example shows how to apply and clear contingencies, and illustrates some of the side effects::
 
-  >>> print gen.is_on_outage(), branch.is_on_outage()
-  False False
+  >>> print gen.is_in_service(), branch.is_in_service()
+  True True
   
   >>> c1.apply(net)
 
-  >>> print gen.is_on_outage(), branch.is_on_outage()
-  True True
+  >>> print gen.is_in_service(), branch.is_in_service()
+  False False
 
   >>> c1.clear(net)
 
-  >>> print gen.is_on_outage(), branch.is_on_outage()
-  False False
+  >>> print gen.is_in_service(), branch.is_in_service()
+  True True
 
 More information about network contingencies can be found in the :ref:`API reference <ref_cont>`.
   
@@ -575,4 +573,4 @@ It is also possible to add and remove components to a network. This can be done 
   >>> print len(bus.generators), len(bus.loads)
   1 1
   
-.. warning:: Making |Network| modifications programmatically is not yet guaranteed to be safe. One can easily leave out components with no bus connections, which could lead to errors in the underlying PFNET C library. Also, when adding or removing components from the network, the underlying PFNET C library copies existing data to new memory locations and hence any existing PFNET Python network components can point to invalid C memory locations. It is therefore recommended not to use existing PFNET Python network components adding or removing components of the same type from the network, but instead re-extract them from the updated network using :func:`get_bus() <pfnet.Network.get_bus>`, :func:`get_generator() <pfnet.Network.get_generator>`, etc.
+.. warning:: Making |Network| modifications programmatically is not yet guaranteed to be safe. One can easily leave out components with no bus connections, which could lead to errors in the underlying PFNET C library. Also, when adding or removing components from the network, the underlying PFNET C library copies existing data to new memory locations and hence any existing PFNET Python network components can point to invalid C memory locations. It is therefore recommended not to use existing PFNET Python network components after adding or removing components of the same type from the network, but instead re-extract them from the updated network using :func:`get_bus() <pfnet.Network.get_bus>`, :func:`get_generator() <pfnet.Network.get_generator>`, etc.
