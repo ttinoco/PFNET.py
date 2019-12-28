@@ -1,5 +1,5 @@
-Unreleased
-----------
+Version 1.3.5
+-------------
 * Constant current constraint for CSC HVDC.
 * Net update reg Q participations.
 * Branch num ratios.
