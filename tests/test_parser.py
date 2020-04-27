@@ -237,6 +237,62 @@ class TestParser(unittest.TestCase):
         else:
             raise unittest.SkipTest('no .m files')
 
+    def test_rts96_epc(self):
+
+        case_epc = os.path.join('data', 'IEEE_RTS_96_bus.epc')
+        case_raw = os.path.join('data', 'IEEE_RTS_96_bus.raw')
+
+        if not os.path.isfile(case_epc):
+            raise unittest.SkipTest('epc file not available')
+        if not os.path.isfile(case_raw):
+            raise unittest.SkipTest('raw file not available')
+
+        parser_epc = pf.ParserEPC()
+        parser_raw = pf.ParserRAW()
+
+        net_epc = parser_epc.parse(case_epc)
+        net_raw = parser_raw.parse(case_raw)
+
+        # pf.tests.utils.compare_networks(self, net_epc, net_raw, check_internals=False, eps=1e-4)
+        self.assertEqual(net_epc.num_buses, net_raw.num_buses)
+        self.assertEqual(net_epc.num_branches, net_raw.num_branches)
+        self.assertEqual(net_epc.num_generators, net_raw.num_generators)
+        self.assertEqual(net_epc.num_loads, net_raw.num_loads)
+        self.assertEqual(net_epc.num_shunts, net_raw.num_shunts)
+
+        for i in range(net_epc.num_buses):
+            bus1 = net_epc.get_bus(i)
+            bus2 = net_raw.get_bus(i)
+            pf.tests.utils.compare_buses(self, bus1, bus2, check_internals=False, check_indices=False, eps=1e-4)
+
+        for i in range(10):
+            branch_epc = net_epc.get_branch(i)
+            branch_raw = net_raw.get_branch(109-i)
+
+            self.assertEqual(branch_epc.b_k, branch_raw.b_k)
+            self.assertEqual(branch_epc.b_m, branch_raw.b_m)
+            self.assertEqual(branch_epc.bus_k.index, branch_raw.bus_k.index)
+            self.assertEqual(branch_epc.is_fixed_tran(), branch_raw.is_fixed_tran())
+            self.assertEqual(branch_epc.is_line(), branch_raw.is_line())
+            self.assertEqual(branch_epc.ratingA, branch_raw.ratingA)
+
+        for i in range(net_epc.num_generators):
+            gen1 = net_epc.get_generator(i)
+            gen2 = net_raw.get_generator(i)
+            pf.tests.utils.compare_generators(self, gen1, gen2, check_internals=False, eps=1e-4)
+
+        for i in range(net_epc.num_shunts):
+            shunt1 = net_epc.get_shunt(i)
+            shunt2 = net_raw.get_shunt(i)
+            self.assertEqual(shunt1.in_service, shunt2.in_service)
+            self.assertEqual(shunt1.num_periods, shunt2.num_periods)
+            self.assertEqual(shunt1.bus.index, shunt2.bus.index)
+            self.assertEqual(shunt1.is_fixed(), shunt2.is_fixed())
+            self.assertEqual(shunt1.b, shunt2.b)
+            self.assertEqual(shunt1.g, shunt2.g)
+            self.assertEqual(shunt1.b_max, shunt2.b_max)
+            self.assertEqual(shunt1.b_min, shunt2.b_min)
+
     def test_pyparsermat_write(self):
 
         tested = False
