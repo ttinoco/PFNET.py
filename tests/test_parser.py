@@ -41,8 +41,6 @@ class TestParser(unittest.TestCase):
         test_load = abs(load.P*net.base_power - 9.636)<tol
         self.assertEqual(test_load, True)
 
-        # Fixed shunts
-
         # Generators
         gen = net.get_generator_from_name_and_bus_number('1 ', 10684)
         test_gen_P = abs(gen.P*net.base_power - 85.288)<tol
@@ -83,10 +81,7 @@ class TestParser(unittest.TestCase):
                 continue
 
             parser = pf.PyParserRAW()
-            # parser.set('output_level', 0)
-            # TODO Sumarle esta parte
-            net1 = parser.parse(case, num_periods=1)
-            # TODO Pasar tantos periodos como halla
+            net1 = parser.parse(case, num_periods=1) 
 
             try:
                 p = pf.PyParserRAW()
