@@ -26,13 +26,77 @@ class TestParser(unittest.TestCase):
         
         parser = pf.PyParserRAW()
         net = parser.parse(case)
-        net.show_components(output_level=2)
 
-        # Test here
+        # Test Here
+        tested = False
+        tol = 1e-6
+
+        # Buses
+        bus = net.get_bus_from_number(10001)
+        test_bus = bus.v_base == 138.
+        self.assertEqual(test_bus, True)
+
+        # Loads
+        load = net.get_load_from_name_and_bus_number('1 ', 10001)
+        test_load = abs(load.P*net.base_power - 9.636)<tol
+        self.assertEqual(test_load, True)
+
+        # Generators
+        gen = net.get_generator_from_name_and_bus_number('1 ', 10684)
+        test_gen_P = abs(gen.P*net.base_power - 85.288)<tol
+        test_gen_Q = abs(gen.Q*net.base_power - 58.951)<tol
+        test_v_set = abs(gen.reg_bus.v_set - 1.04645)<tol
+        self.assertEqual(test_gen_P, True)
+        self.assertEqual(test_gen_Q, True)
+        self.assertEqual(test_v_set, True)
+
+        # Branches
+        br = net.get_branch_from_name_and_bus_numbers('1 ', 10002, 10001)
+        test_is_line = br.is_line()
+        den = br.b**2 + br.g**2
+        test_b = abs(-br.b/den - 2.97874e-1)<tol
+        test_g = abs(br.g/den - 5.74738e-2)<tol
+        self.assertEqual(test_is_line, True)
+        self.assertEqual(test_b, True)
+        self.assertEqual(test_g, True)
+
+        # Transformer
+        tr = net.get_branch_from_name_and_bus_numbers('1 ', 10013, 10012)
+        test_is_tran = tr.is_fixed_tran()
+        self.assertEqual(test_is_tran, True)
+
+        # Switched Shunts
+        sh = net.get_shunt_from_name_and_bus_number('1 ',10001)
+        
+    
+        tested = True
+
 
     def test_pyparserraw_write(self):
         
-        raise unittest.SkipTest('test not available')
+        tested = False
+        for case in test_cases.CASES:
+            
+            if os.path.splitext(case)[-1] != '.raw':
+                continue
+
+            parser = pf.PyParserRAW()
+            net1 = parser.parse(case, num_periods=1) 
+
+            try:
+                p = pf.PyParserRAW()
+                p.write(net1, 'foo.raw')
+
+                parser = pf.PyParserRAW()
+                net2 = parser.parse('foo.raw', num_periods=1)
+            finally:
+                if os.path.isfile('foo.raw'):
+                    os.remove('foo.raw')
+
+            pf.tests.utils.compare_networks(self, net1, net2, ignore_facts=True)
+            tested = True
+        if not tested:
+            raise unittest.SkipTest("no .raw files")
         
     def test_parserepc(self):
         
@@ -53,7 +117,7 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
 
-        parser = pf.ParserRAW()
+        parser = pf.PyParserRAW()
         parser.set('keep_all_out_of_service', True)
         net = parser.parse(case)
 
@@ -82,15 +146,15 @@ class TestParser(unittest.TestCase):
                 if os.path.splitext(case)[-1] != '.raw':
                     continue                
                 
-                parser = pf.ParserRAW()
+                parser = pf.PyParserRAW()
                 parser.set('keep_all_out_of_service', 1)
 
                 net1 = parser.parse(case)
                 
-                parser = pf.ParserRAW()
+                parser = pf.PyParserRAW()
                 parser.write(net1, 'foo.raw')
 
-                parser = pf.ParserRAW()
+                parser = pf.PyParserRAW()
                 parser.set('keep_all_out_of_service', 1)
 
                 net2 = parser.parse('foo.raw')
@@ -107,11 +171,11 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
 
-        parser = pf.ParserRAW()
+        parser = pf.PyParserRAW()
 
         net = parser.parse(case)
 
-        parser = pf.ParserRAW()
+        parser = pf.PyParserRAW()
         parser.set('keep_all_out_of_service', True)
         net_oos = parser.parse(case)
 
@@ -218,7 +282,7 @@ class TestParser(unittest.TestCase):
             if os.path.splitext(case)[-1] != '.raw':
                 continue
             
-            parser = pf.ParserRAW()
+            parser = pf.PyParserRAW()
             parser.set('output_level', 0)
             net1 = parser.parse(case, num_periods=2)
             
@@ -227,7 +291,7 @@ class TestParser(unittest.TestCase):
 
                 net2 = parser.parse('foo.raw', num_periods=2)
 
-                new_parser = pf.ParserRAW()
+                new_parser = pf.PyParserRAW()
                 net3 = parser.parse('foo.raw', num_periods=2)
                 
             finally:
@@ -286,7 +350,7 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('file not available')
 
-        parser = pf.ParserRAW()
+        parser = pf.PyParserRAW()
 
         net = parser.parse(case)
 
@@ -316,7 +380,7 @@ class TestParser(unittest.TestCase):
         if not os.path.isfile(case):
             raise unittest.SkipTest('file not available')
 
-        parser = pf.ParserRAW()
+        parser = pf.PyParserRAW()
         
         self.assertRaises(pf.ParserError, parser.set, 'foo', 5)
         
@@ -774,14 +838,14 @@ class TestParser(unittest.TestCase):
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
                 self.assertRaises(pf.ParserError,pf.PyParserMAT().parse,case)
                 if pf.has_raw_parser():
-                    self.assertRaises(pf.ParserError,pf.ParserRAW().parse,case)
+                    self.assertRaises(pf.ParserError,pf.PyParserRAW().parse,case)
                 net = pf.ParserMAT().parse(case)
                 self.assertGreater(net.num_buses,0)
             if case.split('.')[-1] == 'm':
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
                 self.assertRaises(pf.ParserError,pf.ParserMAT().parse,case)
                 if pf.has_raw_parser():
-                    self.assertRaises(pf.ParserError,pf.ParserRAW().parse,case)
+                    self.assertRaises(pf.ParserError,pf.PyParserRAW().parse,case)
                 net = pf.PyParserMAT().parse(case)
                 self.assertGreater(net.num_buses,0)
             elif case.split('.')[-1] == 'raw':
@@ -789,7 +853,7 @@ class TestParser(unittest.TestCase):
                 self.assertRaises(pf.ParserError,pf.ParserJSON().parse,case)
                 self.assertRaises(pf.ParserError,pf.PyParserMAT().parse,case)
                 if pf.has_raw_parser():
-                    net = pf.ParserRAW().parse(case)
+                    net = pf.PyParserRAW().parse(case)
                     self.assertGreater(net.num_buses,0)
 
     def test_json_parser(self):
@@ -803,7 +867,7 @@ class TestParser(unittest.TestCase):
         for case in test_cases.CASES:
 
             T = 4
-                
+
             net = pf.Parser(case).parse(case,T)
             self.assertEqual(net.num_periods,T)
 

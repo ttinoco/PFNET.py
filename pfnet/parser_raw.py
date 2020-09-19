@@ -22,9 +22,9 @@ class PyParserRAW(object):
 
         # Options
         self.keep_all_oos = False # flag for keeping all out-of-service components
-        self.base_freq = 60.      # value of the system frecuency
-        self.no_output = False    # flag para evitar que GRG-PSSEDATA imprima en pantalla (NO FUNCIONA)
-        self.no_mag_shunt = True  # flag to parse the magnetizing impedance of transformers
+        self.base_freq = 60. # value of the system frecuency
+        self.no_output = False # flag to change the console print of GRG-PSSEDATA
+        self.no_mag_shunt = True # flag to parse the magnetizing impedance of transformers
 
     def set(self, key, value):
         """
@@ -181,19 +181,24 @@ class PyParserRAW(object):
 
         # PFNET branches
         raw_branches = []       
-        for raw_line in case.branches: # Lines
+        # Lines
+        for raw_line in case.branches:
             if self.keep_all_oos or raw_line.st > 0:
                 raw_branches.append(raw_line)     
-        for raw_tran in case.transformers: # Transformers
+        # Transformer
+        for raw_tran in case.transformers:
             if self.keep_all_oos or raw_tran.p1.stat > 0:
                 if isinstance(raw_tran, pd.struct.TwoWindingTransformer):
                     raw_branches.append(raw_tran)
                 elif isinstance(raw_tran, pd.struct.ThreeWindingTransformer): # 3 Times because 3w
                     raw_branches.extend([raw_tran]*3)
+                
         net.set_branch_array(len(raw_branches)) # allocate PFNET branch array
         side = 'k' # Index to move in diferent side of 3W transformer
+
         for index, raw_branch in enumerate(reversed(raw_branches)):
-            if isinstance(raw_branch, pd.struct.Branch): # Lines
+            # Lines
+            if isinstance(raw_branch, pd.struct.Branch):
                 line = net.get_branch(index)
                 line.set_as_line()
                 line.name = str(raw_branch.ckt).ljust(2)
@@ -210,7 +215,9 @@ class PyParserRAW(object):
                 line.ratingA = raw_branch.ratea/case.sbase
                 line.ratingB = raw_branch.rateb/case.sbase
                 line.ratingC = raw_branch.ratec/case.sbase
-            elif isinstance(raw_branch, pd.struct.TwoWindingTransformer): # 2 Windings Transformers
+
+            # 2 Windings Transformers
+            elif isinstance(raw_branch, pd.struct.TwoWindingTransformer):
                 tr = net.get_branch(index)     
                 tr.in_service = raw_branch.p1.stat > 0
                 tr.name = str(raw_branch.p1.ckt).ljust(2)
@@ -234,7 +241,9 @@ class PyParserRAW(object):
                 sbase = net.base_power
                 tr.g, tr.b = self.get_tran_series_parameters(x, r, cz, tbase, sbase)                
                 self.get_tran_mode(tr, raw_branch.w1)
-            elif isinstance(raw_branch, pd.struct.ThreeWindingTransformer): # 3 Windings Transformers
+                 
+            # 3 Windings Transformers
+            elif isinstance(raw_branch, pd.struct.ThreeWindingTransformer):
                 tr = net.get_branch(index)
                 tr.bus_m = net.get_bus_from_number(tran2star[raw_branch.index].i)
                 tr.name = str(raw_branch.p1.ckt).ljust(2)
@@ -247,9 +256,11 @@ class PyParserRAW(object):
                 g12, b12 = self.get_tran_series_parameters(x12, r12, cz, tbase12, sbase)
                 g23, b23 = self.get_tran_series_parameters(x23, r23, cz, tbase23, sbase)
                 g31, b31 = self.get_tran_series_parameters(x31, r31, cz, tbase31, sbase)
+
                 z12 = 1/(g12 + 1j* b12) 
                 z23 = 1/(g23 + 1j* b23)
                 z31 = 1/(g31 + 1j* b31)
+
                 if side == 'k':
                     tr.bus_k = net.get_bus_from_number(raw_branch.p1.k)
                     tr.in_service = raw_branch.p1.stat != 3 and raw_branch.p1.stat != 0
@@ -286,25 +297,31 @@ class PyParserRAW(object):
                     tr.phase = np.deg2rad(raw_branch.w1.ang)
                     self.get_tran_mode(tr, raw_branch.w1)   
                     side = 'k'  
+
                 # tr.set_as_part_of_three_winding_transformer()  TODO: el flag de three_winding_... como se coloca?     
+				              
 
         # PFNET shunts  
+
         raw_shunts = []
-        for raw_shunt in case.fixed_shunts: # Fixed Shunts
+        for raw_shunt in case.fixed_shunts:
             if self.keep_all_oos or (raw_shunt.status > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)                    
-        for raw_shunt in case.switched_shunts: # Switched Shunts
+        for raw_shunt in case.switched_shunts:
             if self.keep_all_oos or (raw_shunt.stat > 0 and num2rawbus[raw_shunt.i].ide != self.BUS_TYPE_IS):
                 raw_shunts.append(raw_shunt)
-        for raw_tran in case.transformers: # Magnetizing Impedance como un Shunt
-            if self.no_mag_shunt: # Si esta deshabilitada la opcion
+        for raw_tran in case.transformers:
+            if self.no_mag_shunt:
                 continue
             if self.keep_all_oos or raw_tran.p1.stat > 0:
                 raw_shunts.append(raw_tran)
 
         net.set_shunt_array(len(raw_shunts)) # allocate PFNET shunt array
-        for index, raw_shunt in enumerate(reversed(raw_shunts)):            
-            if isinstance(raw_shunt, pd.struct.FixedShunt): # Fixed Shunt
+        
+        for index, raw_shunt in enumerate(reversed(raw_shunts)):
+
+            # Fixed Shunt
+            if isinstance(raw_shunt, pd.struct.FixedShunt):  
                 shunt = net.get_shunt(index)           
                 shunt.bus = net.get_bus_from_number(raw_shunt.i)
                 shunt.name = str(raw_shunt.id).strip().ljust(2)
@@ -312,7 +329,10 @@ class PyParserRAW(object):
                 shunt.b = raw_shunt.bl/net.base_power
                 shunt.g = raw_shunt.gl/net.base_power
                 shunt.set_as_fixed()
-            elif isinstance(raw_shunt, pd.struct.SwitchedShunt): # Switched Shunt             
+                
+            # Switched Shunt
+            elif isinstance(raw_shunt, pd.struct.SwitchedShunt):
+                
                 shunt = net.get_shunt(index)
                 shunt.bus = net.get_bus_from_number(raw_shunt.i)
                 #shunt.name = shunt.bus.number # TODO put a name
@@ -329,13 +349,13 @@ class PyParserRAW(object):
                 # Como trabaja los valores de b en switched shunts?
                 # eg. shunt bank 2x10 + 1x20 MVAr 
                 # en PSSE lo indico con los valores de Ni y Bi (PSSE 33 - POM - 5-64)
-                # en PFNET seria ? shunt.set_b_values(np.array([10, 20, 30, 40]) ?
+                # en PFNET seria shunt.set_b_values(np.array([10, 20, 30, 40]) ?
 
                 from itertools import product
                 b_block = []
                 for (b,n) in zip(b_step, steps):
                 	if n is not None:
-                	    b_step = [b*i for i in range(n+1)] # Valores de B por bloque
+                	    b_step = [b*i for i in range(n+1)] # posibles valores por bloque
                 	    b_block.append(b_step)
                 b_values = np.array(list(set([sum(i)/net.base_power for i in product(*b_block)])))
                 shunt.set_b_values(b_values)
@@ -362,45 +382,59 @@ class PyParserRAW(object):
                     shunt.set_as_discrete()
                 
                 # TODO: Ver modos 4,5,6 y su relacion con VSC y FACTS
-                # por el momento se dejan como shunts discretos     
-            elif isinstance(raw_shunt, pd.struct.ThreeWindingTransformer) or isinstance(raw_shunt, pd.struct.TwoWindingTransformer): # Magnetizing Impedance of Transformers
+                # por el momento se dejan como shunts discretos
+        
+            # Magnetizing Impedance of Transformers
+            elif isinstance(raw_shunt, pd.struct.ThreeWindingTransformer) or isinstance(raw_shunt, pd.struct.TwoWindingTransformer):
                 shunt = net.get_shunt(index)
                 shunt.name = 'TR' + raw_shunt.p1.ckt.strip()
+
                 buses = [raw_shunt.p1.i, raw_shunt.p1.j, raw_shunt.p1.k]
                 nmetr = raw_shunt.p1.nmetr
+
                 shunt.bus = net.get_bus_from_number(buses[nmetr-1])
                 shunt.in_service = raw_shunt.p1.stat > 0
+
                 g, b = raw_shunt.p1.mag1, raw_shunt.p1.mag2
+
                 if raw_shunt.p1.cm == 1:
                 	shunt.g = g
                 	shunt.b = b
-                elif raw_shunt.p1.cm == 2: # No load loss in W and IO in sbase_12
+                elif raw_shunt.p1.cm == 2: # No load loss in W and IO in sbase 12
                 	voltage_correction = shunt.bus.v_base/raw_shunt.w1.nomv
                 	power_correction = raw_shunt.p2.sbase12/net.base_power
                 	shunt.g = 1e-6 * g / net.base_power * voltage_correction**2
                 	shunt.b = np.sqrt(b*power_correction**2 - shunt.b**2)  
+
                 if raw_shunt.is_three_winding():
                		shunt.g *= -1.
+
                	shunt.set_as_fixed()
-               	# shunt.is_part_of_transformer = True	
-                # TODO vincularlo a un transformador - No comprendo como poner el flag para que shunt.is_part_of_transformer = True	
+               	# shunt.is_part_of_three_winding = True	
+                # TODO vincularlo a un transformador - No comprendo como poner el flag de is_part_of_three_winding	
         
+        # TODO : Elementos de DC: se toma el crterio de dar soporte a las lineas de dos termianles
+        # 		Luego se pensara en MTTDC line
+        # TODO: Aparentemente no funciona el method : net.get_dc_bus_from_number()
+        # 		Solucion provisoria -> hashtable dcbus_number2index
+
         # PFNET DC buses
-        # TODO : Los elementos de DC seran solo de dos terminales por el momento
-        # TODO : Aparentemente no funciona -> net.get_dc_bus_from_number(bus_number)
-        dcbus_number2index = {} # map dcbus-number con su dcbus-index
+
+        dcbus_number2index = {}
         raw_DC_buses = []
         for raw_DC in case.vsc_dc_lines + case.tt_dc_lines:
             if self.keep_all_oos or raw_DC.params.mdc != 0:
-            	raw_DC_buses.extend([raw_DC]*2) # Dos Buses por linea (k - m)
+            	raw_DC_buses.extend([raw_DC]*2)
         net.set_dc_bus_array(len(raw_DC_buses))
+
+        # Solo se crean los buses
         for index, raw_bus_DC in enumerate(reversed(raw_DC_buses)):
             busDC = net.get_dc_bus(index)
             busDC.name = raw_bus_DC.params.name    	
             if isinstance(raw_bus_DC, pd.struct.VSCDCLine):
                 converter = raw_bus_DC.c1 if index%2 == 0 else raw_bus_DC.c2
                 busDC.number = converter.ibus
-                busDC.v_base = 1 # TODO Determinar base de tension para VSC bus
+                busDC.v_base = 1 # TODO base de tension para VSC bus
             elif isinstance(raw_bus_DC, pd.struct.TwoTerminalDCLine):
                 if index%2 == 0: # rectifier
                     rectifier = raw_bus_DC.rectifier
@@ -418,6 +452,7 @@ class PyParserRAW(object):
             if self.keep_all_oos or raw_DC.params.mdc != 0:
                 raw_DC_branches.append(raw_DC)
         net.set_dc_branch_array(len(raw_DC_branches))            	
+
         for index, raw_branch_DC in enumerate(reversed(raw_DC_branches)):
             branchDC = net.get_dc_branch(index)
             if isinstance(raw_branch_DC, pd.struct.VSCDCLine):
@@ -430,17 +465,20 @@ class PyParserRAW(object):
                 branchDC.bus_m = net.dc_buses[dcbus_number2index[raw_branch_DC.inverter.ipi]]  # TODO Remove when get_dc_bus_from_number() works
                 #branchDC.bus_k = net.get_dc_bus_from_number(raw_branch_DC.rectifier.ipr)
                 #branchDC.bus_m = net.get_dc_bus_from_number(raw_branch_DC.inverter.ipi)
+
             branchDC.in_service = bool(raw_branch_DC.params.mdc)
             branchDC.name =  raw_branch_DC.params.name
             branchDC.r = raw_branch_DC.params.rdc * net.base_power / branchDC.bus_m.v_base**2
+
 
         # PFNET CSC HVDC
         # solo conversores AC/DC o DC/AC
         raw_csc_converters = []
         for raw_DC in case.tt_dc_lines:
             if self.keep_all_oos or raw_DC.params.mdc != 0:
-                raw_csc_converters.extend([raw_DC]*2) # Un conversor por lado (k-m)
+                raw_csc_converters.extend([raw_DC]*2)
         net.set_csc_converter_array(len(raw_csc_converters))
+
         for index, raw_csc_converter in enumerate(reversed(raw_csc_converters)):
             csc = net.get_csc_converter(index)
             if index % 2 == 0: # rectifier
@@ -453,14 +491,14 @@ class PyParserRAW(object):
                 csc.num_bridges = raw_csc.nbr
                 csc.angle = np.deg2rad(raw_csc.icr)
                 csc.angle_max = np.deg2rad(raw_csc.anmxr)
-                csc.angle_min = np.deg2rad(raw_csc.anmnr)
-                csc.r = raw_csc.rcr * net.base_power / csc.dc_bus.v_base**2
-                csc.x = raw_csc.xcr * net.base_power / csc.dc_bus.v_base**2
+                csc.angle_min = np.rad2deg(raw_csc.anmnr)
+                csc.r = raw_csc.rcr
+                csc.x = raw_csc.xcr
                 csc.v_base_p = raw_csc.ebasr
                 csc.ratio = raw_csc.trr
                 csc.ratio_max = raw_csc.tmxr
                 csc.ratio_min = raw_csc.tmnr
-                csc.x_cap = raw_csc.xcapr * net.base_power / csc.dc_bus.v_base**2
+                csc.x_cap = raw_csc.xcapr
             else: # inverter
                 raw_csc = raw_csc_converter.inverter
                 csc.set_as_inverter()
@@ -471,14 +509,15 @@ class PyParserRAW(object):
                 csc.num_bridges = raw_csc.nbi  
                 csc.angle = np.deg2rad(raw_csc.ici)
                 csc.angle_max = np.deg2rad(raw_csc.anmxi)
-                csc.angle_min = np.deg2rad(raw_csc.anmni)
-                csc.r = raw_csc.rci * net.base_power / csc.dc_bus.v_base**2
-                csc.x = raw_csc.xci * net.base_power / csc.dc_bus.v_base**2
+                csc.angle_min = np.rad2deg(raw_csc.anmni)
+                csc.r = raw_csc.rci                
+                csc.x = raw_csc.xci               
                 csc.v_base_p = raw_csc.ebasi
                 csc.ratio = raw_csc.tri    
                 csc.ratio_max = raw_csc.tmxi  
                 csc.ratio_min = raw_csc.tmni
                 csc.x_cap = raw_csc.xcapi * net.base_power / csc.dc_bus.v_base**2
+
             if raw_csc_converter.params.mdc == 1:
                 csc.set_in_P_dc_mode()
                 csc.P_dc_set = raw_csc_converter.params.setvl / net.base_power
@@ -486,11 +525,13 @@ class PyParserRAW(object):
                 csc.set_in_i_dc_mode()
                 csc.i_dc_set = raw_csc_converter.params.setvl / net.base_power
 
+                	
         # PFNET VSC HVDC
+        # solo conversores AC/DC o DC/AC
         raw_vsc_converters = []
         for raw_DC in case.vsc_dc_lines:
             if self.keep_all_oos or raw_DC.params.mdc != 0:
-                raw_vsc_converters.extend([raw_DC]*2)  # Un conversor por lado (k-m)
+                raw_vsc_converters.extend([raw_DC]*2)
         net.set_vsc_converter_array(len(raw_vsc_converters))
 
         for index, raw_vsc_converter in enumerate(reversed(raw_vsc_converters)):
@@ -509,14 +550,16 @@ class PyParserRAW(object):
             S_max = converter.smax / net.base_power
             vsc.P_max = np.sqrt(S_max**2 - vsc.Q_min**2)
             vsc.P_min = np.sqrt(S_max**2 - vsc.Q_max**2)
+
             if converter.mode == 1:
                 vsc.set_in_v_ac_mode()
                 vsc.reg_bus = net.get_bus_from_number(converter.remot)
             elif converter.mode == 2:
                 vsc.set_in_P_dc_mode()
-                vsc.P_dc_set = converter.dcset / net.base_power
+                vsc.P_dc_set = converter.dcset
 
         # PFNET Facts
+
         raw_list_facts = []
         for raw_facts in case.facts:
             if self.keep_all_oos or raw_facts.mode != 0:
@@ -532,6 +575,7 @@ class PyParserRAW(object):
             else:
                 facts.bus_m = net.get_bus_from_number(raw_facts.j)
             facts.in_service = raw_facts.mode != 0
+
             if raw_facts.remot != 0:
                 if raw_facts.remot == facts.bus_k.number:
                     facts.reg_bus = facts.bus_k
@@ -539,20 +583,26 @@ class PyParserRAW(object):
                     facts.reg_bus = net.get_bus_from_number(raw_facts.remot)
             else:
                 facts.reg_bus = facts.bus_k if not facts.bus_k.is_slack() else None	 
+
             facts.P_set = raw_facts.pdes/net.base_power
             facts.Q_set = raw_facts.qdes/net.base_power
-            facts.P_max_dc = 9999	# TODO No sabria determinarlo con los datos del PSSE (POM 5-59)
+
+            facts.P_max_dc = 9999	# TODO No los encontre en la documentacion del PSSE (POM 5-59)
             facts.Q_par = raw_facts.rmpct/net.base_power
-            facts.Q_max_s = 9999    # TODO No sabria determinarlo con los datos del PSSE (POM 5-59)
-            facts.Q_min_s = 9999    # TODO No sabria determinarlo con los datos del PSSE (POM 5-59)
-            facts.Q_max_sh = 9999   # TODO No sabria determinarlo con los datos del PSSE (POM 5-59)
-            facts.Q_min_sh = 9999   # TODO No sabria determinarlo con los datos del PSSE (POM 5-59)
+            facts.Q_max_s = 9999    # TODO No los encontre en la documentacion del PSSE (POM 5-59)
+            facts.Q_min_s = 9999    # TODO No los encontre en la documentacion del PSSE (POM 5-59)
+            facts.Q_max_sh = 9999   # TODO No los encontre en la documentacion del PSSE (POM 5-59)
+            facts.Q_min_sh = 9999   # TODO No los encontre en la documentacion del PSSE (POM 5-59)
+            
             facts.b = -1 / raw_facts.linx  # ref DOCS PSSE33 POM 5-60
             facts.i_max_s = raw_facts.imx/net.base_power
             facts.i_max_sh = raw_facts.shmx/net.base_power
+
             facts.v_max_m = raw_facts.vtmx
             facts.v_min_m = raw_facts.vtmx
+
             facts.v_max_s = raw_facts.vsmx
+
             if raw_facts.mode == 1:
                 facts.set_in_normal_series_mode()
             elif raw_facts.mode == 2:
@@ -590,22 +640,38 @@ class PyParserRAW(object):
         net : |Network|
         filename : string
         """
+        # TODO hacerlo tantas veces como numero de periodos
 
-        # TODO : Que criterio se toma cuando hay varios time_periods?
         import grg_pssedata as pd
         
-        case_buses = []
-        case_loads = []
-        case_generators = []
-        case_branches = []
-        case_transformers = []
-        case_switched_shunts = []
-        case_fixed_shunts = []
-        case_tt_dc_lines = []
-        case_vsc_dc_lines = []
-        case_zones = []
-        case_facts = []
-
+        case = pd.struct.Case(ic = 0,
+                              sbase = net.base_power,
+                              rev = 33,
+                              xfrrat = 0,
+                              nxfrat = 0,
+                              basfrq = self.base_freq,
+                              record1 = '',
+                              record2 = '',
+                              buses = [],
+                              loads = [],
+                              fixed_shunts = [],
+                              generators = [],
+                              branches = [],
+                              transformers = [],
+                              areas = [],
+                              tt_dc_lines = [],
+                              vsc_dc_lines = [],
+                              transformer_corrections = [],
+                              mt_dc_lines = [],
+                              line_groupings = [],
+                              zones = [],
+                              transfers = [],
+                              owners = [],
+                              facts = [],
+                              switched_shunts = [],
+                              gnes = [],
+                              induction_machines = [])
+        
         # PSSE Buses      
         zones = []  
         for bus in reversed(net.buses):
@@ -633,13 +699,14 @@ class PyParserRAW(object):
             nvhi = bus.v_max_norm
             nvlo = bus.v_min_norm
             evhi = bus.v_max_emer
-            evlo = bus.v_min_emer  
-            case_buses.append(pd.struct.Bus(i, name, basekv, ide, area, zone,
+            evlo = bus.v_min_emer
+                  
+            case.buses.append(pd.struct.Bus(i, name, basekv, ide, area, zone,
                                             owner, vm, va, nvhi, nvlo, evhi, evlo))
         
         # PSSE Zones
         for i, zone in enumerate(zones):
-            case_zones.append(pd.struct.Zone(i+1, zone))
+            case.zones.append(pd.struct.Zone(i+1, zone))
 
         # PSSE Loads
         for load in reversed(net.loads):
@@ -655,14 +722,16 @@ class PyParserRAW(object):
             iq = load.comp_cj * net.base_power 
             yp = load.comp_cg * net.base_power 
             yq = load.comp_cb * net.base_power 
-            owner = 1 # Default Value
-            scale = 1 # Default Value
-            intrpt = 0 # Default Value
-            case_loads.append(pd.struct.Load(index, i, ID, status, area, zone,
+            owner = 1
+            scale = 1
+            intrpt = 0
+
+            case.loads.append(pd.struct.Load(index, i, ID, status, area, zone,
             	                             pl, ql, ip, iq, yp, yq, owner, scale, intrpt))
             
         # PSSE Generators
-        for gen in reversed(net.generators):       
+        for gen in reversed(net.generators):
+            
             index = int(gen.index)
             i = int(gen.bus.number)
             ID = gen.name
@@ -673,20 +742,27 @@ class PyParserRAW(object):
             vs = gen.reg_bus.v_set
             ireg = gen.reg_bus.number
             mbase = net.base_power
-            zr = 0. # Default Value
-            zx = 0. # Default Value
-            rt = 0. # Default Value
-            xt = 0. # Default Value
-            gtap = 0. # Default Value
+            zr = 0.
+            zx = 0.
+            rt = 0.
+            xt = 0.
+            gtap = 0.
             stat = int(gen.in_service)
-            rmpct = 0. # Default Value
+            rmpct = 0.
             pt = gen.P_max*net.base_power
             pb = gen.P_min*net.base_power
-            o1 = o2 = o3 = o4 = 1 # Default Value
-            f1 = f2 = f3 = f4 = 1.# Default Value
-            wmod = 0 # Default Value
-            wpf  = 0 # Default Value
-            case_generators.append(pd.struct.Generator(index, i ,ID ,pg ,qg ,qt ,qb,
+            o1 = 1
+            f1 = 1.
+            o2 = 0
+            f2 = 1.
+            o3 = 0
+            f3 = 1.
+            o4 = 0
+            f4 = 1.
+            wmod = 0
+            wpf  = 0
+            
+            case.generators.append(pd.struct.Generator(index, i ,ID ,pg ,qg ,qt ,qb,
                                                        vs, ireg, mbase, zr, zx, rt, xt,
                                                        gtap, stat, rmpct, pt, pb,
                                                        o1, f1, o2, f2, o3, f3, o4, f4,
@@ -694,48 +770,58 @@ class PyParserRAW(object):
             
         # PSSE Lines
         for branch in reversed(net.branches):
-            if branch.is_line(): # Branches            
-                index = branch.index
-                i = branch.bus_k.number
-                j = branch.bus_m.number
-                ckt = branch.name
-                den = branch.g**2 + branch.b**2
-                r = branch.g/den
-                x = -branch.b/den
-                b = branch.b_m + branch.b_k
-                ratea = branch.ratingA*net.base_power
-                rateb = branch.ratingB*net.base_power
-                ratec = branch.ratingC*net.base_power
-                gi = branch.g_k
-                bi = 0.  
-                gj = branch.g_m
-                bj = 0.
-                st = int(branch.in_service)
-                met = -1
-                length = 0. # Default Value
-                o1 = o2 = o3 = o4 = 1 # Default Value
-                f1 = f2 = f3 = f4 = 1.# Default Value
-                case_branches.append(pd.struct.Branch(index, i, j, ckt, r, x, b,
+            
+            if branch.is_line():
+                
+               index = branch.index
+               i = branch.bus_k.number
+               j = branch.bus_m.number
+               ckt = branch.name
+               den = branch.g**2 + branch.b**2
+               r = branch.g/den
+               x = -branch.b/den
+               b = branch.b_m + branch.b_k
+               ratea = branch.ratingA*net.base_power
+               rateb = branch.ratingB*net.base_power
+               ratec = branch.ratingC*net.base_power
+               gi = branch.g_k
+               bi = 0.  
+               gj = branch.g_m
+               bj = 0.
+               st = int(branch.in_service)
+               met = -1
+               length = 0.
+               o1 = 1
+               f1 = 1.
+               o2 = 0
+               f2 = 1.
+               o3 = 0
+               f3 = 1.
+               o4 = 0
+               f4 = 1.
+               
+               case.branches.append(pd.struct.Branch(index, i, j, ckt, r, x, b,
                                                      ratea, rateb, ratec, gi, bi,
                                                      gj, bj, st, met, length,
                                                      o1, f1, o2, f2, o3, f3, o4, f4))
-            else: # PSSE Transformers
+               
+        # PSSE Transformers
+            else:       
                 if not branch.is_part_of_3_winding_transformer(): # 2 Windings
-                    # p1
+                # p1
                     i = branch.bus_k.number
                     j = branch.bus_m.number
                     k = 0
                     ckt = branch.name
-                    cw = 1 # p.u. turns ratio in bus base voltage
-                    cz = 1 # Z in system MVA base
-                    cm = 1 # MAG in system MVA base
+                    cw = 1
+                    cz = 1
+                    cm = 1 
                     mag1 = 0.#net.get_shunt_from_name_and_bus_number('TR'+branch.name, i).g # TODO ver como vincular el shunt magnetizing impedance
                     mag2 = 0.#net.get_shunt_from_name_and_bus_number('TR'+branch.name, i).b
                     nmetr = 2
                     name = str (branch.name)
                     stat = int (branch.in_service)
-                    o1 = o2 = o3 = o4 = 1 # Default Value
-                    f1 = f2 = f3 = f4 = 1.# Default Value
+                    o1 = f1 = o2 = f2 = o3 = f3 =o4 = f4 = 1
                     vecgrp= '            '
                     p1 = pd.struct.TransformerParametersFirstLine(i, j, k, ckt, cw, cz, cm,     
                                                               mag1, mag2, nmetr, name, stat,
@@ -754,63 +840,61 @@ class PyParserRAW(object):
                     rata = branch.ratingA*net.base_power
                     ratb = branch.ratingB*net.base_power
                     ratc = branch.ratingC*net.base_power
+                
                     if branch.is_fixed_tran():
-                        cod = 0 # No control
+                        cod = 0
                         rma = 1/branch.ratio_min
                         rmi = 1/branch.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
                     elif branch.is_tap_changer_v():
-                        cod = 1 # Voltage Control
+                        cod = 1
                         rma = 1/branch.ratio_min
                         rmi = 1/branch.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
                     elif branch.is_tap_changer_Q():
-                        cod = 2 # Reactive Control
-                        rma = 1/branch.ratio_min
-                        rmi = 1/branch.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
+                        cod = 2
                     elif branch.is_phase_shifter():
-                        cod = 3 # Active Control
+                        cod = 3
                         rma = np.rad2deg(branch.phase_max)
                         rmi = np.rad2deg(branch.ratio_min)
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
+                    
                     if branch.reg_bus == None:
                         cont = 0
                     else:
                         cont = branch.reg_bus.number
+                 
+                    vma = 1.0
+                    vmi = 1.0
                     ntp = branch.num_ratios
-                    tab = 0 # Default Value
-                    cr = 0 # Load drop compensation (Default Value)
-                    cx = 0 # Load drop compensation (Default Value)
+                    tab = 0 # table of impedance correction
+                    cr = 0 # Load drop compensation
+                    cx = 0 # Load drop compensation
                     cnxa = 0. # Solo usado cuando COD1 = 5 Asymetric active power flow control
                     w1 = pd.struct.TransformerWinding(index_w1, windv, nomv, ang, rata, ratb, ratc,
                                                       cod, cont, rma, rmi, vma, vmi, ntp, tab, cr,
                                                       cx, cnxa)
-                    # w2      
+                
+                # w2      
                     index_w2 = 2 
                     windv = 1.
                     nomv = branch.bus_m.v_base
                     w2 = pd.struct.TransformerWindingShort(index_w2,windv,nomv)
                  
-                    case_transformers.append(pd.struct.TwoWindingTransformer(index,p1,p2,w1,w2))  
+                    case.transformers.append(pd.struct.TwoWindingTransformer(index,p1,p2,w1,w2))  
             	
         # PSSE 3-Winding Transformer
+
         for bus in reversed(net.buses):
             if bus.is_star():
                 tr_parts = [branch for branch in bus.branches if branch.is_part_of_3_winding_transformer()]        	            	    
                 assert(len(tr_parts) <= 3) # the only conexions are the windings
+                
                 # p1
                 i, j, k = [tr.bus_k.number for tr in reversed(tr_parts)]
                 ckt = tr_parts[0].name
                 cw = 1
                 cz = 1
                 cm = 1
-                mag1 = 0.# TODO: vincularlo a traves de un shunt - net.get_shunt_from_name_and_bus_number('TR', i).g
-                mag2 = 0.# TODO: vincularlo a traves de un shunt - net.get_shunt_from_name_and_bus_number('TR', i).b
+                mag1 = 0.# TODO: vincularlo a un shunt - net.get_shunt_from_name_and_bus_number('TR', i).g
+                mag2 = 0.# TODO: vincularlo a un shunt - net.get_shunt_from_name_and_bus_number('TR', i).b
                 nmetr = 2
                 name = str(branch.name)
                 if True in [tr.is_in_service() for tr in reversed(tr_parts)]: # In Service
@@ -840,58 +924,57 @@ class PyParserRAW(object):
                 											   vmstar, anstar)
                 w = []
                 for index, tr in enumerate(reversed(tr_parts)): 
-                    index_w1 = 1 
-                    windv = 1/tr.ratio
+                    index_w = index + 1 
+               	    windv = 1/tr.ratio
                     nomv = tr.bus_k.v_base
                     ang = tr.phase
                     rata = tr.ratingA*net.base_power
                     ratb = tr.ratingB*net.base_power
                     ratc = tr.ratingC*net.base_power
+                
                     if tr.is_fixed_tran():
-                        cod = 0 # No control
+                        cod = 0
                         rma = 1/tr.ratio_min
                         rmi = 1/tr.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
                     elif tr.is_tap_changer_v():
-                        cod = 1 # Voltage Control
+                        cod = 1
                         rma = 1/tr.ratio_min
                         rmi = 1/tr.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
                     elif tr.is_tap_changer_Q():
-                        cod = 2 # Reactive Control
-                        rma = 1/tr.ratio_min
-                        rmi = 1/tr.ratio_max
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
+                        cod = 2
+                        # TODO set rma and rmi
                     elif tr.is_phase_shifter():
-                        cod = 3 # Active Control
+                        cod = 3
                         rma = np.rad2deg(tr.phase_max)
                         rmi = np.rad2deg(tr.ratio_min)
-                        vma = 1.1 # Default Value
-                        vmi = 0.9 # Default Value
+                      
                     if tr.reg_bus == None:
                         cont = 0
                     else:
                         cont = tr.reg_bus.number
+                                         
+                    vma = 1.0
+                    vmi = 1.0
                     ntp = tr.num_ratios
-                    tab = 0 # Default Value
-                    cr = 0 # Load drop compensation (Default Value)
-                    cx = 0 # Load drop compensation (Default Value)
-                    cnxa = 0. # Solo usado cuando COD1 = 5 Asymetric active power flow control                      
+                    tab = 0 # table of impedance correction
+                    cr = 0 # Load drop compensation
+                    cx = 0 # Load drop compensation
+                    cnxa = 0. # Default Value - Solo usado cuando COD1 = 5 Asymetric active power flow control
+                        
                     w.append(pd.struct.TransformerWinding(index_w, windv, nomv, ang, rata, ratb, ratc,
                                                           cod, cont, rma, rmi, vma, vmi, ntp, tab, cr,
                                                           cx, cnxa))
-                case_transformers.append(pd.struct.ThreeWindingTransformer(index,p1,p2,w[0],w[1],w[2]))   
+                case.transformers.append(pd.struct.ThreeWindingTransformer(index,p1,p2,w[0],w[1],w[2]))   
+
+
+
 
         # PSSE Shunts
 
         for shunt in reversed(net.shunts):
             if shunt.is_part_of_transformer() or 'TR' in shunt.name:
-            	# TODO: no se como indicar que un shunt es parte de un transformador. 
-                # Sabiendo esto podria eliminar la parte del or.
-                continue # Skip Magnetizing Impedance
+            	# TODO: no se como indicar que un shunt es parte de un transformador. Sabiendo esto podria eliminar la parte del or.
+                continue
             if shunt.is_fixed():
                 index = shunt.index
                 i = shunt.bus.number
@@ -899,7 +982,7 @@ class PyParserRAW(object):
                 status = int(shunt.in_service)
                 gl = shunt.g * net.base_power
                 bl = shunt.b * net.base_power
-                case_fixed_shunts.append(pd.struct.FixedShunt(index, i, ID, status, gl, bl))
+                case.fixed_shunts.append(pd.struct.FixedShunt(index, i, ID, status, gl, bl))
             else:
                 index = shunt.index
                 i = shunt.bus.number
@@ -907,6 +990,7 @@ class PyParserRAW(object):
                     modsw = 0
                 elif shunt.is_switched_v():
                 	modsw = 1 if shunt.is_discrete() else 2             
+
                 adjm = 1
                 stat = int(shunt.is_in_service())
                 vswhi = 1.0
@@ -915,31 +999,38 @@ class PyParserRAW(object):
                 rmpct = 0
                 rmidnt = None
                 binit = shunt.b * net.base_power
-                # TODO pasos del Switched Shunt ver comentario en PFNET Shunts
+                # TODO pasos del Switched Shunt
+                # b_values = shunt.b_values
+                # Por el momento solo el valor actual de b
+
                 n1, n2, n3, n4, n5, n6, n7, n8 = [1] + [0] * 7
                 b1, b2, b3, b4, b5, b6, b7, b8 = [shunt.b*net.base_power] + [0] * 7
+
                 # Corregir hasta aca--------------------------------------
-                case_switched_shunts.append(pd.struct.SwitchedShunt(index, i, modsw, adjm, stat, vswhi,
+                case.switched_shunts.append(pd.struct.SwitchedShunt(index, i, modsw, adjm, stat, vswhi,
                 												 vswlo, swrem, rmpct, rmidnt, binit,
                 												 n1, b1, n2, b2, n3, b3, n4, b4,
                 												 n5, b5, n6, b6, n7, b7, n8, b8))
         # PSSE DC-Line
+
         for dc_line in reversed(net.dc_branches):
             if dc_line.bus_k.csc_converters:
                 converter_k = net.get_csc_converter_from_name_and_ac_bus_number(dc_line.name ,dc_line.bus_k.number)
                 converter_m = net.get_csc_converter_from_name_and_ac_bus_number(dc_line.name ,dc_line.bus_m.number)
                 rectifier = converter_k if converter_k.is_rectifier() else converter_m
                 inverter = converter_k if converter_k.is_inverter() else converter_m
+                
                 # index
                 index = dc_line.index
+                
                 # params
                 name = dc_line.name
                 if inverter.is_in_P_dc_mode():
                     mdc = 1
-                    setvl = inverter.P_dc_set * net.base_power
+                    setvl = inverter.P_dc_set
                 elif inverter.is_in_i_dc_mode():
                     mdc = 2
-                    setvl = inverter.i_dc_set * net.base_power
+                    setvl = inverter.i_dc_set
                 else:
                     mdc = 0
                     setvl = 0
@@ -952,6 +1043,7 @@ class PyParserRAW(object):
                 dcvmin = 0
                 cccitmx = 20 
                 cccacc = 1.
+
                 params = pd.struct.TwoTerminalDCLineParameters(name, mdc, rdc, setvl, vschd, vcmod, rcomp, delti, meter,
                 											   dcvmin, cccitmx, cccacc)
                 # rectifier
@@ -972,6 +1064,7 @@ class PyParserRAW(object):
                 itr = 0
                 idr = 1
                 xcapr = rectifier.x_cap * dc_line.bus_k.v_base**2 / net.base_power
+                
                 rectifier = pd.struct.TwoTerminalDCLineRectifier(ipr, nbr, anmxr, anmnr, rcr, xcr, ebasr, trr,
                                                                  tapr, tmxr, tmnr, stpr, icr, ifr, itr, idr, xcapr)
                 # inverter
@@ -992,15 +1085,19 @@ class PyParserRAW(object):
                 iti = 0
                 idi = 1
                 xcapi = inverter.x_cap * dc_line.bus_m.v_base**2 / net.base_power
+                             
                 inverter = pd.struct.TwoTerminalDCLineRectifier(ipi, nbi, anmxi, anmni, rci, xci, ebasi, tri,
                                                                  tapi, tmxi, tmni, stpi, ici, ifi, iti, idi, xcapi)
-                case_tt_dc_lines.append(pd.struct.TwoTerminalDCLine(index, params, rectifier, inverter))
+                
+                case.tt_dc_lines.append(pd.struct.TwoTerminalDCLine(index, params, rectifier, inverter))
 
         # PSSE DC VSC-Line
+
         for vsc_dc_line in net.dc_branches:
             if vsc_dc_line.bus_k.vsc_converters:         
                 # index      
                 index = vsc_dc_line.index
+
                 # params
                 name = vsc_dc_line.name
                 mdc = int(vsc_dc_line.is_in_service())
@@ -1014,9 +1111,11 @@ class PyParserRAW(object):
                 o4 = 0 
                 f4 = 1
                 params = pd.struct.VSCDCLineParameters(name, mdc, rdc, o1, f1, o2, f2, o3, f3, o4, f4)
+
                 # converter 1
                 c1 = net.get_vsc_converter_from_name_and_ac_bus_number(vsc_dc_line.name ,vsc_dc_line.bus_k.number)
                 c2 = net.get_vsc_converter_from_name_and_ac_bus_number(vsc_dc_line.name ,vsc_dc_line.bus_m.number)
+              
                 converter = []
                 for c in [c1, c2]:
                     ibus = c.ac_bus.number
@@ -1030,7 +1129,7 @@ class PyParserRAW(object):
                         	type = 2
                         	dcset = c.P_dc_set * net.base_power
                     mode = 1
-                    acset = 1.0 # TODO [DEFAULT VALUE] Voltage set point (c.reg_bus.v_mag ?)
+                    acset = 1.0 #TODO [DEFAULT VALUE] Voltage set point (c.reg_bus.v_mag ?)
                     if c.is_in_f_ac_mode():
                        mode = 2
                        acset = c.target_power_factor
@@ -1047,9 +1146,10 @@ class PyParserRAW(object):
                     converter.append(pd.struct.VSCDCLineConverter(ibus, type, mode, dcset, acset,
                     											  aloss, bloss, minloss, smax, imax,
                     											  pwf, maxq, minq, remot, rmpct))          
-                case_vsc_dc_lines.append(pd.struct.VSCDCLine(index, params, converter[0] , converter[1]))
+                case.vsc_dc_lines.append(pd.struct.VSCDCLine(index, params, converter[0] , converter[1]))
 
         # PSSE Facts
+
         for facts in reversed(net.facts):
             index = facts.index
             name = facts.name
@@ -1089,38 +1189,12 @@ class PyParserRAW(object):
             vsref = 0
             remot = 0 # facts.reg_bus.number if facts.reg_bus else 0 # TODO fix this source of bug : bus.is_reg_by facts
             mname = ''
-            case_facts.append(pd.struct.FACTSDevice(index, name, i, j, mode, pdes, qdes,
+            
+            case.facts.append(pd.struct.FACTSDevice(index, name, i, j, mode, pdes, qdes,
             										vset, shmx, trmx, vtmn, vtmx, vsmx,
             										imx, linx, rmpct, owner, set1, set2,
             										vsref, remot, mname))
 
-        case = pd.struct.Case(ic = 0,
-                              sbase = net.base_power,
-                              rev = 33,
-                              xfrrat = 0,
-                              nxfrat = 0,
-                              basfrq = self.base_freq,
-                              record1 = '',
-                              record2 = '',
-                              buses = case_buses,
-                              loads = case_loads,
-                              fixed_shunts = case_fixed_shunts,
-                              generators = case_generators,
-                              branches = case_branches,
-                              transformers = case_transformers,
-                              areas = [],
-                              tt_dc_lines = case_tt_dc_lines,
-                              vsc_dc_lines = case_vsc_dc_lines,
-                              transformer_corrections = [],
-                              mt_dc_lines = [],
-                              line_groupings = [],
-                              zones = case_zones,
-                              transfers = [],
-                              owners = [],
-                              facts = case_facts,
-                              switched_shunts = case_switched_shunts,
-                              gnes = [],
-                              induction_machines = [])
         # Write         
         f = open(filename, 'w')
         f.write(case.to_psse())
