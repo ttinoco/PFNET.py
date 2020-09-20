@@ -25,7 +25,7 @@ class PyParserRAW(object):
         # Options
         self.keep_all_oos = False # flag for keeping all out-of-service components
         self.base_freq = 60.      # value of the system frecuency
-        self.no_output = True     # flag para evitar que GRG-PSSEDATA imprima en pantalla
+        self.output_level = 0     # numero para controlar output
         self.no_mag_shunt = True  # flag to parse the magnetizing impedance of transformers
 
     def set(self, key, value):
@@ -41,8 +41,8 @@ class PyParserRAW(object):
             self.keep_all_oos = value
         elif key == 'base_freq':
             self.base_freq = value
-        elif key == 'no_output':
-            self.no_output = value
+        elif key == 'output_level':
+            self.output_level = value
         elif key == 'no_mag_shunt':
             self.no_mag_shunt = value
         else:
@@ -66,7 +66,7 @@ class PyParserRAW(object):
             raise pfnet.ParserError('invalid file extension')
 
         # Get grg-pssedata case
-        if self.no_output:
+        if self.output_level == 0:
             old_stderr = sys.stderr
             sys.stderr = io.StringIO()
             import grg_pssedata as pd
