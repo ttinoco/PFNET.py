@@ -224,6 +224,9 @@ class Parser(object):
         if ext == 'm':
             from .parsers import PyParserMAT
             return PyParserMAT()
+        elif ext == 'raw':
+            from .parsers import PyParserRAW
+            return PyParserRAW()
         else:
             return CParser(ext)
         
