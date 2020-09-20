@@ -288,7 +288,7 @@ The matrices and vectors associated with the linear constraints can be extracted
   0.042
   
   >>> bus = net.get_bus(5)
-  >>> Hi = constr.get_H_single(bus.index_P)
+  >>> Hi = constr.get_H_single(bus.dP_index)
 
   >>> print type(Hi), Hi.shape, Hi.nnz
   <class 'scipy.sparse.coo.coo_matrix'> (28, 28) 27
@@ -322,7 +322,7 @@ This constraint is associated with the string ``"AC power balance"``. It enforce
 
 where :math:`t` are time periods, :math:`P^g` and :math:`Q^g` are generator active and reactive powers, :math:`P^l` and :math:`Q^l` are load active and reactive powers, :math:`S^{sh}` are apparent powers flowing out of buses through shunt devices, :math:`S` are apparent powers flowing out of buses through branches, :math:`n` is the number of buses, :math:`T` is the number of time periods, and :math:`[n] := \{1,\ldots,n\}`. 
 
-The :class:`Bus <pfnet.Bus>` class attributes :data:`index_P <pfnet.Bus.index_P>` and :data:`index_Q <pfnet.Bus.index_Q>` can be used to obtain the row indices of the constraint function :data:`f <pfnet.ConstraintBase.f>` and Jacobian :data:`J <pfnet.ConstraintBase.J>` that are associated with the active and reactive power mismatches of a specific bus.
+The :class:`Bus <pfnet.Bus>` class attributes :data:`dP_index <pfnet.Bus.dP_index>` and :data:`dQ_index <pfnet.Bus.dQ_index>` can be used to obtain the row indices of the constraint function :data:`f <pfnet.ConstraintBase.f>` and Jacobian :data:`J <pfnet.ConstraintBase.J>` that are associated with the active and reactive power mismatches of a specific bus.
 
 .. _prob_constr_DCPF:
 
@@ -337,7 +337,7 @@ This constraint is associated with the string ``"DC power balance"``. It enforce
 
 where :math:`t` are time periods, :math:`P^g` are generator active powers, :math:`P^l` are load active powers, :math:`b_{km}` are branch susceptances, :math:`\theta_k` are bus voltage angles, :math:`\phi_{km}` are phase shifts of phase-shifting transformers, :math:`n` is the number of buses, :math:`T` is the number of time periods, and :math:`[n] := \{1,\ldots,n\}`.
 
-The :class:`Bus <pfnet.Bus>` class attribute :data:`index_P <pfnet.Bus.index_P>` can be used to obtain the row indices of the constraint matrix :data:`A <pfnet.ConstraintBase.A>` and right-hand-side :data:`b <pfnet.ConstraintBase.b>` that are associated with the active (DC) power mismatches of a specific bus.
+The :class:`Bus <pfnet.Bus>` class attribute :data:`dP_index <pfnet.Bus.dP_index>` can be used to obtain the row indices of the constraint matrix :data:`A <pfnet.ConstraintBase.A>` and right-hand-side :data:`b <pfnet.ConstraintBase.b>` that are associated with the active (DC) power mismatches of a specific bus.
 
 .. _prob_constr_LINPF:
 
