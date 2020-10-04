@@ -20,7 +20,7 @@ class TestParser(unittest.TestCase):
 
     def test_pyparserraw_read(self):
         
-        case = os.path.join('data', 'ACTIVSg10k.raw')
+        case = os.path.join('data', 'ACTIVSg500.raw')
         if not os.path.isfile(case):
             raise unittest.SkipTest('raw file not available')
         
@@ -144,7 +144,7 @@ class TestParser(unittest.TestCase):
             for case in test_cases.CASES:
                 
                 if os.path.splitext(case)[-1] != '.raw':
-                    continue
+                    continue                
                 
                 parser = pf.PyParserRAW()
                 parser.set('keep_all_out_of_service', 1)

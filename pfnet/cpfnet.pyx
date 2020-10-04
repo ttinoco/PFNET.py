@@ -17,6 +17,7 @@ cimport cconstants
 cimport cvec
 cimport cmat
 cimport cparser_raw
+cimport cparser_epc
 
 from scipy import misc
 import tempfile
@@ -37,6 +38,9 @@ PI = cconstants.PI
 
 def has_raw_parser():
     return bool(cparser_raw.HAVE_RAW_PARSER)
+
+def has_epc_parser():
+    return bool(cparser_epc.HAVE_EPC_PARSER)
 
 # C pointer
 ###########

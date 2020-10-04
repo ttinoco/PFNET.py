@@ -2931,6 +2931,10 @@ cdef class Network:
         """ String with information about network components. """
         def __get__(self): return cnet.NET_get_show_components_str(self._c_net, 0).decode('UTF-8')
 
+    property show_properties_str:
+        """ String with information about network properties. """
+        def __get__(self): return cnet.NET_get_show_properties_str(self._c_net, 0).decode('UTF-8')
+
 cdef public new_Network(cnet.Net* n):
     if n is not NULL:
         net = Network(alloc=False)

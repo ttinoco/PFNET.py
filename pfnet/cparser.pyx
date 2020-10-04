@@ -66,7 +66,9 @@ cdef class ParserBase:
         filename = filename.encode('UTF-8')
         cdef cparser.Net* net = cparser.PARSER_parse(self._c_parser, filename, num_periods)
         if cparser.PARSER_has_error(self._c_parser):
-            raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
+            error_str = cparser.PARSER_get_error_string(self._c_parser).decode('UTF-8')
+            cparser.PARSER_clear_error(self._c_parser)
+            raise ParserError(error_str)
         cdef Network pnet = new_Network(net)
         pnet.alloc = True
         return pnet
@@ -85,7 +87,9 @@ cdef class ParserBase:
         key = key.encode('UTF-8')
         cparser.PARSER_set(self._c_parser,key,v)
         if cparser.PARSER_has_error(self._c_parser):
-            raise ParserError(cparser.PARSER_get_error_string(self._c_parser))
+            error_str = cparser.PARSER_get_error_string(self._c_parser).decode('UTF-8')
+            cparser.PARSER_clear_error(self._c_parser)
+            raise ParserError(error_str)
 
     def show(self):
         """
@@ -133,6 +137,8 @@ cdef class CParser(ParserBase):
             self._c_parser = cparser.ART_PARSER_new()
         elif ext == 'raw':
             self._c_parser = cparser.RAW_PARSER_new()
+        elif ext == 'epc':
+            self._c_parser = cparser.EPC_PARSER_new()
         elif ext == 'json':
             self._c_parser = cparser.JSON_PARSER_new()
         else:
@@ -152,6 +158,20 @@ cdef class ParserRAW(ParserBase):
     def __cinit__(self):
         
         self._c_parser = cparser.RAW_PARSER_new()
+        self._alloc = True
+
+cdef class ParserEPC(ParserBase):
+
+    def __init__(self):
+        """
+        EPC parser class.
+        """
+    
+        pass
+        
+    def __cinit__(self):
+        
+        self._c_parser = cparser.EPC_PARSER_new()
         self._alloc = True
 
 cdef class ParserMAT(ParserBase):
@@ -204,6 +224,9 @@ class Parser(object):
         if ext == 'm':
             from .parsers import PyParserMAT
             return PyParserMAT()
+        elif ext == 'raw':
+            from .parsers import PyParserRAW
+            return PyParserRAW()
         else:
             return CParser(ext)
         

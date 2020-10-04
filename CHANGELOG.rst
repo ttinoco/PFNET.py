@@ -1,5 +1,9 @@
-Unreleased
-----------
+Staged
+------
+* Added PyParserRAW that uses grg-pssedata and can parse and write .raw files v33.
+
+Version 1.3.5
+-------------
 * Constant current constraint for CSC HVDC.
 * Net update reg Q participations.
 * Branch num ratios.
@@ -13,8 +17,10 @@ Unreleased
 * Branch __str__ and __repr__.
 * Network method for clipping switched shunt b.
 * Network JSON encoder and decoder.
-* Support for net components being in or out of service.
-* Added PyParserRAW that uses grg-pssedata and can parse and write .raw files v33.    
+* Support for net components being in or out of service.  
+* Added "v_set_refrence" boolean parameter to voltage magnitude regularization function.
+* Added utils submodule with routine to create PTDFs.    
+* EPC parser support: pfnet module has_epc_parser method, and ParserEPC class.
 
 Version 1.3.4
 -------------

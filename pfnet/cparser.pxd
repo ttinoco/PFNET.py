@@ -1,7 +1,7 @@
 #***************************************************#
 # This file is part of PFNET.                       #
 #                                                   #
-# Copyright (c) 2015-2017, Tomas Tinoco De Rubira.  #
+# Copyright (c) 2015, Tomas Tinoco De Rubira.       #
 #                                                   #
 # PFNET is released under the BSD 2-clause license. #
 #***************************************************#
@@ -38,6 +38,7 @@ cdef extern from "pfnet/pfnet.h":
     Parser* MAT_PARSER_new()
     Parser* ART_PARSER_new()
     Parser* RAW_PARSER_new()
+    Parser* EPC_PARSER_new()
     Parser* JSON_PARSER_new()
     
     
