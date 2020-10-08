@@ -1056,22 +1056,22 @@ class PyParserRAW(object):
                 idi = 1
                 xcapi = inverter.x_cap * dc_line.bus_m.v_base**2 / net.base_power
                 inverter = pd.struct.TwoTerminalDCLineInverter(ipi, 
-                                                                nbi, 
-                                                                anmxi, 
-                                                                anmni, 
-                                                                rci, 
-                                                                xci, 
-                                                                ebasi, 
-                                                                tri,
-                                                                tapi, 
-                                                                tmxi, 
-                                                                tmni, 
-                                                                stpi, 
-                                                                ici, 
-                                                                ifi, 
-                                                                iti, 
-                                                                idi, 
-                                                                xcapi)
+                                                               nbi, 
+                                                               anmxi, 
+                                                               anmni, 
+                                                               rci, 
+                                                               xci, 
+                                                               ebasi, 
+                                                               tri,
+                                                               tapi, 
+                                                               tmxi, 
+                                                               tmni, 
+                                                               stpi, 
+                                                               ici, 
+                                                               ifi, 
+                                                               iti, 
+                                                               idi, 
+                                                               xcapi)
                 case_tt_dc_lines.append(pd.struct.TwoTerminalDCLine(index, params, rectifier, inverter))
 
         # PSSE DC VSC-Line

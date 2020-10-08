@@ -33,8 +33,8 @@ COMPONENTES BASICOS
      2, 0,90.00, 0.00, 0.0000, 0.0000,   0.0,1.00000,1.00000,1.50000,0.51000,0.00625,     0,     0,     0,'1 ', 0.0000
  0 /End of Two-terminal dc line data, Begin VSC dc line data
 "VSC-LINE    ",1,    1.0000,   1,1.0000
-     1,1,1,      1.00, 1.00000,     0.000,     0.000,     0.000,      0.00,      0.00,1.00000,   9999.00,  -9999.00,     0,  100.0
-     2,1,1,      1.00, 1.00000,     0.000,     0.000,     0.000,      0.00,      0.00,1.00000,   9999.00,  -9999.00,     0,  100.0
+     3,1,1,      1.00, 1.00000,     0.000,     0.000,     0.000,      0.00,      0.00,1.00000,   9999.00,  -9999.00,     0,  100.0
+     4,1,1,      1.00, 1.00000,     0.000,     0.000,     0.000,      0.00,      0.00,1.00000,   9999.00,  -9999.00,     0,  100.0
  0 /End of VSC dc line data, Begin Impedance correction table data
  0 /End of Impedance correction table data, Begin Multi-terminal dc line data
  0 /End of Multi-terminal dc line data, Begin Multi-section line data
