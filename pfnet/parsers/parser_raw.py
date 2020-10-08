@@ -424,7 +424,7 @@ class PyParserRAW(object):
         net.set_dc_bus_array(len(raw_DC_buses))
         for index, raw_bus_DC in enumerate(reversed(raw_DC_buses)):
             busDC = net.get_dc_bus(index)
-            busDC.name = raw_bus_DC.params.name    	
+            busDC.name = raw_bus_DC.params.name.strip('\"').rstrip()
             if isinstance(raw_bus_DC, pd.struct.VSCDCLine):
                 converter = raw_bus_DC.c1 if index%2 == 0 else raw_bus_DC.c2
                 busDC.number = converter.ibus
@@ -455,7 +455,7 @@ class PyParserRAW(object):
                 branchDC.bus_k = net.get_dc_bus_from_number(raw_branch_DC.rectifier.ipr)
                 branchDC.bus_m = net.get_dc_bus_from_number(raw_branch_DC.inverter.ipi)
             branchDC.in_service = bool(raw_branch_DC.params.mdc)
-            branchDC.name =  raw_branch_DC.params.name
+            branchDC.name =  raw_branch_DC.params.name.strip('\"').rstrip()
             branchDC.r = raw_branch_DC.params.rdc * net.base_power / branchDC.bus_m.v_base**2
 
         # PFNET CSC HVDC
@@ -470,7 +470,7 @@ class PyParserRAW(object):
             if index % 2 == 0: # rectifier
                 raw_csc = raw_csc_converter.rectifier
                 csc.set_as_rectifier()
-                csc.name = raw_csc_converter.params.name
+                csc.name = raw_csc_converter.params.name.strip('\"').rstrip()
                 csc.ac_bus = net.get_bus_from_number(raw_csc.ipr)
                 csc.dc_bus = net.get_dc_bus_from_number(raw_csc.ipr)
                 csc.num_bridges = raw_csc.nbr
@@ -487,7 +487,7 @@ class PyParserRAW(object):
             else: # inverter
                 raw_csc = raw_csc_converter.inverter
                 csc.set_as_inverter()
-                csc.name = raw_csc_converter.params.name
+                csc.name = raw_csc_converter.params.name.strip('\"').rstrip()
                 csc.ac_bus = net.get_bus_from_number(raw_csc.ipi)
                 csc.dc_bus = net.get_dc_bus_from_number(raw_csc.ipi)
                 csc.num_bridges = raw_csc.nbi  
@@ -521,7 +521,7 @@ class PyParserRAW(object):
             converter = raw_vsc_converter.c1 if index%2 == 0 else raw_vsc_converter.c2
             vsc.ac_bus = net.get_bus_from_number(converter.ibus)
             vsc.dc_bus = net.get_dc_bus_from_number(converter.ibus)
-            vsc.name = raw_vsc_converter.params.name
+            vsc.name = raw_vsc_converter.params.name.strip('\"').rstrip()
             vsc.loss_coeff_A = converter.aloss
             vsc.loss_coeff_A = converter.bloss
             vsc.Q_par = converter.rmpct / net.base_power
