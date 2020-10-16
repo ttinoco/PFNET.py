@@ -234,6 +234,10 @@ class PyParserRAW(object):
                 tr.phase_max = np.deg2rad(raw_branch.w1.ang)
                 tr.phase_min = np.deg2rad(raw_branch.w1.ang)
                 tr.ratio = raw_branch.w2.windv / raw_branch.w1.windv
+                if raw_branch.p1.cw != 1:
+                    tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                    if raw_branch.p1.cw == 3:
+                        tr.ratio *= raw_branch.w2.nomv/raw_branch.w1.nomv
                 tr.num_ratios = raw_branch.w1.ntp
                 cw = raw_branch.p1.cw
                 tr.ratio_max = raw_branch.w2.windv/raw_branch.w1.rmi if cw==2 else 1/raw_branch.w1.rmi
@@ -267,6 +271,10 @@ class PyParserRAW(object):
                     tr.g = (2 / (z23 + z31 - z12)).real if abs(z23 + z31 - z12) != 0 else 1e6
                     tr.b = (2 / (z23 + z31 - z12)).imag if abs(z23 + z31 - z12) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w3.windv
+                    if raw_branch.p1.cw != 1:
+                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        if raw_branch.p1.cw == 3:
+                            tr.ratio *= raw_branch.w3.nomv
                     tr.num_ratios = raw_branch.w3.ntp
                     if cw !=2:
                         tr.ratio_max = 1/raw_branch.w3.rmi  
@@ -285,6 +293,10 @@ class PyParserRAW(object):
                     tr.g = (2 / (z12 + z23 - z31)).real if abs(z12 + z23 - z31) != 0 else 1e6
                     tr.b = (2 / (z12 + z23 - z31)).imag if abs(z12 + z23 - z31) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w2.windv
+                    if raw_branch.p1.cw != 1:
+                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        if raw_branch.p1.cw == 3:
+                            tr.ratio *= raw_branch.w3.nomv
                     tr.num_ratios = raw_branch.w2.ntp
                     if cw !=2: 
                         tr.ratio_max = 1/raw_branch.w2.rmi
@@ -303,6 +315,10 @@ class PyParserRAW(object):
                     tr.g = (2 / (z12 + z31 - z23)).real if abs(z12 + z31 - z23) != 0 else 1e6
                     tr.b = (2 / (z12 + z31 - z23)).imag if abs(z12 + z31 - z23) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w1.windv
+                    if raw_branch.p1.cw != 1:
+                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        if raw_branch.p1.cw == 3:
+                            tr.ratio *= raw_branch.w3.nomv
                     tr.num_ratios = raw_branch.w1.ntp
                     if cw !=2: 
                         tr.ratio_max = 1/raw_branch.w1.rmi
