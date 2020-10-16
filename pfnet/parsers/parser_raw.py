@@ -1237,9 +1237,10 @@ class PyParserRAW(object):
     def get_tran_series_parameters(self, x, r, cz, tbase, sbase):
         
         den = x**2 + r**2
+        g, b = r/den, -x/den 
 
         if cz == 1:
-            g, b = r/den, -x/den  # In system base
+            return g, b
         else:
             if cz == 3:  # In Pcc: watts and Z: pu 
                 g = (1e-6 * r)/(sbase) / x**2		# g = r/z**2
