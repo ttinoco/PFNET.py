@@ -233,9 +233,10 @@ class PyParserRAW(object):
                 tr.phase = np.deg2rad(raw_branch.w1.ang)
                 tr.phase_max = np.deg2rad(raw_branch.w1.ang)
                 tr.phase_min = np.deg2rad(raw_branch.w1.ang)
-                tr.ratio = raw_branch.w2.windv / raw_branch.w1.windv
-                if raw_branch.p1.cw != 1:
-                    tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                if raw_branch.p1.cw == 1:
+                    tr.ratio = raw_branch.w2.windv / raw_branch.w1.windv
+                else:
+                    tr.ratio = (raw_branch.w2.windv/raw_branch.w1.windv) / (tr.bus_m.v_base/tr.bus_k.v_base)
                     if raw_branch.p1.cw == 3:
                         tr.ratio *= raw_branch.w2.nomv/raw_branch.w1.nomv
                 tr.num_ratios = raw_branch.w1.ntp
