@@ -296,7 +296,7 @@ class PyParserRAW(object):
                     if raw_branch.p1.cw != 1:
                         tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
                         if raw_branch.p1.cw == 3:
-                            tr.ratio *= raw_branch.w3.nomv
+                            tr.ratio *= raw_branch.w2.nomv
                     tr.num_ratios = raw_branch.w2.ntp
                     if cw !=2: 
                         tr.ratio_max = 1/raw_branch.w2.rmi
@@ -318,7 +318,7 @@ class PyParserRAW(object):
                     if raw_branch.p1.cw != 1:
                         tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
                         if raw_branch.p1.cw == 3:
-                            tr.ratio *= raw_branch.w3.nomv
+                            tr.ratio *= raw_branch.w1.nomv
                     tr.num_ratios = raw_branch.w1.ntp
                     if cw !=2: 
                         tr.ratio_max = 1/raw_branch.w1.rmi
