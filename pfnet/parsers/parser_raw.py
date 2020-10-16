@@ -272,7 +272,7 @@ class PyParserRAW(object):
                     tr.b = (2 / (z23 + z31 - z12)).imag if abs(z23 + z31 - z12) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w3.windv
                     if raw_branch.p1.cw != 1:
-                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        tr.ratio *= tr.bus_k.v_base
                         if raw_branch.p1.cw == 3:
                             tr.ratio *= raw_branch.w3.nomv
                     tr.num_ratios = raw_branch.w3.ntp
@@ -294,7 +294,7 @@ class PyParserRAW(object):
                     tr.b = (2 / (z12 + z23 - z31)).imag if abs(z12 + z23 - z31) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w2.windv
                     if raw_branch.p1.cw != 1:
-                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        tr.ratio *= tr.bus_k.v_base
                         if raw_branch.p1.cw == 3:
                             tr.ratio *= raw_branch.w2.nomv
                     tr.num_ratios = raw_branch.w2.ntp
@@ -316,7 +316,7 @@ class PyParserRAW(object):
                     tr.b = (2 / (z12 + z31 - z23)).imag if abs(z12 + z31 - z23) != 0 else -1e6
                     tr.ratio = 1/raw_branch.w1.windv
                     if raw_branch.p1.cw != 1:
-                        tr.ratio *= tr.bus_m.v_base/tr.bus_k.v_base
+                        tr.ratio *= tr.bus_k.v_base
                         if raw_branch.p1.cw == 3:
                             tr.ratio *= raw_branch.w1.nomv
                     tr.num_ratios = raw_branch.w1.ntp
