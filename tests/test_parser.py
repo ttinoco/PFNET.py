@@ -884,8 +884,11 @@ class TestParser(unittest.TestCase):
                 bus.sens_v_reg_by_shunt = np.random.randn(net.num_periods)
             
             # Set flags
-            net.set_flags('bus','variable','any','voltage magnitude')
-            self.assertEqual(net.num_vars,net.num_buses*T)
+            for bus in net.buses:
+                if bus.is_in_service():
+                    net.set_flags_of_component(bus, 'variable', 'voltage magnitude')
+            self.assertEqual(net.num_vars,
+                             len([bus for bus in net.buses if bus.is_in_service()])*T)
             
             # Add vargens and betteries
             net.add_var_generators_from_parameters(net.get_load_buses(),100.,50.,30.,5,0.05)

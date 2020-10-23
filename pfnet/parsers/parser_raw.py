@@ -91,6 +91,7 @@ class PyParserRAW(object):
 
         # Create star buses and add to raw buses list
         tran2star = {} # maps (raw transformer index -> raw_bus)
+        three_winding = [] # contains bus numbers that have conecctions with 3W tran
         max_bus_number = max([rb.i for rb in case.buses]+[0])
         for raw_tran in case.transformers:
             if isinstance(raw_tran, pd.io.ThreeWindingTransformer):
@@ -111,6 +112,7 @@ class PyParserRAW(object):
                                     0.9)                # evlo
                 raw_bus.star = True
                 tran2star[raw_tran.index] = raw_bus
+                three_winding.extend([raw_tran.p1.i, raw_tran.p1.j, raw_tran.p1.k])
                 case.buses.append(raw_bus)
                 max_bus_number += 1
 
@@ -120,7 +122,7 @@ class PyParserRAW(object):
         # PFNET buses
         raw_buses = []
         for raw_bus in case.buses:
-            if self.keep_all_oos or raw_bus.ide != self.BUS_TYPE_IS:
+            if self.keep_all_oos or raw_bus.ide != self.BUS_TYPE_IS or raw_bus.i in three_winding:
                 raw_buses.append(raw_bus)
         net.set_bus_array(len(raw_buses)) # allocate PFNET bus array
         for index, raw_bus in enumerate(reversed(raw_buses)):
