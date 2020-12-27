@@ -443,7 +443,7 @@ class PyParserRAW(object):
         net.set_dc_bus_array(len(raw_DC_buses))
         for index, raw_bus_DC in enumerate(reversed(raw_DC_buses)):
             busDC = net.get_dc_bus(index)
-            busDC.name = raw_bus_DC.params.name.strip('\"').rstrip()
+            busDC.name = "%s bus %d" %(raw_bus_DC.params.name.strip('\"').rstrip(), index)
             if isinstance(raw_bus_DC, pd.struct.VSCDCLine):
                 converter = raw_bus_DC.c1 if index%2 == 0 else raw_bus_DC.c2
                 busDC.number = converter.ibus
