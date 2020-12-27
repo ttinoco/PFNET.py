@@ -551,7 +551,7 @@ class PyParserRAW(object):
             vsc.P_min = -1e6# TODO: PSSE VSC type does not define active power injection
             if converter.mode == 1:
                 vsc.set_in_v_ac_mode()
-                vsc.reg_bus = net.get_bus_from_number(converter.remot) if converter.remot else None
+                vsc.reg_bus = net.get_bus_from_number(converter.remot) if converter.remot else vsc.ac_bus
             elif converter.mode == 2:
                 vsc.set_in_P_dc_mode()
                 vsc.P_dc_set = converter.dcset / net.base_power
