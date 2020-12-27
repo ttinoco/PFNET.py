@@ -1148,7 +1148,7 @@ class PyParserRAW(object):
                                                                   mode,
                                                                   dcset,
                                                                   acset,
-                  						  aloss,
+                                                                  aloss,
                                                                   bloss,
                                                                   minloss,
                                                                   smax,
@@ -1201,9 +1201,9 @@ class PyParserRAW(object):
             remot = facts.reg_bus.number if facts.reg_bus else 0
             mname = ''
             case_facts.append(pd.struct.FACTSDevice(index, name, i, j, mode, pdes, qdes,
-            					    vset, shmx, trmx, vtmn, vtmx, vsmx,
-            					    imx, linx, rmpct, owner, set1, set2,
-            					    vsref, remot, mname))
+                                                    vset, shmx, trmx, vtmn, vtmx, vsmx,
+                                                    imx, linx, rmpct, owner, set1, set2,
+                                                    vsref, remot, mname))
 
         case = pd.struct.Case(ic = 0,
                               sbase = net.base_power,
