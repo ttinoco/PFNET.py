@@ -7,14 +7,14 @@ if [ ! -d "lib/pfnet" ]; then
   rm pfnet.tar
   mv pfnet*/ pfnet
   cd pfnet
-if [ "$(uname)" == "Darwin" ]; then
+  if [ "$(uname)" == "Darwin" ]; then
       ./configure --prefix="$PWD/build" LDFLAGS="-Wl,-install_name,@loader_path/libpfnet.dylib"
-else
+  else
       ./configure --prefix="$PWD/build"
-fi
+  fi
   make clean
   make uninstall
-  cmake -DCMAKE_INSTALL_PREFIX=build -G"Unix Makefiles"
+  make
   make check
   make install
   cp build/lib/* ../../pfnet/
