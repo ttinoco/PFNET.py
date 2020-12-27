@@ -699,7 +699,7 @@ class PyParserRAW(object):
             scale = 1 # Default Value
             intrpt = 0 # Default Value
             case_loads.append(pd.struct.Load(index, i, ID, status, area, zone,
-            	                             pl, ql, ip, iq, yp, yq, owner, scale, intrpt))
+                                             pl, ql, ip, iq, yp, yq, owner, scale, intrpt))
             
         # PSSE Generators
         for gen in reversed(net.generators):       
@@ -877,9 +877,9 @@ class PyParserRAW(object):
                 vmstar = bus.v_mag[0]
                 anstar = np.rad2deg(bus.v_ang[0])
                 p2 = pd.struct.TransformerParametersSecondLine(r12, x12, sbase12,
-                					       r23, x23, sbase23,
-                					       r31, x31, sbase31,
-                					       vmstar, anstar)
+                                                               r23, x23, sbase23,
+                                                               r31, x31, sbase31,
+                                                               vmstar, anstar)
                 w = []
                 for index, tr in enumerate(reversed(tr_parts)): 
                     index_w = len(tr_parts)-index # 3 -> 2 -> 1
