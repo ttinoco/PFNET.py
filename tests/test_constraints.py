@@ -7142,6 +7142,7 @@ class TestConstraints(unittest.TestCase):
         tol = 1e-2
         eps = 1.1 # %
         param = 1e-6
+        EPS = 10.
 
         # Multiperiod
         for case in test_cases.CASES:
