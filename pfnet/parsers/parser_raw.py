@@ -430,7 +430,7 @@ class PyParserRAW(object):
                 if raw_shunt.is_three_winding():
                     shunt.g *= -1.
                 shunt.set_as_fixed()
-               	# shunt.is_part_of_transformer = True	
+                # shunt.is_part_of_transformer = True    
                 # TODO vincularlo a un transformador
         
         # PFNET DC buses
@@ -439,7 +439,7 @@ class PyParserRAW(object):
         raw_DC_buses = []
         for raw_DC in case.vsc_dc_lines + case.tt_dc_lines:
             if self.keep_all_oos or raw_DC.params.mdc != 0:
-            	raw_DC_buses.extend([raw_DC]*2) # Dos Buses por linea (k - m)
+                raw_DC_buses.extend([raw_DC]*2) # Dos Buses por linea (k - m)
         net.set_dc_bus_array(len(raw_DC_buses))
         for index, raw_bus_DC in enumerate(reversed(raw_DC_buses)):
             busDC = net.get_dc_bus(index)
@@ -464,7 +464,7 @@ class PyParserRAW(object):
         for raw_DC in case.vsc_dc_lines + case.tt_dc_lines:
             if self.keep_all_oos or raw_DC.params.mdc != 0:
                 raw_DC_branches.append(raw_DC)
-        net.set_dc_branch_array(len(raw_DC_branches))            	
+        net.set_dc_branch_array(len(raw_DC_branches))                
         for index, raw_branch_DC in enumerate(reversed(raw_DC_branches)):
             branchDC = net.get_dc_branch(index)
             if isinstance(raw_branch_DC, pd.struct.VSCDCLine):
@@ -578,10 +578,10 @@ class PyParserRAW(object):
                 else:
                     facts.reg_bus = net.get_bus_from_number(raw_facts.remot)
             else:
-                facts.reg_bus = facts.bus_k if not facts.bus_k.is_slack() else None	 
+                facts.reg_bus = facts.bus_k if not facts.bus_k.is_slack() else None     
             facts.P_set = raw_facts.pdes/net.base_power
             facts.Q_set = raw_facts.qdes/net.base_power
-            facts.P_max_dc = 9999	# Default value from PSSE33 (POM 5-59)
+            facts.P_max_dc = 9999    # Default value from PSSE33 (POM 5-59)
             facts.Q_par = raw_facts.rmpct/net.base_power
             facts.Q_max_s = 9999    # Default value from PSSE33 (POM 5-59)
             facts.Q_min_s = 9999    # Default value from PSSE33 (POM 5-59)
@@ -838,12 +838,12 @@ class PyParserRAW(object):
                     w2 = pd.struct.TransformerWindingShort(index_w2,windv,nomv)
                  
                     case_transformers.append(pd.struct.TwoWindingTransformer(index,p1,p2,w1,w2))  
-            	
+                
         # PSSE 3-Winding Transformer
         for bus in reversed(net.buses):
             if bus.is_star():
                 tr_parts = [branch for branch in bus.branches 
-                            if branch.is_part_of_3_winding_transformer()]        	            	    
+                            if branch.is_part_of_3_winding_transformer()]                                
                 assert(len(tr_parts) <= 3) # the only conexions are the windings
                 # p1
                 i, j, k = [tr.bus_k.number for tr in reversed(tr_parts)]
@@ -930,7 +930,7 @@ class PyParserRAW(object):
         # PSSE Shunts
         for shunt in reversed(net.shunts):
             if shunt.is_part_of_transformer() or 'TR' in shunt.name:
-            	# TODO: no se como indicar que un shunt es parte de un transformador. 
+                # TODO: no se como indicar que un shunt es parte de un transformador. 
                 # Sabiendo esto podria eliminar la parte del or.
                 continue # Skip Magnetizing Impedance
             if shunt.is_fixed():
@@ -1167,24 +1167,24 @@ class PyParserRAW(object):
             i = facts.bus_k.number
             j = facts.bus_m.number if facts.bus_m else 0
             if facts.is_in_service():
-	        if facts.is_in_normal_series_mode():
-	            mode = 1
-	            set1 = set2 = 0.
-	        elif facts.is_series_link_bypassed():
-	            mode = 2
-	            set1 = set2 = 0.
-	        elif facts.is_in_constant_series_z_mode():
-	            den = facts.g**2 + facts.b**2
-	            set1 = facts.g/den
-	            set2 = -facts.b/den
-	            mode = 3
-	        elif facts.is_in_constant_series_v_mode():
-	            set1 = np.rad2deg(facts.v_mag_s)
-	            set2 = np.rad2deg(facts.v_ang_s)
-	            mode = 4
+                if facts.is_in_normal_series_mode():
+                    mode = 1
+                    set1 = set2 = 0.
+                elif facts.is_series_link_bypassed():
+                    mode = 2
+                    set1 = set2 = 0.
+                elif facts.is_in_constant_series_z_mode():
+                    den = facts.g**2 + facts.b**2
+                    set1 = facts.g/den
+                    set2 = -facts.b/den
+                    mode = 3
+                elif facts.is_in_constant_series_v_mode():
+                    set1 = np.rad2deg(facts.v_mag_s)
+                    set2 = np.rad2deg(facts.v_ang_s)
+                    mode = 4
             else:
-	        mode = 0
-	        set1 = set2 = 0
+                mode = 0
+                set1 = set2 = 0
             pdes = facts.P_set * net.base_power
             qdes = facts.Q_set * net.base_power
             vset = 1.0 # voltage set point [PSSE Default]
@@ -1246,7 +1246,7 @@ class PyParserRAW(object):
             return g, b
         else:
             if cz == 3:  # In Pcc: watts and Z: pu 
-                g = (1e-6 * r)/(sbase) / x**2		# g = r/z**2
+                g = (1e-6 * r)/(sbase) / x**2 # g = r/z**2
                 b = - np.sqrt((1/x)**2 - g**2)
             else:   # Transformer base
                 g *= tbase / sbase

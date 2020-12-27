@@ -171,7 +171,7 @@ class TestNetwork(unittest.TestCase):
             for bus in net.buses[:10]:
                 self.assertEqual(bus.index, net.get_bus_from_number(bus.number).index)
                 self.assertEqual(bus.name, net.get_bus_from_name(bus.name).name)
-                self.assertTrue(bus.is_equal(net.get_component_from_key((bus.obj_type, bus.number))))                                             
+                self.assertTrue(bus.is_equal(net.get_component_from_key((bus.obj_type, bus.number))))
             for gen in net.generators[:10]:
                 self.assertEqual(gen.index,
                                  net.get_generator_from_name_and_bus_number(gen.name,

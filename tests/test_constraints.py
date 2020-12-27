@@ -7138,7 +7138,7 @@ class TestConstraints(unittest.TestCase):
     def test_constr_AC_FLOW_LIM(self):
 
         # Constants
-        h = 1e-11
+        h = 1e-12
         tol = 1e-2
         eps = 1.1 # %
         param = 1e-6
