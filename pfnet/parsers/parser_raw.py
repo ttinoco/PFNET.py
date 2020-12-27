@@ -975,9 +975,9 @@ class PyParserRAW(object):
                 n1, n2, n3, n4, n5, n6, n7, n8 = list(block_values.values())+[0.]*(8-len(block_values))
                 b1, b2, b3, b4, b5, b6, b7, b8 = list(block_values.keys())+[0.]*(8-len(block_values))
                 case_switched_shunts.append(pd.struct.SwitchedShunt(index, i, modsw, adjm, stat, vswhi,
-                						    vswlo, swrem, rmpct, rmidnt, binit,
-                						    n1, b1, n2, b2, n3, b3, n4, b4,
-                						    n5, b5, n6, b6, n7, b7, n8, b8))
+                                                                    vswlo, swrem, rmpct, rmidnt, binit,
+                                                                    n1, b1, n2, b2, n3, b3, n4, b4,
+                                                                    n5, b5, n6, b6, n7, b7, n8, b8))
         # PSSE DC-Line
         for dc_line in reversed(net.dc_branches):
             if dc_line.bus_k.csc_converters:
@@ -1018,7 +1018,7 @@ class PyParserRAW(object):
                                                                rcomp,
                                                                delti,
                                                                meter,
-                					       dcvmin,
+                                                               dcvmin,
                                                                cccitmx,
                                                                cccacc)
                 # rectifier
@@ -1153,7 +1153,7 @@ class PyParserRAW(object):
                                                                   minloss,
                                                                   smax,
                                                                   imax,
-                   						  pwf,
+                                                                  pwf,
                                                                   maxq,
                                                                   minq,
                                                                   remot,
