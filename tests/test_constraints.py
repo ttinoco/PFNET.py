@@ -7138,7 +7138,7 @@ class TestConstraints(unittest.TestCase):
     def test_constr_AC_FLOW_LIM(self):
 
         # Constants
-        h = 1e-12
+        h = 1e-13
         tol = 1e-2
         eps = 1.1 # %
         param = 1e-6
@@ -7149,6 +7149,9 @@ class TestConstraints(unittest.TestCase):
 
             net = pf.Parser(case).parse(case,self.T).get_copy(merge_buses=True)
             self.assertEqual(net.num_periods,self.T)
+
+            if net.num_buses > 2000:
+                continue
             
             # Vars
             net.set_flags('bus',
