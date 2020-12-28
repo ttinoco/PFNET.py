@@ -6,7 +6,7 @@ IF NOT EXIST "lib\pfnet" (
   del pfnet.tar
   for /d %%G in ("pfnet*") do move "%%~G" pfnet
   cd pfnet
-  cmake -DCMAKE_INSTALL_PREFIX=.\build -G"MinGW Makefiles" -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE .
+  cmake -DCMAKE_INSTALL_PREFIX=.\build -G"MinGW Makefiles" -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DCMAKE_SH="CMAKE_SH-NOTFOUND" .
   mingw32-make -j
   mingw32-make install
   copy build\lib\* ..\..\pfnet\
