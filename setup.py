@@ -60,7 +60,7 @@ setup(name='PFNET',
       ext_modules=cythonize([Extension(name="pfnet.cpfnet",
                                        sources=["./pfnet/cpfnet.pyx"],
                                        libraries=['pfnet'],
-                                       include_dirs=[np.get_include(),'./lib/pfnet/build/include'],
-                                       library_dirs=['./lib/pfnet/build/lib'],
+                                       include_dirs=[np.get_include(),'./lib/pfnet/include'],
+                                       library_dirs=['./pfnet'],
                                        extra_link_args=extra_link_args)]))
                                        
