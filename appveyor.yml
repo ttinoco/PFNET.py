@@ -4,7 +4,7 @@ environment:
           MINICONDA_FILENAME: "Miniconda3-latest-Windows-x86_64.exe"
     matrix:
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-	    PYTHON_VERSION: "3.6"
+            PYTHON_VERSION: "3.6"
 
 platform:
     - x64
