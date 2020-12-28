@@ -9,15 +9,21 @@
 # Optimization Problems - Problems
 
 import sys
-sys.path.append('.')
 import pfnet
-from power_flow import NRsolve
+from examples.power_flow import NRsolve
 
-net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1])
+def main(args=None):
+    
+    if args is None:
+        args = sys.argv[1:]
+        
+    net = pfnet.Parser(args[0]).parse(args[0])
 
-print('%.2e %.2e' %(net.bus_P_mis, net.bus_Q_mis))
+    print('%.2e %.2e' %(net.bus_P_mis, net.bus_Q_mis))
 
-NRsolve(net)
-
-print('%.2e %.2e' %(net.bus_P_mis, net.bus_Q_mis))
-
+    NRsolve(net)
+    
+    print('%.2e %.2e' %(net.bus_P_mis, net.bus_Q_mis))
+    
+if __name__ == "__main__":
+    main()

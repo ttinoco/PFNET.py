@@ -9,53 +9,56 @@
 # Optimization Problems - Constraints
 
 import sys
-sys.path.append('.')
 import pfnet
 
-net = pfnet.Parser(sys.argv[1]).parse(sys.argv[1])
+def main(args=None):
+    
+    if args is None:
+        args = sys.argv[1:]
+        
+    net = pfnet.Parser(args[0]).parse(args[0])
 
-net.set_flags('bus',
-              'variable',
-              'any',
-              ['voltage magnitude','voltage angle'])
+    net.set_flags('bus',
+                  'variable',
+                  'any',
+                  ['voltage magnitude','voltage angle'])
 
-print(net.num_vars == 2*net.num_buses)
+    print(net.num_vars == 2*net.num_buses)
 
-constr = pfnet.Constraint('AC power balance',net)
+    constr = pfnet.Constraint('AC power balance',net)
 
-print(constr.name == 'AC power balance')
+    print(constr.name == 'AC power balance')
 
-x = net.get_var_values()
+    x = net.get_var_values()
 
-constr.analyze()
+    constr.analyze()
 
-print(constr.num_extra_vars)
+    print(constr.num_extra_vars)
 
-constr.eval(x + 0.01)
-constr.eval(x)
+    constr.eval(x + 0.01)
+    constr.eval(x)
 
-import numpy as np
+    import numpy as np
 
-f = constr.f
+    f = constr.f
 
-print(type(f), f.shape)
+    print(type(f), f.shape)
 
-print(np.linalg.norm(f,np.inf))
+    print(np.linalg.norm(f,np.inf))
 
-bus = net.get_bus(5)
+    bus = net.get_bus(5)
 
-Hi = constr.get_H_single(bus.dP_index)
+    Hi = constr.get_H_single(bus.dP_index)
+    
+    print(type(Hi), Hi.shape, Hi.nnz)
 
-print(type(Hi), Hi.shape, Hi.nnz)
+    coefficients = np.random.randn(f.size)
 
-coefficients = np.random.randn(f.size)
+    constr.combine_H(coefficients)
 
-constr.combine_H(coefficients)
+    H = constr.H_combined
 
-H = constr.H_combined
+    print(type(H), H.shape, H.nnz)
 
-print(type(H), H.shape, H.nnz)
-
-  
-
-
+if __name__ == "__main__":
+    main()
