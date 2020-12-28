@@ -7138,7 +7138,7 @@ class TestConstraints(unittest.TestCase):
     def test_constr_AC_FLOW_LIM(self):
 
         # Constants
-        h = 1e-13
+        h = 1e-11
         tol = 1e-2
         eps = 1.1 # %
         param = 1e-6
@@ -7151,7 +7151,7 @@ class TestConstraints(unittest.TestCase):
             self.assertEqual(net.num_periods,self.T)
 
             if net.num_buses > 2000:
-                continue
+                continue            
             
             # Vars
             net.set_flags('bus',
@@ -7371,7 +7371,7 @@ class TestConstraints(unittest.TestCase):
             # Jacobian check
             pf.tests.utils.check_constraint_Jacobian(self,
                                                      constr,
-                                                     x0,
+                                                     x0+np.random.randn(x0.size)*0.2,
                                                      y0,
                                                      NUM_TRIALS,
                                                      TOL,
