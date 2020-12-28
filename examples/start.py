@@ -7,13 +7,20 @@
 #***************************************************#
 
 import sys
-sys.path.append('.')
 
 # Getting Started - Example
 
 import pfnet
 import numpy as np
 
-net = pfnet.PyParserMAT().parse(sys.argv[1])
+def main(args=None):
+    
+    if args is None:
+        args = sys.argv[1:]
 
-print(np.average([bus.degree for bus in net.buses]))
+    net = pfnet.PyParserMAT().parse(args[0])
+
+    print(np.average([bus.degree for bus in net.buses]))
+
+if __name__ == "__main__":
+    main()

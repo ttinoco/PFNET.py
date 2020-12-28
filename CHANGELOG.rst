@@ -1,6 +1,8 @@
 Staged
 ------
 * Added PyParserRAW that uses grg-pssedata and can parse and write .raw files v33.
+* Python 3 build support for windows using microsoft visual studio compiler.
+* Dropped Python 2 support.
 
 Version 1.3.5
 -------------

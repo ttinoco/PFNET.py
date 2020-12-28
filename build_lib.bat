@@ -6,10 +6,12 @@ IF NOT EXIST "lib\pfnet" (
   del pfnet.tar
   for /d %%G in ("pfnet*") do move "%%~G" pfnet
   cd pfnet
-  cmake -DCMAKE_INSTALL_PREFIX=.\build -G"MinGW Makefiles" -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE .
-  mingw32-make -j
-  mingw32-make install
-  copy build\lib\* ..\..\pfnet\
-  cd  ..\..\
-  python setup.py setopt --command build -o compiler -s mingw32
+  mkdir build
+  cd build
+  cmake -G"Visual Studio 16 2019" .. -A x64
+  cmake --build . --config Release
+  copy Release\*.lib ..\..\..\pfnet
+  copy Release\*.dll ..\..\..\pfnet
+  cd  ..\..\..
+  python setup.py setopt --command build -o compiler -s msvc
 )
