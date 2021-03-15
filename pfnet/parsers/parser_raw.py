@@ -210,7 +210,6 @@ class PyParserRAW(object):
                 line = net.get_branch(index)
                 line.set_as_line()
                 line.name = str(raw_branch.ckt).ljust(2)
-                line.in_service = raw_line.st > 0
                 line.bus_k = net.get_bus_from_number(raw_branch.i)
                 line.bus_m = net.get_bus_from_number(raw_branch.j)
                 line.b_k = raw_branch.bi+raw_branch.b/2
@@ -220,12 +219,12 @@ class PyParserRAW(object):
                 den = raw_branch.r**2 + raw_branch.x**2
                 line.g = raw_branch.r / den
                 line.b = -raw_branch.x / den
+                line.in_service = raw_branch.st > 0
                 line.ratingA = raw_branch.ratea/case.sbase
                 line.ratingB = raw_branch.rateb/case.sbase
                 line.ratingC = raw_branch.ratec/case.sbase
             elif isinstance(raw_branch, pd.struct.TwoWindingTransformer): # 2 Windings Transformers
                 tr = net.get_branch(index)     
-                tr.in_service = raw_branch.p1.stat > 0
                 tr.name = str(raw_branch.p1.ckt).ljust(2)
                 tr.bus_k = net.get_bus_from_number(raw_branch.p1.i)
                 tr.bus_m = net.get_bus_from_number(raw_branch.p1.j)
@@ -235,6 +234,7 @@ class PyParserRAW(object):
                 tr.phase = np.deg2rad(raw_branch.w1.ang)
                 tr.phase_max = np.deg2rad(raw_branch.w1.ang)
                 tr.phase_min = np.deg2rad(raw_branch.w1.ang)
+                tr.in_service = raw_branch.p1.stat > 0
                 if raw_branch.p1.cw == 1:
                     tr.ratio = raw_branch.w2.windv / raw_branch.w1.windv
                 else:
@@ -371,6 +371,7 @@ class PyParserRAW(object):
                 shunt.in_service = raw_shunt.stat > 0
                 shunt.b = raw_shunt.binit/case.sbase 
                 shunt.g = 0
+                shunt.reg_bus = net.get_bus_from_number(raw_shunt.swrem) if raw_shunt.swrem != 0 else None
                
                 b_step = [raw_shunt.b1, raw_shunt.b2, raw_shunt.b3, raw_shunt.b4,
                           raw_shunt.b5, raw_shunt.b6, raw_shunt.b7, raw_shunt.b8]
@@ -393,12 +394,10 @@ class PyParserRAW(object):
                 elif raw_shunt.modsw == 1:
                     shunt.set_as_switched_v()
                     shunt.set_as_discrete()
-                    shunt.reg_bus=shunt.bus
-                    
+
                 elif raw_shunt.modsw == 2:
                     shunt.set_as_switched_v()
                     shunt.set_as_continuous()
-                    shunt.reg_bus = shunt.bus
                     
                 elif raw_shunt.modsw == 3:
                     shunt.set_as_switched()
@@ -657,7 +656,7 @@ class PyParserRAW(object):
             if bus.is_in_service():
                 if bus.is_slack():
                     ide = 3
-                elif bus.reg_generators != []:
+                elif len(bus.generators) > 0:
                     ide = 2
                 else:
                     ide = 1
@@ -686,7 +685,7 @@ class PyParserRAW(object):
             index  = load.index 
             i = load.bus.number     
             ID = load.name
-            status = load.in_service
+            status = int(load.in_service)
             area = load.bus.area  
             zone = load.bus.zone 
             pl = load.comp_cp[0] * net.base_power
@@ -711,15 +710,15 @@ class PyParserRAW(object):
             qt = gen.Q_max * net.base_power
             qb = gen.Q_min * net.base_power
             vs = gen.reg_bus.v_set[0]
-            ireg = gen.reg_bus.number
+            ireg = gen.reg_bus.number if gen.reg_bus.number != i else 0
             mbase = net.base_power
             zr = 0. # Default Value
-            zx = 0. # Default Value
+            zx = 1. # Default Value
             rt = 0. # Default Value
             xt = 0. # Default Value
             gtap = 0. # Default Value
             stat = int(gen.in_service)
-            rmpct = 0. # Default Value
+            rmpct = 100. # Default Value
             pt = gen.P_max*net.base_power
             pb = gen.P_min*net.base_power
             o1 = o2 = o3 = o4 = 1 # Default Value
@@ -791,7 +790,7 @@ class PyParserRAW(object):
                     index_w1 = 1 
                     windv = 1/branch.ratio[0]
                     nomv = branch.bus_k.v_base
-                    ang = branch.phase[0]
+                    ang = np.rad2deg(branch.phase[0])
                     rata = branch.ratingA*net.base_power
                     ratb = branch.ratingB*net.base_power
                     ratc = branch.ratingC*net.base_power
@@ -816,7 +815,7 @@ class PyParserRAW(object):
                     elif branch.is_phase_shifter():
                         cod = 3 # Active Control
                         rma = np.rad2deg(branch.phase_max)
-                        rmi = np.rad2deg(branch.ratio_min)
+                        rmi = np.rad2deg(branch.phase_min)
                         vma = 1.1 # Default Value
                         vmi = 0.9 # Default Value
                     if branch.reg_bus == None:
@@ -950,30 +949,38 @@ class PyParserRAW(object):
                     modsw = 1 if shunt.is_discrete() else 2             
                 adjm = 1
                 stat = int(shunt.is_in_service())
-                vswhi = 1.0
-                vswlo = 1.0
+                vswhi = 1.03
+                vswlo = 0.97
                 swrem = shunt.reg_bus.number if shunt.reg_bus else 0
-                rmpct = 0
-                rmidnt = None
+                rmpct = 100
+                rmidnt = ""
                 binit = shunt.b[0] * net.base_power
                 
-                # Calculation of steps of the blocks
-                block_values = {} # b -> n
-                shunt.b_values.sort()
-                for b in shunt.b_values*net.base_power:
-                    if b == 0:
-                        continue
-                    if len(block_values.keys()) == 0:
-                        block_values[b] = 1
-                        continue
-                    for block in block_values.keys():
-                        if b%block <= 1e-4:
-                            block_values[block] = int(b//block)
-                        else: # is not in block_values
-                            block_values[block] = 1
+                # Calculation of steps of the blocks TODO: extract N values
+                b_list = []
+                for j, b in enumerate(shunt.b_values):
+                    if j+1 == len(shunt.b_values): continue # End loop in j-1    
+                    n = 1
+                    while not j + n >= len(shunt.b_values):
+                        dif = round(abs(shunt.b_values[j] - shunt.b_values[j+n]) * net.base_power, 2)
 
-                n1, n2, n3, n4, n5, n6, n7, n8 = list(block_values.values())+[0.]*(8-len(block_values))
-                b1, b2, b3, b4, b5, b6, b7, b8 = list(block_values.keys())+[0.]*(8-len(block_values))
+                        if len(b_list) == 0: # Valor inicial
+                            b_list.append(dif)
+                            break
+                        
+                        if min(b_list) > dif: # mirar siguiente valor/valor posible
+                            n += 1
+                        else:
+                            b_list.append(dif)
+                            break
+
+                b_list = list(set(b_list))
+                b_pos = list(filter(lambda x: x != 0 , [b if max(shunt.b_values) > 0 else 0 for b in b_list]))
+                b_neg = list(filter(lambda x: x != 0 , [-b if min(shunt.b_values) < 0 else 0 for b in b_list]))
+
+                n1, n2, n3, n4, n5, n6, n7, n8 = [9] * len(b_pos + b_neg) + [0] * (8 - len(b_pos + b_neg))
+                b1, b2, b3, b4, b5, b6, b7, b8 = b_neg + b_pos + [0] * (8 - len(b_pos + b_neg))
+
                 case_switched_shunts.append(pd.struct.SwitchedShunt(index, i, modsw, adjm, stat, vswhi,
                                                                     vswlo, swrem, rmpct, rmidnt, binit,
                                                                     n1, b1, n2, b2, n3, b3, n4, b4,
